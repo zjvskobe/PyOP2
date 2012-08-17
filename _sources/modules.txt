@@ -1,0 +1,7 @@
+pyop2
+=====
+
+.. toctree::
+   :maxdepth: 4
+
+   pyop2

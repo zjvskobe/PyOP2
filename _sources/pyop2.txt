@@ -1,0 +1,107 @@
+pyop2 Package
+=============
+
+:mod:`pyop2` Package
+--------------------
+
+.. automodule:: pyop2.__init__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`backends` Module
+----------------------
+
+.. automodule:: pyop2.backends
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`base` Module
+------------------
+
+.. automodule:: pyop2.base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`configuration` Module
+---------------------------
+
+.. automodule:: pyop2.configuration
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`cuda` Module
+------------------
+
+.. automodule:: pyop2.cuda
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`exceptions` Module
+------------------------
+
+.. automodule:: pyop2.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ffc_interface` Module
+---------------------------
+
+.. automodule:: pyop2.ffc_interface
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`op2` Module
+-----------------
+
+.. automodule:: pyop2.op2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`opencl` Module
+--------------------
+
+.. automodule:: pyop2.opencl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`runtime_base` Module
+--------------------------
+
+.. automodule:: pyop2.runtime_base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`sequential` Module
+------------------------
+
+.. automodule:: pyop2.sequential
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`utils` Module
+-------------------
+
+.. automodule:: pyop2.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`void` Module
+------------------
+
+.. automodule:: pyop2.void
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

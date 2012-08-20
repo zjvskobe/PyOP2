@@ -59,7 +59,6 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
- | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
@@ -71,6 +70,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  | <a href="#Z"><strong>Z</strong></a>
 
 </div>
@@ -123,12 +123,6 @@
   <dt><a href="pyop2.html#pyop2.opencl.Mat.assemble">assemble() (pyop2.opencl.Mat method)</a>
   </dt>
 
-      <dd><dl>
-
-  <dt><a href="pyop2.html#pyop2.runtime_base.Mat.assemble">(pyop2.runtime_base.Mat method)</a>
-  </dt>
-
-      </dl></dd>
   </dl></td>
 </tr></table>
 
@@ -146,35 +140,27 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.runtime_base.Arg.c_handle">c_handle (pyop2.runtime_base.Arg attribute)</a>
+  <dt><a href="pyop2.html#pyop2.base.DataCarrier.cdim">cdim (pyop2.base.DataCarrier attribute)</a>
   </dt>
 
       <dd><dl>
 
-  <dt><a href="pyop2.html#pyop2.runtime_base.Dat.c_handle">(pyop2.runtime_base.Dat attribute)</a>
+  <dt><a href="user.html#pyop2.Const.cdim">(pyop2.Const attribute)</a>
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.runtime_base.Map.c_handle">(pyop2.runtime_base.Map attribute)</a>
+  <dt><a href="user.html#pyop2.Dat.cdim">(pyop2.Dat attribute)</a>
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.runtime_base.Mat.c_handle">(pyop2.runtime_base.Mat attribute)</a>
+  <dt><a href="user.html#pyop2.Global.cdim">(pyop2.Global attribute)</a>
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.runtime_base.Set.c_handle">(pyop2.runtime_base.Set attribute)</a>
-  </dt>
-
-
-  <dt><a href="pyop2.html#pyop2.runtime_base.Sparsity.c_handle">(pyop2.runtime_base.Sparsity attribute)</a>
+  <dt><a href="user.html#pyop2.Mat.cdim">(pyop2.Mat attribute)</a>
   </dt>
 
       </dl></dd>
-
-  <dt><a href="pyop2.html#pyop2.base.DataCarrier.cdim">cdim (pyop2.base.DataCarrier attribute)</a>
-  </dt>
-
 
   <dt><a href="pyop2.html#pyop2.utils.validate_in.check_arg">check_arg() (pyop2.utils.validate_in method)</a>
   </dt>
@@ -205,23 +191,15 @@
   <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin.ClTypeInfo.clstring">clstring (pyop2.opencl.DeviceDataMixin.ClTypeInfo attribute)</a>
   </dt>
 
-
-  <dt><a href="pyop2.html#pyop2.base.Sparsity.cmaps">cmaps (pyop2.base.Sparsity attribute)</a>
-  </dt>
-
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
 
   <dt><a href="pyop2.html#pyop2.base.Kernel.code">code (pyop2.base.Kernel attribute)</a>
   </dt>
 
-
-  <dt><a href="pyop2.html#pyop2.base.Kernel.compile">compile() (pyop2.base.Kernel method)</a>
-  </dt>
-
       <dd><dl>
 
-  <dt><a href="pyop2.html#pyop2.cuda.Kernel.compile">(pyop2.cuda.Kernel method)</a>
+  <dt><a href="user.html#pyop2.Kernel.code">(pyop2.Kernel attribute)</a>
   </dt>
 
       </dl></dd>
@@ -234,10 +212,14 @@
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.base.Const">Const (class in pyop2.base)</a>
+  <dt><a href="user.html#pyop2.Const">Const (class in pyop2)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Const">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.cuda.Const">(class in pyop2.cuda)</a>
   </dt>
@@ -260,7 +242,7 @@
 
       </dl></dd>
 
-  <dt><a href="pyop2.html#pyop2.base.Const.NonUniqueNameError">Const.NonUniqueNameError</a>
+  <dt><a href="pyop2.html#pyop2.base.Const.NonUniqueNameError">Const.NonUniqueNameError</a>, <a href="user.html#pyop2.Const.NonUniqueNameError">[1]</a>
   </dt>
 
 
@@ -268,6 +250,22 @@
   </dt>
 
       <dd><dl>
+
+  <dt><a href="user.html#pyop2.Const.ctype">(pyop2.Const attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Dat.ctype">(pyop2.Dat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Global.ctype">(pyop2.Global attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Mat.ctype">(pyop2.Mat attribute)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.base.DataCarrier.ctype">(pyop2.base.DataCarrier attribute)</a>
   </dt>
@@ -280,10 +278,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.base.Dat">Dat (class in pyop2.base)</a>
+  <dt><a href="user.html#pyop2.Dat">Dat (class in pyop2)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Dat">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.cuda.Dat">(class in pyop2.cuda)</a>
   </dt>
@@ -310,6 +312,18 @@
   </dt>
 
       <dd><dl>
+
+  <dt><a href="user.html#pyop2.Const.data">(pyop2.Const attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Dat.data">(pyop2.Dat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Global.data">(pyop2.Global attribute)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.base.Const.data">(pyop2.base.Const attribute)</a>
   </dt>
@@ -349,6 +363,14 @@
 
       <dd><dl>
 
+  <dt><a href="user.html#pyop2.Dat.dataset">(pyop2.Dat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Map.dataset">(pyop2.Map attribute)</a>
+  </dt>
+
+
   <dt><a href="pyop2.html#pyop2.base.Map.dataset">(pyop2.base.Map attribute)</a>
   </dt>
 
@@ -386,10 +408,34 @@
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.base.DataCarrier.dim">dim (pyop2.base.DataCarrier attribute)</a>
+  <dt><a href="pyop2.html#pyop2.base.Dat.dim">dim (pyop2.base.Dat attribute)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="user.html#pyop2.Const.dim">(pyop2.Const attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Dat.dim">(pyop2.Dat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Global.dim">(pyop2.Global attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Map.dim">(pyop2.Map attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Mat.dim">(pyop2.Mat attribute)</a>
+  </dt>
+
+
+  <dt><a href="pyop2.html#pyop2.base.DataCarrier.dim">(pyop2.base.DataCarrier attribute)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.base.Map.dim">(pyop2.base.Map attribute)</a>
   </dt>
@@ -400,6 +446,14 @@
   </dt>
 
       <dd><dl>
+
+  <dt><a href="user.html#pyop2.Mat.dims">(pyop2.Mat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Sparsity.dims">(pyop2.Sparsity attribute)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.base.Sparsity.dims">(pyop2.base.Sparsity attribute)</a>
   </dt>
@@ -415,7 +469,19 @@
 
       <dd><dl>
 
-  <dt><a href="pyop2.html#pyop2.base.Map.dtype">(pyop2.base.Map attribute)</a>
+  <dt><a href="user.html#pyop2.Const.dtype">(pyop2.Const attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Dat.dtype">(pyop2.Dat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Global.dtype">(pyop2.Global attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Mat.dtype">(pyop2.Mat attribute)</a>
   </dt>
 
 
@@ -434,9 +500,15 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.op2.exit">exit() (in module pyop2.op2)</a>
+  <dt><a href="user.html#pyop2.exit">exit() (in module pyop2)</a>
   </dt>
 
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.op2.exit">(in module pyop2.op2)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
 
@@ -451,10 +523,6 @@
   <td style="width: 33%" valign="top"><dl>
 
   <dt><a href="pyop2.html#pyop2.cuda.DeviceDataMixin.fetch_data">fetch_data() (pyop2.cuda.DeviceDataMixin method)</a>
-  </dt>
-
-
-  <dt><a href="pyop2.html#pyop2.base.Const.format_for_c">format_for_c() (pyop2.base.Const method)</a>
   </dt>
 
   </dl></td>
@@ -494,10 +562,14 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.base.Global">Global (class in pyop2.base)</a>
+  <dt><a href="user.html#pyop2.Global">Global (class in pyop2)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Global">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.cuda.Global">(class in pyop2.cuda)</a>
   </dt>
@@ -518,33 +590,37 @@
   </dl></td>
 </tr></table>
 
-<h2 id="H">H</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%" valign="top"><dl>
-
-  <dt><a href="pyop2.html#pyop2.base.Kernel.handle">handle() (pyop2.base.Kernel method)</a>
-  </dt>
-
-      <dd><dl>
-
-  <dt><a href="pyop2.html#pyop2.cuda.Kernel.handle">(pyop2.cuda.Kernel method)</a>
-  </dt>
-
-      </dl></dd>
-  </dl></td>
-</tr></table>
-
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.base.i">i() (in module pyop2.base)</a>
+  <dt><a href="user.html#pyop2.i">i (in module pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.i">(in module pyop2.base)</a>
+  </dt>
+
+      </dl></dd>
+
+  <dt><a href="pyop2.html#pyop2.base.IdentityMap">IdentityMap (in module pyop2.base)</a>
   </dt>
 
 
   <dt><a href="pyop2.html#pyop2.base.Arg.idx">idx (pyop2.base.Arg attribute)</a>
   </dt>
 
+
+  <dt><a href="user.html#pyop2.INC">INC (in module pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.INC">(in module pyop2.base)</a>
+  </dt>
+
+      </dl></dd>
 
   <dt><a href="pyop2.html#pyop2.base.IterationIndex.index">index (pyop2.base.IterationIndex attribute)</a>
   </dt>
@@ -557,12 +633,18 @@
   <dt><a href="pyop2.html#pyop2.exceptions.IndexValueError">IndexValueError</a>
   </dt>
 
-
-  <dt><a href="pyop2.html#pyop2.op2.init">init() (in module pyop2.op2)</a>
-  </dt>
-
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+
+  <dt><a href="user.html#pyop2.init">init() (in module pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.op2.init">(in module pyop2.op2)</a>
+  </dt>
+
+      </dl></dd>
 
   <dt><a href="pyop2.html#pyop2.opencl.Kernel.instrument">instrument() (pyop2.opencl.Kernel method)</a>
   </dt>
@@ -601,6 +683,10 @@
 
       <dd><dl>
 
+  <dt><a href="user.html#pyop2.Map.iterset">(pyop2.Map attribute)</a>
+  </dt>
+
+
   <dt><a href="pyop2.html#pyop2.base.Map.iterset">(pyop2.base.Map attribute)</a>
   </dt>
 
@@ -612,10 +698,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.base.Kernel">Kernel (class in pyop2.base)</a>
+  <dt><a href="user.html#pyop2.Kernel">Kernel (class in pyop2)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Kernel">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.cuda.Kernel">(class in pyop2.cuda)</a>
   </dt>
@@ -656,10 +746,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.base.Map">Map (class in pyop2.base)</a>
+  <dt><a href="user.html#pyop2.Map">Map (class in pyop2)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Map">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.cuda.Map">(class in pyop2.cuda)</a>
   </dt>
@@ -686,16 +780,28 @@
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.exceptions.MapTypeError">MapTypeError</a>
-  </dt>
-
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-
-  <dt><a href="pyop2.html#pyop2.base.Mat">Mat (class in pyop2.base)</a>
+  <dt><a href="pyop2.html#pyop2.base.Sparsity.maps">maps (pyop2.base.Sparsity attribute)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="user.html#pyop2.Sparsity.maps">(pyop2.Sparsity attribute)</a>
+  </dt>
+
+      </dl></dd>
+
+  <dt><a href="pyop2.html#pyop2.exceptions.MapTypeError">MapTypeError</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Mat">Mat (class in pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Mat">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.cuda.Mat">(class in pyop2.cuda)</a>
   </dt>
@@ -717,10 +823,32 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
 
   <dt><a href="pyop2.html#pyop2.exceptions.MatTypeError">MatTypeError</a>
   </dt>
 
+
+  <dt><a href="user.html#pyop2.MAX">MAX (in module pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.MAX">(in module pyop2.base)</a>
+  </dt>
+
+      </dl></dd>
+
+  <dt><a href="user.html#pyop2.MIN">MIN (in module pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.MIN">(in module pyop2.base)</a>
+  </dt>
+
+      </dl></dd>
 
   <dt><a href="pyop2.html#pyop2.exceptions.ModeValueError">ModeValueError</a>
   </dt>
@@ -736,6 +864,38 @@
   </dt>
 
       <dd><dl>
+
+  <dt><a href="user.html#pyop2.Const.name">(pyop2.Const attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Dat.name">(pyop2.Dat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Global.name">(pyop2.Global attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Kernel.name">(pyop2.Kernel attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Map.name">(pyop2.Map attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Mat.name">(pyop2.Mat attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Set.name">(pyop2.Set attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Sparsity.name">(pyop2.Sparsity attribute)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.base.IterationSpace.name">(pyop2.base.IterationSpace attribute)</a>
   </dt>
@@ -780,10 +940,6 @@
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.base.Sparsity.nmaps">nmaps (pyop2.base.Sparsity attribute)</a>
-  </dt>
-
-
   <dt><a href="pyop2.html#pyop2.opencl.OpPlan.nshared">nshared (pyop2.opencl.OpPlan attribute)</a>
   </dt>
 
@@ -810,7 +966,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.backends.par_loop">par_loop() (in module pyop2.backends)</a>
+  <dt><a href="user.html#pyop2.par_loop">par_loop() (in module pyop2)</a>
   </dt>
 
       <dd><dl>
@@ -848,6 +1004,10 @@
   </dt>
 
 
+  <dt><a href="user.html#module-pyop2">pyop2 (module)</a>
+  </dt>
+
+
   <dt><a href="pyop2.html#module-pyop2.__init__">pyop2.__init__ (module)</a>
   </dt>
 
@@ -863,12 +1023,12 @@
   <dt><a href="pyop2.html#module-pyop2.configuration">pyop2.configuration (module)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
 
   <dt><a href="pyop2.html#module-pyop2.cuda">pyop2.cuda (module)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
 
   <dt><a href="pyop2.html#module-pyop2.exceptions">pyop2.exceptions (module)</a>
   </dt>
@@ -908,6 +1068,16 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
+  <dt><a href="user.html#pyop2.READ">READ (in module pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.READ">(in module pyop2.base)</a>
+  </dt>
+
+      </dl></dd>
+
   <dt><a href="pyop2.html#pyop2.opencl.OpPlan.reclaim">reclaim() (pyop2.opencl.OpPlan method)</a>
   </dt>
 
@@ -915,6 +1085,12 @@
   <dt><a href="pyop2.html#pyop2.base.Const.remove_from_namespace">remove_from_namespace() (pyop2.base.Const method)</a>
   </dt>
 
+      <dd><dl>
+
+  <dt><a href="user.html#pyop2.Const.remove_from_namespace">(pyop2.Const method)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
 
@@ -922,9 +1098,15 @@
   </dt>
 
 
-  <dt><a href="pyop2.html#pyop2.base.Sparsity.rmaps">rmaps (pyop2.base.Sparsity attribute)</a>
+  <dt><a href="user.html#pyop2.RW">RW (in module pyop2)</a>
   </dt>
 
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.RW">(in module pyop2.base)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
 </tr></table>
 
@@ -932,10 +1114,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
 
-  <dt><a href="pyop2.html#pyop2.base.Set">Set (class in pyop2.base)</a>
+  <dt><a href="user.html#pyop2.Set">Set (class in pyop2)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Set">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.op2.Set">(class in pyop2.op2)</a>
   </dt>
@@ -971,6 +1157,10 @@
 
       <dd><dl>
 
+  <dt><a href="user.html#pyop2.Set.size">(pyop2.Set attribute)</a>
+  </dt>
+
+
   <dt><a href="pyop2.html#pyop2.base.Set.size">(pyop2.base.Set attribute)</a>
   </dt>
 
@@ -985,8 +1175,14 @@
   <dt><a href="pyop2.html#pyop2.base.Dat.soa">soa (pyop2.base.Dat attribute)</a>
   </dt>
 
+      <dd><dl>
 
-  <dt><a href="pyop2.html#pyop2.backends.solve">solve() (in module pyop2.backends)</a>
+  <dt><a href="user.html#pyop2.Dat.soa">(pyop2.Dat attribute)</a>
+  </dt>
+
+      </dl></dd>
+
+  <dt><a href="user.html#pyop2.solve">solve() (in module pyop2)</a>
   </dt>
 
       <dd><dl>
@@ -1004,10 +1200,14 @@
 
       </dl></dd>
 
-  <dt><a href="pyop2.html#pyop2.base.Sparsity">Sparsity (class in pyop2.base)</a>
+  <dt><a href="user.html#pyop2.Sparsity">Sparsity (class in pyop2)</a>
   </dt>
 
       <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.Sparsity">(class in pyop2.base)</a>
+  </dt>
+
 
   <dt><a href="pyop2.html#pyop2.op2.Sparsity">(class in pyop2.op2)</a>
   </dt>
@@ -1021,6 +1221,12 @@
   <dt><a href="pyop2.html#pyop2.base.Mat.sparsity">sparsity (pyop2.base.Mat attribute)</a>
   </dt>
 
+      <dd><dl>
+
+  <dt><a href="user.html#pyop2.Mat.sparsity">(pyop2.Mat attribute)</a>
+  </dt>
+
+      </dl></dd>
 
   <dt><a href="pyop2.html#pyop2.exceptions.SparsityTypeError">SparsityTypeError</a>
   </dt>
@@ -1071,6 +1277,14 @@
 
       <dd><dl>
 
+  <dt><a href="user.html#pyop2.Map.values">(pyop2.Map attribute)</a>
+  </dt>
+
+
+  <dt><a href="user.html#pyop2.Mat.values">(pyop2.Mat attribute)</a>
+  </dt>
+
+
   <dt><a href="pyop2.html#pyop2.base.Mat.values">(pyop2.base.Mat attribute)</a>
   </dt>
 
@@ -1087,6 +1301,22 @@
   <dt><a href="pyop2.html#pyop2.opencl.Kernel.Instrument.visit_ParamList">visit_ParamList() (pyop2.opencl.Kernel.Instrument method)</a>
   </dt>
 
+  </dl></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+
+  <dt><a href="user.html#pyop2.WRITE">WRITE (in module pyop2)</a>
+  </dt>
+
+      <dd><dl>
+
+  <dt><a href="pyop2.html#pyop2.base.WRITE">(in module pyop2.base)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
 </tr></table>
 

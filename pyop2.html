@@ -271,13 +271,15 @@
 <dt id="pyop2.base.Dat">
 <em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Dat</tt><big>(</big><em>dataset</em>, <em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em>, <em>soa=None</em><big>)</big><a class="headerlink" href="#pyop2.base.Dat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.DataCarrier" title="pyop2.base.DataCarrier"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.DataCarrier</span></tt></a></p>
-<p>OP2 vector data. A <tt class="docutils literal"><span class="pre">Dat</span></tt> holds a <tt class="docutils literal"><span class="pre">dim</span></tt> values for every member of a <a class="reference internal" href="#pyop2.base.Set" title="pyop2.base.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>.</p>
+<p>OP2 vector data. A <tt class="docutils literal"><span class="pre">Dat</span></tt> holds <tt class="docutils literal"><span class="pre">dim</span></tt> values for every member of a <a class="reference internal" href="#pyop2.base.Set" title="pyop2.base.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>.</p>
 <p>When a <tt class="docutils literal"><span class="pre">Dat</span></tt> is passed to <tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt>, the map via which
 indirection occurs and the access descriptor are passed by
 <cite>calling</cite> the <tt class="docutils literal"><span class="pre">Dat</span></tt>. For instance, if a <tt class="docutils literal"><span class="pre">Dat</span></tt> named <tt class="docutils literal"><span class="pre">D</span></tt> is
 to be accessed for reading via a <a class="reference internal" href="#pyop2.base.Map" title="pyop2.base.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> named <tt class="docutils literal"><span class="pre">M</span></tt>, this is
-accomplished by::
-D(M, pyop2.READ)</p>
+accomplished by:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">D</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The <a class="reference internal" href="#pyop2.base.Map" title="pyop2.base.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> through which indirection occurs can be indexed
 using the index notation described in the documentation for the
 <a class="reference internal" href="#pyop2.base.Map" title="pyop2.base.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> class. Direct access to a Dat can be accomplished by
@@ -340,6 +342,13 @@ using the <a class="reference internal" href="#pyop2.base.IdentityMap" title="py
 <em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Global</tt><big>(</big><em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.base.Global" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.DataCarrier" title="pyop2.base.DataCarrier"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.DataCarrier</span></tt></a></p>
 <p>OP2 global value.</p>
+<p>When a <tt class="docutils literal"><span class="pre">Global</span></tt> is passed to a <tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt>, the access
+descriptor is passed by <cite>calling</cite> the <tt class="docutils literal"><span class="pre">Global</span></tt>.  For example, if
+a <tt class="docutils literal"><span class="pre">Global</span></tt> named <tt class="docutils literal"><span class="pre">G</span></tt> is to be accessed for reading, this is
+accomplished by:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">G</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="attribute">
 <dt id="pyop2.base.Global.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pyop2.base.Global.data" title="Permalink to this definition">¶</a></dt>
@@ -364,9 +373,8 @@ using the <a class="reference internal" href="#pyop2.base.IdentityMap" title="py
 <dt id="pyop2.base.i">
 <tt class="descclassname">pyop2.base.</tt><tt class="descname">i</tt><a class="headerlink" href="#pyop2.base.i" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shorthand for constructing <a class="reference internal" href="#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt></a> objects.</p>
-<blockquote>
-<div>i[idx]</div></blockquote>
-<p>builds an <a class="reference internal" href="#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt></a> object for which the <cite>index</cite> property is <cite>idx</cite></p>
+<p><tt class="docutils literal"><span class="pre">i[idx]</span></tt> builds an <a class="reference internal" href="#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt></a> object for which the <cite>index</cite>
+property is <cite>idx</cite>.</p>
 </dd></dl>
 
 <dl class="class">
@@ -799,13 +807,15 @@ are <tt class="docutils literal"><span class="pre">&quot;sequential&quot;</span>
 <dt id="pyop2.op2.Dat">
 <em class="property">class </em><tt class="descclassname">pyop2.op2.</tt><tt class="descname">Dat</tt><big>(</big><em>dataset</em>, <em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em>, <em>soa=None</em><big>)</big><a class="headerlink" href="#pyop2.op2.Dat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Dat</span></tt></a></p>
-<p>OP2 vector data. A <tt class="docutils literal"><span class="pre">Dat</span></tt> holds a <tt class="docutils literal"><span class="pre">dim</span></tt> values for every member of a <a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>.</p>
+<p>OP2 vector data. A <tt class="docutils literal"><span class="pre">Dat</span></tt> holds <tt class="docutils literal"><span class="pre">dim</span></tt> values for every member of a <a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>.</p>
 <p>When a <tt class="docutils literal"><span class="pre">Dat</span></tt> is passed to <a class="reference internal" href="#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>, the map via which
 indirection occurs and the access descriptor are passed by
 <cite>calling</cite> the <tt class="docutils literal"><span class="pre">Dat</span></tt>. For instance, if a <tt class="docutils literal"><span class="pre">Dat</span></tt> named <tt class="docutils literal"><span class="pre">D</span></tt> is
 to be accessed for reading via a <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> named <tt class="docutils literal"><span class="pre">M</span></tt>, this is
-accomplished by::
-D(M, pyop2.READ)</p>
+accomplished by:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">D</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> through which indirection occurs can be indexed
 using the index notation described in the documentation for the
 <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> class. Direct access to a Dat can be accomplished by
@@ -843,6 +853,13 @@ details.</p>
 <em class="property">class </em><tt class="descclassname">pyop2.op2.</tt><tt class="descname">Global</tt><big>(</big><em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.op2.Global" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.Global" title="pyop2.base.Global"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Global</span></tt></a></p>
 <p>OP2 global value.</p>
+<p>When a <tt class="docutils literal"><span class="pre">Global</span></tt> is passed to a <a class="reference internal" href="#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>, the access
+descriptor is passed by <cite>calling</cite> the <tt class="docutils literal"><span class="pre">Global</span></tt>.  For example, if
+a <tt class="docutils literal"><span class="pre">Global</span></tt> named <tt class="docutils literal"><span class="pre">G</span></tt> is to be accessed for reading, this is
+accomplished by:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">G</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="class">

@@ -551,7 +551,7 @@ configuration options.</p>
 # configuration values can be overiden upon calling 'configure'
 cfg.configure(backend='opencl', debug=6)
 # or using a specific yaml configuration file
-cfg.configure(opconfig='./conf-alt.yaml')
+cfg.configure(config='./conf-alt.yaml')
 
 # configuration value access:
 cfg['backend'] :&gt; 'opencl'
@@ -562,9 +562,9 @@ cfg.backend :&gt; 'opencl'</pre>
 <blockquote>
 <div><ol class="arabic simple">
 <li>Named parameters specified at configuration.</li>
-<li>From <cite>opconfig</cite> configuration file if specified</li>
+<li>From <cite>config</cite> configuration file if specified</li>
 <li>From user configuration <cite>./pyop2.yaml</cite> (relative to working directory)
-if present and no <cite>opconfig</cite> specified</li>
+if present and no <cite>config</cite> specified</li>
 <li>From default value defined by pyop2 (<cite>assets/default.yaml</cite>)</li>
 <li>KeyError</li>
 </ol>
@@ -616,7 +616,7 @@ if present and no <cite>opconfig</cite> specified</li>
 <dl class="class">
 <dt id="pyop2.cuda.Global">
 <em class="property">class </em><tt class="descclassname">pyop2.cuda.</tt><tt class="descname">Global</tt><big>(</big><em>dim</em>, <em>data</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.cuda.Global" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.base.Global" title="pyop2.base.Global"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Global</span></tt></a>, <a class="reference internal" href="#pyop2.cuda.DeviceDataMixin" title="pyop2.cuda.DeviceDataMixin"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.cuda.DeviceDataMixin</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.Global" title="pyop2.runtime_base.Global"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.Global</span></tt></a>, <a class="reference internal" href="#pyop2.cuda.DeviceDataMixin" title="pyop2.cuda.DeviceDataMixin"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.cuda.DeviceDataMixin</span></tt></a></p>
 <dl class="attribute">
 <dt id="pyop2.cuda.Global.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pyop2.cuda.Global.data" title="Permalink to this definition">¶</a></dt>
@@ -900,7 +900,7 @@ See also <tt class="xref py py-data docutils literal"><span class="pre">i</span>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>kernel</strong> &#8211; The <a class="reference internal" href="#pyop2.op2.Kernel" title="pyop2.op2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> to be executed.</li>
-<li><strong>it_space</strong> &#8211; The iteration space over which the kernel should be executed. The primary iteration space will be a <a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>. If a local iteration space is required, then this can be provided in brackets. For example, to iterate over a <a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> named <tt class="docutils literal"><span class="pre">elements</span></tt> assembling a 3x3 local matrix at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt> argument should be <tt class="docutils literal"><span class="pre">elements(3,3)</span></tt>.</li>
+<li><strong>it_space</strong> &#8211; The iteration space over which the kernel should be executed. The primary iteration space will be a <a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>. If a local iteration space is required, then this can be provided in brackets. The local iteration space may be either rank-1 or rank-2. For example, to iterate over a <a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> named <tt class="docutils literal"><span class="pre">elements</span></tt> assembling a 3x3 local matrix at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt> argument should be <tt class="docutils literal"><span class="pre">elements(3,3)</span></tt>. To iterate over <tt class="docutils literal"><span class="pre">elements</span></tt> assembling a dimension-3 local vector at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt> argument should be <tt class="docutils literal"><span class="pre">elements(3)</span></tt>.</li>
 <li><strong>*args</strong> &#8211; One or more objects of type <a class="reference internal" href="#pyop2.op2.Global" title="pyop2.op2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.op2.Dat" title="pyop2.op2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or <a class="reference internal" href="#pyop2.op2.Mat" title="pyop2.op2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> which are the global data structures from and to which the kernel will read and write.</li>
 </ul>
 </td>
@@ -953,6 +953,7 @@ passed to the kernel as a vector.</p>
 </div>
 <div class="section" id="module-pyop2.opencl">
 <span id="opencl-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">opencl</span></tt> Module<a class="headerlink" href="#module-pyop2.opencl" title="Permalink to this headline">¶</a></h2>
+<p>OP2 OpenCL backend.</p>
 <dl class="class">
 <dt id="pyop2.opencl.Kernel">
 <em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Kernel" title="Permalink to this definition">¶</a></dt>
@@ -988,6 +989,11 @@ passed to the kernel as a vector.</p>
 <tt class="descclassname">Kernel.</tt><tt class="descname">instrument</tt><big>(</big><em>instrument</em>, <em>constants</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Kernel.instrument" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="pyop2.opencl.Kernel.md5">
+<tt class="descclassname">Kernel.</tt><tt class="descname">md5</tt><a class="headerlink" href="#pyop2.opencl.Kernel.md5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1000,7 +1006,8 @@ passed to the kernel as a vector.</p>
 <dl class="class">
 <dt id="pyop2.opencl.DeviceDataMixin">
 <em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">DeviceDataMixin</tt><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Codegen mixin for datatype and literal translation.</p>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Codegen mixin for datatype and literal translation.</p>
 <dl class="class">
 <dt id="pyop2.opencl.DeviceDataMixin.ClTypeInfo">
 <em class="property">class </em><tt class="descname">ClTypeInfo</tt><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin.ClTypeInfo" title="Permalink to this definition">¶</a></dt>
@@ -1032,6 +1039,11 @@ passed to the kernel as a vector.</p>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="pyop2.opencl.one_time">
+<tt class="descclassname">pyop2.opencl.</tt><tt class="descname">one_time</tt><big>(</big><em>func</em><big>)</big><a class="headerlink" href="#pyop2.opencl.one_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="class">
 <dt id="pyop2.opencl.Dat">
 <em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Dat</tt><big>(</big><em>dataset</em>, <em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em>, <em>soa=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Dat" title="Permalink to this definition">¶</a></dt>
@@ -1059,11 +1071,16 @@ passed to the kernel as a vector.</p>
 <tt class="descname">assemble</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.Mat.assemble" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="pyop2.opencl.Mat.cdim">
+<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.opencl.Mat.cdim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.opencl.Const">
-<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Const</tt><big>(</big><em>dim</em>, <em>data</em>, <em>name</em>, <em>dtype=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Const" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Const</tt><big>(</big><em>dim</em>, <em>data=None</em>, <em>name=None</em>, <em>dtype=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Const" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.Const" title="pyop2.runtime_base.Const"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.Const</span></tt></a>, <a class="reference internal" href="#pyop2.opencl.DeviceDataMixin" title="pyop2.opencl.DeviceDataMixin"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.opencl.DeviceDataMixin</span></tt></a></p>
 <p>OP2 OpenCL data that is constant for any element of any set.</p>
 <dl class="attribute">
@@ -1075,8 +1092,8 @@ passed to the kernel as a vector.</p>
 
 <dl class="class">
 <dt id="pyop2.opencl.Global">
-<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Global</tt><big>(</big><em>dim</em>, <em>data</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Global" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.base.Global" title="pyop2.base.Global"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Global</span></tt></a>, <a class="reference internal" href="#pyop2.opencl.DeviceDataMixin" title="pyop2.opencl.DeviceDataMixin"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.opencl.DeviceDataMixin</span></tt></a></p>
+<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Global</tt><big>(</big><em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Global" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.Global" title="pyop2.runtime_base.Global"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.Global</span></tt></a>, <a class="reference internal" href="#pyop2.opencl.DeviceDataMixin" title="pyop2.opencl.DeviceDataMixin"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.opencl.DeviceDataMixin</span></tt></a></p>
 <p>OP2 OpenCL global value.</p>
 <dl class="attribute">
 <dt id="pyop2.opencl.Global.data">
@@ -1087,9 +1104,14 @@ passed to the kernel as a vector.</p>
 
 <dl class="class">
 <dt id="pyop2.opencl.Map">
-<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>dim</em>, <em>values</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Map" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>dim</em>, <em>values=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.Map" title="pyop2.runtime_base.Map"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.Map</span></tt></a></p>
 <p>OP2 OpenCL map, a relation between two Sets.</p>
+<dl class="attribute">
+<dt id="pyop2.opencl.Map.md5">
+<tt class="descname">md5</tt><a class="headerlink" href="#pyop2.opencl.Map.md5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1101,17 +1123,17 @@ passed to the kernel as a vector.</p>
 <tt class="descname">get_plan</tt><big>(</big><em>parloop</em>, <em>**kargs</em><big>)</big><a class="headerlink" href="#pyop2.opencl.OpPlanCache.get_plan" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="pyop2.opencl.OpPlanCache.nentries">
+<tt class="descname">nentries</tt><a class="headerlink" href="#pyop2.opencl.OpPlanCache.nentries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.opencl.OpPlan">
 <em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">OpPlan</tt><big>(</big><em>parloop</em>, <em>core_plan</em><big>)</big><a class="headerlink" href="#pyop2.opencl.OpPlan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper proxy for core.op_plan.</p>
-<dl class="method">
-<dt id="pyop2.opencl.OpPlan.reclaim">
-<tt class="descname">reclaim</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.OpPlan.reclaim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="pyop2.opencl.OpPlan.load">
 <tt class="descname">load</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.OpPlan.load" title="Permalink to this definition">¶</a></dt>
@@ -1146,7 +1168,7 @@ passed to the kernel as a vector.</p>
 
 <dl class="class">
 <dt id="pyop2.opencl.DatMapPair">
-<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">DatMapPair</tt><big>(</big><em>dat</em>, <em>map</em><big>)</big><a class="headerlink" href="#pyop2.opencl.DatMapPair" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">DatMapPair</tt><big>(</big><em>data</em>, <em>map</em><big>)</big><a class="headerlink" href="#pyop2.opencl.DatMapPair" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Dummy class needed for codegen
 (could do without but would obfuscate codegen templates)</p>
@@ -1160,6 +1182,16 @@ passed to the kernel as a vector.</p>
 <dl class="method">
 <dt id="pyop2.opencl.ParLoopCall.dump_gen_code">
 <tt class="descname">dump_gen_code</tt><big>(</big><em>src</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.dump_gen_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.opencl.ParLoopCall.launch_configuration">
+<tt class="descname">launch_configuration</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.launch_configuration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.opencl.ParLoopCall.codegen">
+<tt class="descname">codegen</tt><big>(</big><em>conf</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.codegen" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1198,6 +1230,26 @@ passed to the kernel as a vector.</p>
 <dl class="function">
 <dt id="pyop2.opencl.par_loop">
 <tt class="descclassname">pyop2.opencl.</tt><tt class="descname">par_loop</tt><big>(</big><em>kernel</em>, <em>it_space</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.opencl.par_loop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.opencl.empty_plan_cache">
+<tt class="descclassname">pyop2.opencl.</tt><tt class="descname">empty_plan_cache</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.empty_plan_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.opencl.ncached_plans">
+<tt class="descclassname">pyop2.opencl.</tt><tt class="descname">ncached_plans</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ncached_plans" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.opencl.empty_gencode_cache">
+<tt class="descclassname">pyop2.opencl.</tt><tt class="descname">empty_gencode_cache</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.empty_gencode_cache" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.opencl.ncached_gencode">
+<tt class="descclassname">pyop2.opencl.</tt><tt class="descname">ncached_gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ncached_gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -1249,6 +1301,13 @@ passed to the kernel as a vector.</p>
 <em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.runtime_base.Const.fromhdf5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.runtime_base.Global">
+<em class="property">class </em><tt class="descclassname">pyop2.runtime_base.</tt><tt class="descname">Global</tt><big>(</big><em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.runtime_base.Global" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.base.Global" title="pyop2.base.Global"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Global</span></tt></a></p>
+<p>OP2 Global object.</p>
 </dd></dl>
 
 <dl class="class">

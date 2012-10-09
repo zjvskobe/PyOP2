@@ -303,6 +303,12 @@ using the <a class="reference internal" href="#pyop2.base.IdentityMap" title="py
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.base.Dat.data_ro">
+<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.base.Dat.data_ro" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array containing the data values.  Read-only</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.base.Dat.dim">
 <tt class="descname">dim</tt><a class="headerlink" href="#pyop2.base.Dat.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of values at each member of the dataset.</p>
@@ -535,6 +541,22 @@ matrix has more than around 10000 degrees of freedom.</p>
 <dd><p>String containing the c code for this kernel routine. This
 code must conform to the OP2 user kernel API.</p>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.base.ParLoop">
+<em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">ParLoop</tt><big>(</big><em>kernel</em>, <em>itspace</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.base.ParLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="pyop2.base.ParLoop.generate_code">
+<tt class="descname">generate_code</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.ParLoop.generate_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.base.ParLoop.args">
+<tt class="descname">args</tt><a class="headerlink" href="#pyop2.base.ParLoop.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -989,11 +1011,6 @@ passed to the kernel as a vector.</p>
 <tt class="descclassname">Kernel.</tt><tt class="descname">instrument</tt><big>(</big><em>instrument</em>, <em>constants</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Kernel.instrument" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="pyop2.opencl.Kernel.md5">
-<tt class="descclassname">Kernel.</tt><tt class="descname">md5</tt><a class="headerlink" href="#pyop2.opencl.Kernel.md5" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -1012,11 +1029,23 @@ passed to the kernel as a vector.</p>
 <dt id="pyop2.opencl.DeviceDataMixin.ClTypeInfo">
 <em class="property">class </em><tt class="descname">ClTypeInfo</tt><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin.ClTypeInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt></p>
-<p>ClTypeInfo(clstring, zero)</p>
+<p>ClTypeInfo(clstring, zero, min, max)</p>
 <dl class="attribute">
 <dt id="pyop2.opencl.DeviceDataMixin.ClTypeInfo.clstring">
 <tt class="descname">clstring</tt><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin.ClTypeInfo.clstring" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.opencl.DeviceDataMixin.ClTypeInfo.max">
+<tt class="descname">max</tt><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin.ClTypeInfo.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.opencl.DeviceDataMixin.ClTypeInfo.min">
+<tt class="descname">min</tt><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin.ClTypeInfo.min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1029,7 +1058,7 @@ passed to the kernel as a vector.</p>
 
 <dl class="attribute">
 <dt id="pyop2.opencl.DeviceDataMixin.CL_TYPES">
-<tt class="descclassname">DeviceDataMixin.</tt><tt class="descname">CL_TYPES</tt><em class="property"> = {dtype('float32'): ClTypeInfo(clstring='float', zero='0.0f'), dtype('int32'): ClTypeInfo(clstring='int', zero='0'), dtype('uint16'): ClTypeInfo(clstring='ushort', zero='0'), dtype('int64'): ClTypeInfo(clstring='long', zero='0l'), dtype('float64'): ClTypeInfo(clstring='double', zero='0.0'), dtype('uint64'): ClTypeInfo(clstring='ulong', zero='0ul'), dtype('uint8'): ClTypeInfo(clstring='uchar', zero='0'), dtype('int8'): ClTypeInfo(clstring='char', zero='0'), dtype('uint32'): ClTypeInfo(clstring='uint', zero='0u'), dtype('int16'): ClTypeInfo(clstring='short', zero='0')}</em><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin.CL_TYPES" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">DeviceDataMixin.</tt><tt class="descname">CL_TYPES</tt><em class="property"> = {dtype('float32'): ClTypeInfo(clstring='float', zero='0.0f', min='-3.4028235e+38f', max='3.4028235e+38f'), dtype('int32'): ClTypeInfo(clstring='int', zero='0', min='-2147483647', max='2147483647'), dtype('uint16'): ClTypeInfo(clstring='ushort', zero='0', min='0', max='65535'), dtype('int64'): ClTypeInfo(clstring='long', zero='0l', min='-9223372036854775807l', max='9223372036854775807l'), dtype('float64'): ClTypeInfo(clstring='double', zero='0.0', min='-1.7976931348623157e+308', max='1.7976931348623157e+308'), dtype('uint64'): ClTypeInfo(clstring='ulong', zero='0ul', min='0ul', max='18446744073709551615ul'), dtype('uint8'): ClTypeInfo(clstring='uchar', zero='0', min='0', max='255'), dtype('int8'): ClTypeInfo(clstring='char', zero='0', min='-127', max='127'), dtype('uint32'): ClTypeInfo(clstring='uint', zero='0u', min='0u', max='4294967295u'), dtype('int16'): ClTypeInfo(clstring='short', zero='0', min='-32767', max='32767')}</em><a class="headerlink" href="#pyop2.opencl.DeviceDataMixin.CL_TYPES" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1052,6 +1081,11 @@ passed to the kernel as a vector.</p>
 <dl class="attribute">
 <dt id="pyop2.opencl.Dat.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pyop2.opencl.Dat.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.opencl.Dat.data_ro">
+<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.opencl.Dat.data_ro" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1175,33 +1209,33 @@ passed to the kernel as a vector.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="pyop2.opencl.ParLoopCall">
-<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">ParLoopCall</tt><big>(</big><em>kernel</em>, <em>it_space</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dt id="pyop2.opencl.ParLoop">
+<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">ParLoop</tt><big>(</big><em>kernel</em>, <em>it_space</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.ParLoop" title="pyop2.runtime_base.ParLoop"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.ParLoop</span></tt></a></p>
 <p>Invocation of an OP2 OpenCL kernel with an access descriptor</p>
 <dl class="method">
-<dt id="pyop2.opencl.ParLoopCall.dump_gen_code">
-<tt class="descname">dump_gen_code</tt><big>(</big><em>src</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.dump_gen_code" title="Permalink to this definition">¶</a></dt>
+<dt id="pyop2.opencl.ParLoop.dump_gen_code">
+<tt class="descname">dump_gen_code</tt><big>(</big><em>src</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoop.dump_gen_code" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pyop2.opencl.ParLoopCall.launch_configuration">
-<tt class="descname">launch_configuration</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.launch_configuration" title="Permalink to this definition">¶</a></dt>
+<dt id="pyop2.opencl.ParLoop.launch_configuration">
+<tt class="descname">launch_configuration</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoop.launch_configuration" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pyop2.opencl.ParLoopCall.codegen">
-<tt class="descname">codegen</tt><big>(</big><em>conf</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.codegen" title="Permalink to this definition">¶</a></dt>
+<dt id="pyop2.opencl.ParLoop.codegen">
+<tt class="descname">codegen</tt><big>(</big><em>conf</em><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoop.codegen" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pyop2.opencl.ParLoopCall.compute">
-<tt class="descname">compute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.compute" title="Permalink to this definition">¶</a></dt>
+<dt id="pyop2.opencl.ParLoop.compute">
+<tt class="descname">compute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoop.compute" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pyop2.opencl.ParLoopCall.is_direct">
-<tt class="descname">is_direct</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoopCall.is_direct" title="Permalink to this definition">¶</a></dt>
+<dt id="pyop2.opencl.ParLoop.is_direct">
+<tt class="descname">is_direct</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ParLoop.is_direct" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1242,15 +1276,15 @@ passed to the kernel as a vector.</p>
 <tt class="descclassname">pyop2.opencl.</tt><tt class="descname">ncached_plans</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ncached_plans" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="pyop2.opencl.empty_gencode_cache">
-<tt class="descclassname">pyop2.opencl.</tt><tt class="descname">empty_gencode_cache</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.empty_gencode_cache" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pyop2.opencl.ncached_gencode">
-<tt class="descclassname">pyop2.opencl.</tt><tt class="descname">ncached_gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.opencl.ncached_gencode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+</div>
+<div class="section" id="module-pyop2.profiling">
+<span id="profiling-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">profiling</span></tt> Module<a class="headerlink" href="#module-pyop2.profiling" title="Permalink to this headline">¶</a></h2>
+<p>Profiling classes/functions.</p>
+<dl class="class">
+<dt id="pyop2.profiling.profile">
+<em class="property">class </em><tt class="descclassname">pyop2.profiling.</tt><tt class="descname">profile</tt><big>(</big><em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.profiling.profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to profile function calls.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-pyop2.runtime_base">
@@ -1351,6 +1385,17 @@ strong boundary conditions.</p>
 
 </dd></dl>
 
+<dl class="class">
+<dt id="pyop2.runtime_base.ParLoop">
+<em class="property">class </em><tt class="descclassname">pyop2.runtime_base.</tt><tt class="descname">ParLoop</tt><big>(</big><em>kernel</em>, <em>itspace</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.runtime_base.ParLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.base.ParLoop" title="pyop2.base.ParLoop"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.ParLoop</span></tt></a></p>
+<dl class="method">
+<dt id="pyop2.runtime_base.ParLoop.compute">
+<tt class="descname">compute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.runtime_base.ParLoop.compute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-pyop2.sequential">
 <span id="sequential-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">sequential</span></tt> Module<a class="headerlink" href="#module-pyop2.sequential" title="Permalink to this headline">¶</a></h2>
@@ -1359,6 +1404,22 @@ strong boundary conditions.</p>
 <dt id="pyop2.sequential.par_loop">
 <tt class="descclassname">pyop2.sequential.</tt><tt class="descname">par_loop</tt><big>(</big><em>kernel</em>, <em>it_space</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.sequential.par_loop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invocation of an OP2 kernel with an access descriptor</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.sequential.ParLoop">
+<em class="property">class </em><tt class="descclassname">pyop2.sequential.</tt><tt class="descname">ParLoop</tt><big>(</big><em>kernel</em>, <em>itspace</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.sequential.ParLoop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.ParLoop" title="pyop2.runtime_base.ParLoop"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.ParLoop</span></tt></a></p>
+<dl class="method">
+<dt id="pyop2.sequential.ParLoop.compute">
+<tt class="descname">compute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.sequential.ParLoop.compute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.sequential.ParLoop.generate_code">
+<tt class="descname">generate_code</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.sequential.ParLoop.generate_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -1463,6 +1524,14 @@ fails.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyop2.utils.maybe_setflags">
+<tt class="descclassname">pyop2.utils.</tt><tt class="descname">maybe_setflags</tt><big>(</big><em>array</em>, <em>write=None</em>, <em>align=None</em>, <em>uic=None</em><big>)</big><a class="headerlink" href="#pyop2.utils.maybe_setflags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set flags on a numpy ary.</p>
+<p>But don&#8217;t try to set the write flag if the data aren&#8217;t owned by this array.
+See <cite>numpy.ndarray.setflags</cite> for details of the parameters.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyop2.utils.parse_args">
 <tt class="descclassname">pyop2.utils.</tt><tt class="descname">parse_args</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.utils.parse_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return parsed arguments as variables for later use.</p>
@@ -1554,6 +1623,7 @@ The only recognised options are <cite>group</cite> and <cite>description</cite>.
 <li><a class="reference internal" href="#module-pyop2.ffc_interface"><tt class="docutils literal"><span class="pre">ffc_interface</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.op2"><tt class="docutils literal"><span class="pre">op2</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.opencl"><tt class="docutils literal"><span class="pre">opencl</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyop2.profiling"><tt class="docutils literal"><span class="pre">profiling</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.runtime_base"><tt class="docutils literal"><span class="pre">runtime_base</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.sequential"><tt class="docutils literal"><span class="pre">sequential</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.utils"><tt class="docutils literal"><span class="pre">utils</span></tt> Module</a></li>

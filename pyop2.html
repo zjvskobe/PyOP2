@@ -284,6 +284,8 @@ accomplished by:</p>
 using the index notation described in the documentation for the
 <a class="reference internal" href="#pyop2.base.Map" title="pyop2.base.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> class. Direct access to a Dat can be accomplished by
 using the <a class="reference internal" href="#pyop2.base.IdentityMap" title="pyop2.base.IdentityMap"><tt class="xref py py-data docutils literal"><span class="pre">IdentityMap</span></tt></a> as the indirection.</p>
+<p><tt class="docutils literal"><span class="pre">Dat</span></tt> objects support the pointwise linear algebra operations +=, <a href="#id2"><span class="problematic" id="id3">*</span></a>=,
+-=, /=, where <a href="#id4"><span class="problematic" id="id5">*</span></a>= and /= also support multiplication/dvision by a scalar.</p>
 <dl class="attribute">
 <dt id="pyop2.base.Dat.dataset">
 <tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.base.Dat.dataset" title="Permalink to this definition">¶</a></dt>
@@ -312,6 +314,12 @@ using the <a class="reference internal" href="#pyop2.base.IdentityMap" title="py
 <dt id="pyop2.base.Dat.dim">
 <tt class="descname">dim</tt><a class="headerlink" href="#pyop2.base.Dat.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of values at each member of the dataset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.base.Dat.norm">
+<tt class="descname">norm</tt><a class="headerlink" href="#pyop2.base.Dat.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>The L2-norm on the flattened vector.</p>
 </dd></dl>
 
 </dd></dl>
@@ -842,6 +850,8 @@ accomplished by:</p>
 using the index notation described in the documentation for the
 <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> class. Direct access to a Dat can be accomplished by
 using the <tt class="xref py py-data docutils literal"><span class="pre">IdentityMap</span></tt> as the indirection.</p>
+<p><tt class="docutils literal"><span class="pre">Dat</span></tt> objects support the pointwise linear algebra operations +=, <a href="#id6"><span class="problematic" id="id7">*</span></a>=,
+-=, /=, where <a href="#id8"><span class="problematic" id="id9">*</span></a>= and /= also support multiplication/dvision by a scalar.</p>
 </dd></dl>
 
 <dl class="class">
@@ -1079,6 +1089,12 @@ passed to the kernel as a vector.</p>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.Dat" title="pyop2.runtime_base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.Dat</span></tt></a>, <a class="reference internal" href="#pyop2.opencl.DeviceDataMixin" title="pyop2.opencl.DeviceDataMixin"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.opencl.DeviceDataMixin</span></tt></a></p>
 <p>OP2 OpenCL vector data type.</p>
 <dl class="attribute">
+<dt id="pyop2.opencl.Dat.array">
+<tt class="descname">array</tt><a class="headerlink" href="#pyop2.opencl.Dat.array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the OpenCL device array or None if not yet initialised.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.opencl.Dat.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pyop2.opencl.Dat.data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1087,6 +1103,12 @@ passed to the kernel as a vector.</p>
 <dt id="pyop2.opencl.Dat.data_ro">
 <tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.opencl.Dat.data_ro" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.opencl.Dat.norm">
+<tt class="descname">norm</tt><a class="headerlink" href="#pyop2.opencl.Dat.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>The L2-norm on the flattened vector.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1407,6 +1429,18 @@ strong boundary conditions.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.sequential.Dat">
+<em class="property">class </em><tt class="descclassname">pyop2.sequential.</tt><tt class="descname">Dat</tt><big>(</big><em>dataset</em>, <em>dim</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em>, <em>soa=None</em><big>)</big><a class="headerlink" href="#pyop2.sequential.Dat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.Dat" title="pyop2.runtime_base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.Dat</span></tt></a></p>
+<dl class="attribute">
+<dt id="pyop2.sequential.Dat.norm">
+<tt class="descname">norm</tt><a class="headerlink" href="#pyop2.sequential.Dat.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>The L2-norm on the flattened vector.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.sequential.ParLoop">
 <em class="property">class </em><tt class="descclassname">pyop2.sequential.</tt><tt class="descname">ParLoop</tt><big>(</big><em>kernel</em>, <em>itspace</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.sequential.ParLoop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.runtime_base.ParLoop" title="pyop2.runtime_base.ParLoop"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.runtime_base.ParLoop</span></tt></a></p>
@@ -1435,6 +1469,13 @@ strong boundary conditions.</p>
 <dt id="pyop2.utils.as_tuple">
 <tt class="descclassname">pyop2.utils.</tt><tt class="descname">as_tuple</tt><big>(</big><em>item</em>, <em>type=None</em>, <em>length=None</em><big>)</big><a class="headerlink" href="#pyop2.utils.as_tuple" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.utils.as_type">
+<tt class="descclassname">pyop2.utils.</tt><tt class="descname">as_type</tt><big>(</big><em>obj</em>, <em>typ</em><big>)</big><a class="headerlink" href="#pyop2.utils.as_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return obj if it is of dtype typ, otherwise return a copy type-cast to
+typ.</p>
+</dd></dl>
 
 <dl class="class">
 <dt id="pyop2.utils.validate_base">

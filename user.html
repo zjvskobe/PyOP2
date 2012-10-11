@@ -385,6 +385,8 @@ accomplished by:</p>
 using the index notation described in the documentation for the
 <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> class. Direct access to a Dat can be accomplished by
 using the <tt class="xref py py-data docutils literal"><span class="pre">IdentityMap</span></tt> as the indirection.</p>
+<p><tt class="docutils literal"><span class="pre">Dat</span></tt> objects support the pointwise linear algebra operations +=, <a href="#id1"><span class="problematic" id="id2">*</span></a>=,
+-=, /=, where <a href="#id3"><span class="problematic" id="id4">*</span></a>= and /= also support multiplication/dvision by a scalar.</p>
 <dl class="attribute">
 <dt id="pyop2.Dat.cdim">
 <tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Dat.cdim" title="Permalink to this definition">¶</a></dt>
@@ -401,6 +403,12 @@ using the <tt class="xref py py-data docutils literal"><span class="pre">Identit
 <dt id="pyop2.Dat.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pyop2.Dat.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy array containing the data values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Dat.data_ro">
+<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.Dat.data_ro" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array containing the data values.  Read-only</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -425,6 +433,12 @@ using the <tt class="xref py py-data docutils literal"><span class="pre">Identit
 <dt id="pyop2.Dat.name">
 <tt class="descname">name</tt><a class="headerlink" href="#pyop2.Dat.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Dat.norm">
+<tt class="descname">norm</tt><a class="headerlink" href="#pyop2.Dat.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>The L2-norm on the flattened vector.</p>
 </dd></dl>
 
 <dl class="attribute">

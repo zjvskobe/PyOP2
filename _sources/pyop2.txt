@@ -105,6 +105,22 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`paths` Module
+-------------------
+
+.. automodule:: pyop2.paths
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`profiling` Module
+-----------------------
+
+.. automodule:: pyop2.profiling
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`runtime_base` Module
 --------------------------
 

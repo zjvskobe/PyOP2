@@ -59,9 +59,6 @@ class ParLoop(rt.ParLoop):
             else:
                 _args.append(arg.data._data)
 
-            if arg._is_dat:
-                maybe_setflags(arg.data._data, write=False)
-
             if arg._is_indirect or arg._is_mat:
                 maps = as_tuple(arg.map, Map)
                 for map in maps:

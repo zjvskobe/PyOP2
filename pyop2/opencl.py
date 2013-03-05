@@ -35,7 +35,7 @@
 
 from device import *
 import device as op2
-from utils import verify_reshape, uniquify, maybe_setflags, comment_remover
+from utils import verify_reshape, uniquify, comment_remover
 import configuration as cfg
 import pyopencl as cl
 from pyopencl import array
@@ -167,13 +167,10 @@ class DeviceDataMixin(op2.DeviceDataMixin):
             self.state = DeviceDataMixin.BOTH
 
     def _from_device(self):
-        flag = self._data.flags['WRITEABLE']
-        maybe_setflags(self._data, write=True)
         if self.state is DeviceDataMixin.DEVICE:
             self._device_data.get(_queue, self._data)
             self._data = self._maybe_to_aos(self._data)
             self.state = DeviceDataMixin.BOTH
-        maybe_setflags(self._data, write=flag)
 
     @property
     def _cl_type(self):
@@ -668,8 +665,6 @@ class ParLoop(op2.ParLoop):
         for arg in self.args:
             if arg.access is not READ:
                 arg.data.state = DeviceDataMixin.DEVICE
-            if arg._is_dat:
-                maybe_setflags(arg.data._data, write=False)
 
         for mat in [arg.data for arg in self._matrix_args]:
             mat.assemble()

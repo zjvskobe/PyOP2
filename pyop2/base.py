@@ -531,7 +531,6 @@ class Dat(DataCarrier):
         """Numpy array containing the data values."""
         if self.dataset.total_size > 0 and self._data.size == 0:
             raise RuntimeError("Illegal access: no data associated with this Dat!")
-        maybe_setflags(self._data, write=True)
         self.needs_halo_update = True
         return self._data
 
@@ -540,8 +539,9 @@ class Dat(DataCarrier):
         """Numpy array containing the data values.  Read-only"""
         if self.dataset.total_size > 0 and self._data.size == 0:
             raise RuntimeError("Illegal access: no data associated with this Dat!")
-        maybe_setflags(self._data, write=False)
-        return self._data
+        v = self._data.view()
+        v.setflags(write=False)
+        return v
 
     @property
     def dim(self):

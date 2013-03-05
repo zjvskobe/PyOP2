@@ -130,7 +130,6 @@ class DeviceDataMixin(object):
     def data(self):
         if len(self._data) is 0:
             raise RuntimeError("Illegal access: No data associated with this Dat!")
-        maybe_setflags(self._data, write=True)
         self._from_device()
         if self.state is not DeviceDataMixin.DEVICE_UNALLOCATED:
             self.state = DeviceDataMixin.HOST
@@ -138,7 +137,6 @@ class DeviceDataMixin(object):
 
     @data.setter
     def data(self, value):
-        maybe_setflags(self._data, write=True)
         self._data = verify_reshape(value, self.dtype, self._data.shape)
         if self.state is not DeviceDataMixin.DEVICE_UNALLOCATED:
             self.state = DeviceDataMixin.HOST
@@ -147,10 +145,8 @@ class DeviceDataMixin(object):
     def data_ro(self):
         if len(self._data) is 0:
             raise RuntimeError("Illegal access: No data associated with this Dat!")
-        maybe_setflags(self._data, write=True)
         self._from_device()
         self.state = DeviceDataMixin.BOTH
-        maybe_setflags(self._data, write=False)
         return self._data
 
     def _maybe_to_soa(self, data):

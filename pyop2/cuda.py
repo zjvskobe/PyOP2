@@ -36,7 +36,7 @@ from device import *
 import configuration as cfg
 import device as op2
 import numpy as np
-from utils import verify_reshape, maybe_setflags
+from utils import verify_reshape
 import jinja2
 import pycuda.driver as driver
 import pycuda.gpuarray as gpuarray
@@ -738,8 +738,6 @@ class ParLoop(op2.ParLoop):
                     arg.data._finalise_reduction_begin(max_grid_size, arg.access)
                     arg.data._finalise_reduction_end(max_grid_size, arg.access)
                 else:
-                    # Set write state to False
-                    maybe_setflags(arg.data._data, write=False)
                     # Data state is updated in finalise_reduction for Global
                     if arg.access is not op2.READ:
                         arg.data.state = DeviceDataMixin.DEVICE

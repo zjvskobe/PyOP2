@@ -34,6 +34,7 @@
 """ Base classes for OP2 objects. The versions here deal only with metadata and perform no processing of the data itself. This enables these objects to be used in static analysis mode where no runtime information is available. """
 
 import numpy as np
+from contextlib import contextmanager
 
 from exceptions import *
 from utils import *
@@ -534,6 +535,17 @@ class Dat(DataCarrier):
         maybe_setflags(self._data, write=True)
         self.needs_halo_update = True
         return self._data
+
+    @property
+    @contextmanager
+    def data_rw(self):
+        """Numpy array containing the data values."""
+        if self.dataset.total_size > 0 and self._data.size == 0:
+            raise RuntimeError("Illegal access: no data associated with this Dat!")
+        self._data.setflags(write=True)
+        self.needs_halo_update = True
+        yield self._data
+        self._data.setflags(write=False)
 
     @property
     def data_ro(self):

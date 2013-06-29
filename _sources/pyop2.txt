@@ -25,6 +25,14 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`caching` Module
+---------------------
+
+.. automodule:: pyop2.caching
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`configuration` Module
 ---------------------------
 
@@ -81,6 +89,30 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`host` Module
+------------------
+
+.. automodule:: pyop2.host
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`logger` Module
+--------------------
+
+.. automodule:: pyop2.logger
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`mpi` Module
+-----------------
+
+.. automodule:: pyop2.mpi
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`op2` Module
 -----------------
 
@@ -105,10 +137,10 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`paths` Module
--------------------
+:mod:`petsc_base` Module
+------------------------
 
-.. automodule:: pyop2.paths
+.. automodule:: pyop2.petsc_base
     :members:
     :undoc-members:
     :show-inheritance:
@@ -117,14 +149,6 @@ pyop2 Package
 -----------------------
 
 .. automodule:: pyop2.profiling
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`runtime_base` Module
---------------------------
-
-.. automodule:: pyop2.runtime_base
     :members:
     :undoc-members:
     :show-inheritance:

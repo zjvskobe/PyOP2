@@ -736,6 +736,11 @@ class DataSet(object):
         return getattr(self.set, name)
 
     @property
+    def total_size(self):
+        """Total set size, including halo elements."""
+        return self.set._inh_size * self.layers
+
+    @property
     def dim(self):
         """The shape tuple of the values for each element of the set."""
         return self._dim
@@ -1949,10 +1954,21 @@ class Sparsity(Cached):
         self._ncols = self._cmaps[0].toset.size
         self._dims = (self._dsets[0].cdim, self._dsets[1].cdim)
 
+        layers = self._rmaps[0].toset.layers
+
+        if layers > 1:
+            self._nrows *= layers
+            self._ncols *= layers
+
+        #print self._nrows
+        #print self._ncols
+
         self._name = name or "sparsity_%d" % Sparsity._globalcount
         Sparsity._globalcount += 1
         build_sparsity(self, parallel=MPI.parallel)
         self._initialized = True
+        #from fluidity_tools import shell
+        #shell()()
 
     @property
     def _nmaps(self):

@@ -42,6 +42,11 @@ from host import Arg  # noqa: needed by BackendSelector
 # Parallel loop API
 
 
+def par_loop(kernel, it_space, *args):
+    """Invocation of an OP2 kernel with an access descriptor"""
+    ParLoop(kernel, it_space, *args).compute()
+
+
 class JITModule(host.JITModule):
 
     _wrapper = """

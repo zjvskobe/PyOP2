@@ -558,7 +558,7 @@ class JITModule(base.JITModule):
                              for count, arg in enumerate(self._args)]
         _kernel_it_args = ["i_%d" % d for d in range(len(self._extents))]
         _kernel_args = ', '.join(_kernel_user_args + _kernel_it_args)
-        _vec_inits = ';\n'.join([arg.c_vec_init() for arg in self._args
+        _vec_inits = '\n'+';\n'.join([arg.c_vec_init() for arg in self._args
                                  if not arg._is_mat and arg._is_vec_map])
 
         nloops = len(self._extents)

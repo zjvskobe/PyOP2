@@ -1956,9 +1956,9 @@ class Sparsity(Cached):
 
         layers = self._rmaps[0].toset.layers
 
-        if layers > 1:
-            self._nrows *= layers
-            self._ncols *= layers
+        #if layers > 1:
+        #    self._nrows *= layers
+        #    self._ncols *= layers
 
         #print self._nrows
         #print self._ncols

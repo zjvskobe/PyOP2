@@ -55,8 +55,8 @@
   J[7] = vertex_coordinates[4][2] - vertex_coordinates[0][2]; \
   J[8] = vertex_coordinates[1][2] - vertex_coordinates[0][2];
 
-  /// Compute Jacobian J for doru embedded in R^3
-#define compute_jacobian_doru(J, vertex_coordinates) \
+/// Compute Jacobian J for tensor product prism embedded in R^3
+#define compute_jacobian_prism_3d(J, vertex_coordinates) \
   J[0] = vertex_coordinates[2][0] - vertex_coordinates[0][0]; \
   J[1] = vertex_coordinates[4][0] - vertex_coordinates[0][0]; \
   J[2] = vertex_coordinates[1][0] - vertex_coordinates[0][0]; \

@@ -1967,8 +1967,6 @@ class Sparsity(Cached):
         Sparsity._globalcount += 1
         build_sparsity(self, parallel=MPI.parallel)
         self._initialized = True
-        #from fluidity_tools import shell
-        #shell()()
 
     @property
     def _nmaps(self):

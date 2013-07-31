@@ -101,6 +101,13 @@ class Arg(base.Arg):
              'idx': idx,
              'dim': self.data.cdim}
 
+    def c_ind_data_xtr(self, idx):
+        return "%(name)s + xtr_%(map_name)s[%(idx)s] * %(dim)s" % \
+            {'name': self.c_arg_name(),
+             'map_name': self.c_map_name(),
+             'idx': idx,
+             'dim': self.data.cdim}
+
     def c_kernel_arg_name(self):
         return "p_%s" % self.c_arg_name()
 

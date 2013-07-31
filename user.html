@@ -61,7 +61,8 @@
 <dl class="function">
 <dt id="pyop2.init">
 <tt class="descclassname">pyop2.</tt><tt class="descname">init</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.init" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialise OP2: select the backend and potentially other configuration options.</p>
+<dd><p>Initialise OP2: select the backend and potentially other configuration
+options.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -70,7 +71,8 @@
 <li><strong>backend</strong> &#8211; Set the hardware-specific backend. Current choices
 are <tt class="docutils literal"><span class="pre">&quot;sequential&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;openmp&quot;</span></tt>, <tt class="docutils literal"><span class="pre">&quot;opencl&quot;</span></tt> and <tt class="docutils literal"><span class="pre">&quot;cuda&quot;</span></tt>.</li>
 <li><strong>debug</strong> &#8211; The level of debugging output.</li>
-<li><strong>comm</strong> &#8211; The MPI communicator to use for parallel communication, defaults to <cite>MPI_COMM_WORLD</cite></li>
+<li><strong>comm</strong> &#8211; The MPI communicator to use for parallel communication,
+defaults to <cite>MPI_COMM_WORLD</cite></li>
 </ul>
 </td>
 </tr>
@@ -102,8 +104,19 @@ raise an exception.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>kernel</strong> &#8211; The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> to be executed.</li>
-<li><strong>it_space</strong> &#8211; The iteration space over which the kernel should be executed. The primary iteration space will be a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>. If a local iteration space is required, then this can be provided in brackets. The local iteration space may be either rank-1 or rank-2. For example, to iterate over a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> named <tt class="docutils literal"><span class="pre">elements</span></tt> assembling a 3x3 local matrix at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt> argument should be <tt class="docutils literal"><span class="pre">elements(3,3)</span></tt>. To iterate over <tt class="docutils literal"><span class="pre">elements</span></tt> assembling a dimension-3 local vector at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt> argument should be <tt class="docutils literal"><span class="pre">elements(3)</span></tt>.</li>
-<li><strong>*args</strong> &#8211; One or more objects of type <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> which are the global data structures from and to which the kernel will read and write.</li>
+<li><strong>it_space</strong> &#8211; The iteration space over which the kernel should be
+executed. The primary iteration space will be a
+<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>. If a local iteration space is required, then
+this can be provided in brackets. The local iteration space
+may be either rank-1 or rank-2. For example, to iterate over
+a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> named <tt class="docutils literal"><span class="pre">elements</span></tt> assembling a 3x3 local
+matrix at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt> argument should be
+<tt class="docutils literal"><span class="pre">elements(3,3)</span></tt>. To iterate over <tt class="docutils literal"><span class="pre">elements</span></tt> assembling
+a dimension-3 local vector at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt>
+argument should be <tt class="docutils literal"><span class="pre">elements(3)</span></tt>.</li>
+<li><strong>*args</strong> &#8211; One or more objects of type <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or
+<a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> which are the global data structures from and to
+which the kernel will read and write.</li>
 </ul>
 </td>
 </tr>
@@ -206,7 +219,7 @@ code must conform to the OP2 user kernel API.</p>
 
 <dl class="class">
 <dt id="pyop2.Set">
-<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Set</tt><big>(</big><em>size=None</em>, <em>dim=1</em>, <em>name=None</em>, <em>halo=None</em><big>)</big><a class="headerlink" href="#pyop2.Set" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Set</tt><big>(</big><em>size=None</em>, <em>name=None</em>, <em>halo=None</em>, <em>layers=None</em><big>)</big><a class="headerlink" href="#pyop2.Set" title="Permalink to this definition">¶</a></dt>
 <dd><p>OP2 set.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -284,22 +297,9 @@ serial and there is no distinction.</p>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="pyop2.Set.cdim">
-<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Set.cdim" title="Permalink to this definition">¶</a></dt>
-<dd><p>The scalar number of values for each member of the set. This is
-the product of the dim tuple.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="pyop2.Set.core_size">
 <tt class="descname">core_size</tt><a class="headerlink" href="#pyop2.Set.core_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Core set size.  Owned elements not touching halo elements.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyop2.Set.dim">
-<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Set.dim" title="Permalink to this definition">¶</a></dt>
-<dd><p>The shape tuple of the values for each element of the set.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -312,7 +312,7 @@ by executing over these set elements as well as owned ones.</p>
 
 <dl class="classmethod">
 <dt id="pyop2.Set.fromhdf5">
-<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>f</em>, <em>name</em>, <em>dim=1</em><big>)</big><a class="headerlink" href="#pyop2.Set.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.Set.fromhdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> from set named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
 </dd></dl>
 
@@ -323,9 +323,21 @@ by executing over these set elements as well as owned ones.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Set.layers">
+<tt class="descname">layers</tt><a class="headerlink" href="#pyop2.Set.layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of layers in the extruded mesh</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Set.name">
 <tt class="descname">name</tt><a class="headerlink" href="#pyop2.Set.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Set.partition_size">
+<tt class="descname">partition_size</tt><a class="headerlink" href="#pyop2.Set.partition_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default partition size</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -350,14 +362,14 @@ by executing over these set elements as well as owned ones.</p>
 
 <dl class="class">
 <dt id="pyop2.Map">
-<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>dim</em>, <em>values=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.Map" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>toset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.Map" title="Permalink to this definition">¶</a></dt>
 <dd><p>OP2 map, a relation between two <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> objects.</p>
-<p>Each entry in the <tt class="docutils literal"><span class="pre">iterset</span></tt> maps to <tt class="docutils literal"><span class="pre">dim</span></tt> entries in the
-<tt class="docutils literal"><span class="pre">dataset</span></tt>. When a map is used in a <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>,
-it is possible to use Python index notation to select an
-individual entry on the right hand side of this map. There are three possibilities:</p>
+<p>Each entry in the <tt class="docutils literal"><span class="pre">iterset</span></tt> maps to <tt class="docutils literal"><span class="pre">arity</span></tt> entries in the
+<tt class="docutils literal"><span class="pre">toset</span></tt>. When a map is used in a <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>, it is possible to
+use Python index notation to select an individual entry on the right hand
+side of this map. There are three possibilities:</p>
 <ul class="simple">
-<li>No index. All <tt class="docutils literal"><span class="pre">dim</span></tt> <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> entries will be passed to the
+<li>No index. All <tt class="docutils literal"><span class="pre">arity</span></tt> <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> entries will be passed to the
 kernel.</li>
 <li>An integer: <tt class="docutils literal"><span class="pre">some_map[n]</span></tt>. The <tt class="docutils literal"><span class="pre">n</span></tt> th entry of the
 map result will be passed to the kernel.</li>
@@ -377,21 +389,15 @@ See also <a class="reference internal" href="#pyop2.i" title="pyop2.i"><tt class
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="pyop2.Map.dataset">
-<tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.Map.dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> mapped to.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyop2.Map.dim">
-<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Map.dim" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dimension of the mapping: number of dataset elements mapped to per
+<dt id="pyop2.Map.arity">
+<tt class="descname">arity</tt><a class="headerlink" href="#pyop2.Map.arity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arity of the mapping: number of toset elements mapped to per
 iterset element.</p>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="pyop2.Map.fromhdf5">
-<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.Map.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>iterset</em>, <em>toset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.Map.fromhdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> from set named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
 </dd></dl>
 
@@ -408,6 +414,18 @@ iterset element.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Map.offset">
+<tt class="descname">offset</tt><a class="headerlink" href="#pyop2.Map.offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the vertical offset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Map.toset">
+<tt class="descname">toset</tt><a class="headerlink" href="#pyop2.Map.toset" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> mapped to.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Map.values">
 <tt class="descname">values</tt><a class="headerlink" href="#pyop2.Map.values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mapping array.</p>
@@ -417,30 +435,33 @@ iterset element.</p>
 
 <dl class="class">
 <dt id="pyop2.Sparsity">
-<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Sparsity</tt><big>(</big><em>maps</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.Sparsity" title="Permalink to this definition">¶</a></dt>
-<dd><p>OP2 Sparsity, a matrix structure derived from the union of the outer
-product of pairs of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> objects.</p>
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Sparsity</tt><big>(</big><em>dsets</em>, <em>maps</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.Sparsity" title="Permalink to this definition">¶</a></dt>
+<dd><p>OP2 Sparsity, the non-zero structure a matrix derived from the union of
+the outer product of pairs of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> objects.</p>
+<p>Examples of constructing a Sparsity:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Sparsity</span><span class="p">(</span><span class="n">single_dset</span><span class="p">,</span> <span class="n">single_map</span><span class="p">,</span> <span class="s">&#39;mass&#39;</span><span class="p">)</span>
+<span class="n">Sparsity</span><span class="p">((</span><span class="n">row_dset</span><span class="p">,</span> <span class="n">col_dset</span><span class="p">),</span> <span class="p">(</span><span class="n">single_rowmap</span><span class="p">,</span> <span class="n">single_colmap</span><span class="p">))</span>
+<span class="n">Sparsity</span><span class="p">((</span><span class="n">row_dset</span><span class="p">,</span> <span class="n">col_dset</span><span class="p">),</span>
+         <span class="p">[(</span><span class="n">first_rowmap</span><span class="p">,</span> <span class="n">first_colmap</span><span class="p">),</span> <span class="p">(</span><span class="n">second_rowmap</span><span class="p">,</span> <span class="n">second_colmap</span><span class="p">)])</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>maps</strong> (a pair of <tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt> specifying a row map and a column map,
-or a tuple of pairs of <tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt> specifying multiple row and
-column maps - if a single <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is passed, it is used as both a
-row map and a column map) &#8211; <tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt> to build the <a class="reference internal" href="#pyop2.Sparsity" title="pyop2.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt></a> from</li>
+<li><strong>dsets</strong> &#8211; <tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt>s for the left and right function
+spaces this <a class="reference internal" href="#pyop2.Sparsity" title="pyop2.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt></a> maps between</li>
+<li><strong>maps</strong> (a pair of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s specifying a row map and a column
+map, or an iterable of pairs of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s specifying multiple
+row and column maps - if a single <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is passed, it is
+used as both a row map and a column map) &#8211; <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s to build the <a class="reference internal" href="#pyop2.Sparsity" title="pyop2.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt></a> from</li>
 <li><strong>name</strong> (<em>string</em>) &#8211; user-defined label (optional)</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Examples of constructing a Sparsity:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">Sparsity</span><span class="p">(</span><span class="n">single_map</span><span class="p">,</span> <span class="s">&#39;mass&#39;</span><span class="p">)</span>
-<span class="n">Sparsity</span><span class="p">((</span><span class="n">single_rowmap</span><span class="p">,</span> <span class="n">single_colmap</span><span class="p">))</span>
-<span class="n">Sparsity</span><span class="p">(((</span><span class="n">first_rowmap</span><span class="p">,</span> <span class="n">first_colmap</span><span class="p">),</span> <span class="p">(</span><span class="n">second_rowmap</span><span class="p">,</span> <span class="n">second_colmap</span><span class="p">)))</span>
-</pre></div>
-</div>
 <dl class="attribute">
 <dt id="pyop2.Sparsity._cache">
 <tt class="descname">_cache</tt><em class="property"> = {}</em><a class="headerlink" href="#pyop2.Sparsity._cache" title="Permalink to this definition">¶</a></dt>
@@ -448,7 +469,7 @@ row map and a column map) &#8211; <tt class="xref py py-class docutils literal">
 
 <dl class="classmethod">
 <dt id="pyop2.Sparsity._cache_key">
-<em class="property">classmethod </em><tt class="descname">_cache_key</tt><big>(</big><em>maps</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.Sparsity._cache_key" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">_cache_key</tt><big>(</big><em>dsets</em>, <em>maps</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.Sparsity._cache_key" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="classmethod">
@@ -473,7 +494,7 @@ row map and a column map) &#8211; <tt class="xref py py-class docutils literal">
 
 <dl class="classmethod">
 <dt id="pyop2.Sparsity._process_args">
-<em class="property">classmethod </em><tt class="descname">_process_args</tt><big>(</big><em>maps</em>, <em>name=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.Sparsity._process_args" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">_process_args</tt><big>(</big><em>dsets</em>, <em>maps</em>, <em>name=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.Sparsity._process_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turn maps argument into a canonical tuple of pairs.</p>
 </dd></dl>
 
@@ -504,14 +525,20 @@ row map and a column map) &#8211; <tt class="xref py py-class docutils literal">
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Sparsity.dsets">
+<tt class="descname">dsets</tt><a class="headerlink" href="#pyop2.Sparsity.dsets" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pair of DataSets.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Sparsity.maps">
 <tt class="descname">maps</tt><a class="headerlink" href="#pyop2.Sparsity.maps" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of pairs (rmap, cmap) where each pair of
 <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> objects will later be used to assemble into this
 matrix. The iterset of each of the maps in a pair must be the
-same, while the dataset of all the maps which appear first
+same, while the toset of all the maps which appear first
 must be common, this will form the row <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> of the
-sparsity. Similarly, the dataset of all the maps which appear
+sparsity. Similarly, the toset of all the maps which appear
 second must be common and will form the column <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> of
 the <tt class="docutils literal"><span class="pre">Sparsity</span></tt>.</p>
 </dd></dl>
@@ -534,7 +561,7 @@ the <tt class="docutils literal"><span class="pre">Sparsity</span></tt>.</p>
 <dd><p>Array containing the number of non-zeroes in the various rows of the
 diagonal portion of the local submatrix.</p>
 <p>This is the same as the parameter <cite>d_nnz</cite> used for preallocation in
-PETSc&#8217;s <a href="#id5"><span class="problematic" id="id6">MatMPIAIJSetPreallocation_</span></a>.</p>
+PETSc&#8217;s <a href="#id1"><span class="problematic" id="id2">MatMPIAIJSetPreallocation_</span></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -549,7 +576,7 @@ PETSc&#8217;s <a href="#id5"><span class="problematic" id="id6">MatMPIAIJSetPrea
 <dd><p>Number of non-zeroes per row in diagonal portion of the local
 submatrix.</p>
 <p>This is the same as the parameter <cite>d_nz</cite> used for preallocation in
-PETSc&#8217;s <a href="#id7"><span class="problematic" id="id8">MatMPIAIJSetPreallocation_</span></a>.</p>
+PETSc&#8217;s <a href="#id3"><span class="problematic" id="id4">MatMPIAIJSetPreallocation_</span></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -558,7 +585,7 @@ PETSc&#8217;s <a href="#id7"><span class="problematic" id="id8">MatMPIAIJSetPrea
 <dd><p>Array containing the number of non-zeroes in the various rows of the
 off-diagonal portion of the local submatrix.</p>
 <p>This is the same as the parameter <cite>o_nnz</cite> used for preallocation in
-PETSc&#8217;s <a href="#id9"><span class="problematic" id="id10">MatMPIAIJSetPreallocation_</span></a>.</p>
+PETSc&#8217;s <a href="#id5"><span class="problematic" id="id6">MatMPIAIJSetPreallocation_</span></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -567,7 +594,7 @@ PETSc&#8217;s <a href="#id9"><span class="problematic" id="id10">MatMPIAIJSetPre
 <dd><p>Number of non-zeroes per row in off-diagonal portion of the local
 submatrix.</p>
 <p>This is the same as the parameter o_nz used for preallocation in
-PETSc&#8217;s <a href="#id11"><span class="problematic" id="id12">MatMPIAIJSetPreallocation_</span></a>.</p>
+PETSc&#8217;s <a href="#id7"><span class="problematic" id="id8">MatMPIAIJSetPreallocation_</span></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -591,7 +618,8 @@ PETSc&#8217;s <a href="#id11"><span class="problematic" id="id12">MatMPIAIJSetPr
 <dl class="exception">
 <dt id="pyop2.Const.NonUniqueNameError">
 <em class="property">exception </em><tt class="descname">NonUniqueNameError</tt><a class="headerlink" href="#pyop2.Const.NonUniqueNameError" title="Permalink to this definition">¶</a></dt>
-<dd><p>The Names of const variables are required to be globally unique. This exception is raised if the name is already in use.</p>
+<dd><p>The Names of const variables are required to be globally unique.
+This exception is raised if the name is already in use.</p>
 <dl class="attribute">
 <dt id="pyop2.Const.NonUniqueNameError.args">
 <tt class="descname">args</tt><a class="headerlink" href="#pyop2.Const.NonUniqueNameError.args" title="Permalink to this definition">¶</a></dt>
@@ -746,21 +774,26 @@ objects.</p>
 <dl class="class">
 <dt id="pyop2.Dat">
 <em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Dat</tt><big>(</big><em>dataset</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em>, <em>soa=None</em>, <em>uid=None</em><big>)</big><a class="headerlink" href="#pyop2.Dat" title="Permalink to this definition">¶</a></dt>
-<dd><p>OP2 vector data. A <tt class="docutils literal"><span class="pre">Dat</span></tt> holds <tt class="docutils literal"><span class="pre">dim</span></tt> values for every member of a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>.</p>
-<p>When a <tt class="docutils literal"><span class="pre">Dat</span></tt> is passed to <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>, the map via which
+<dd><p>OP2 vector data. A <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> holds values on every element of a
+<tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt>.</p>
+<p>If a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> is passed as the <tt class="docutils literal"><span class="pre">dataset</span></tt> argument, rather
+than a <tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt>, the <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is created with a default
+<tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt> dimension of 1.</p>
+<p>When a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is passed to <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>, the map via which
 indirection occurs and the access descriptor are passed by
-<cite>calling</cite> the <tt class="docutils literal"><span class="pre">Dat</span></tt>. For instance, if a <tt class="docutils literal"><span class="pre">Dat</span></tt> named <tt class="docutils literal"><span class="pre">D</span></tt> is
+calling the <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>. For instance, if a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> named <tt class="docutils literal"><span class="pre">D</span></tt> is
 to be accessed for reading via a <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> named <tt class="docutils literal"><span class="pre">M</span></tt>, this is
-accomplished by:</p>
+accomplished by</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">D</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> through which indirection occurs can be indexed
 using the index notation described in the documentation for the
-<a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> class. Direct access to a Dat can be accomplished by
-using the <tt class="xref py py-data docutils literal"><span class="pre">IdentityMap</span></tt> as the indirection.</p>
-<p><tt class="docutils literal"><span class="pre">Dat</span></tt> objects support the pointwise linear algebra operations +=, <a href="#id1"><span class="problematic" id="id2">*</span></a>=,
--=, /=, where <a href="#id3"><span class="problematic" id="id4">*</span></a>= and /= also support multiplication/division by a scalar.</p>
+<a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>. Direct access to a Dat can be accomplished by
+using the <tt class="xref py py-class docutils literal"><span class="pre">IdentityMap</span></tt> as the indirection.</p>
+<p><a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> objects support the pointwise linear algebra operations
+<tt class="docutils literal"><span class="pre">+=</span></tt>, <tt class="docutils literal"><span class="pre">*=</span></tt>, <tt class="docutils literal"><span class="pre">-=</span></tt>, <tt class="docutils literal"><span class="pre">/=</span></tt>, where <tt class="docutils literal"><span class="pre">*=</span></tt> and <tt class="docutils literal"><span class="pre">/=</span></tt> also support
+multiplication / division by a scalar.</p>
 <dl class="attribute">
 <dt id="pyop2.Dat._c_handle">
 <tt class="descname">_c_handle</tt><a class="headerlink" href="#pyop2.Dat._c_handle" title="Permalink to this definition">¶</a></dt>
@@ -819,7 +852,7 @@ the product of the dim tuple.</p>
 <dl class="attribute">
 <dt id="pyop2.Dat.dataset">
 <tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.Dat.dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> on which the Dat is defined.</p>
+<dd><p><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt> on which the Dat is defined.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -982,7 +1015,7 @@ matrix has more than around 10000 degrees of freedom.</p>
 
 <dl class="data">
 <dt id="pyop2.i">
-<tt class="descclassname">pyop2.</tt><tt class="descname">i</tt><a class="headerlink" href="#pyop2.i" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.</tt><tt class="descname">i</tt><em class="property"> = IterationIndex(None)</em><a class="headerlink" href="#pyop2.i" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shorthand for constructing <tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt> objects.</p>
 <p><tt class="docutils literal"><span class="pre">i[idx]</span></tt> builds an <tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt> object for which the <cite>index</cite>
 property is <cite>idx</cite>.</p>
@@ -997,31 +1030,39 @@ property is <cite>idx</cite>.</p>
 <dl class="data">
 <dt id="pyop2.WRITE">
 <tt class="descclassname">pyop2.</tt><tt class="descname">WRITE</tt><em class="property"> = Access('WRITE')</em><a class="headerlink" href="#pyop2.WRITE" title="Permalink to this definition">¶</a></dt>
-<dd><p>The  <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>, or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> is accessed write-only, and OP2 is not required to handle write conflicts.</p>
+<dd><p>The  <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>, or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> is accessed write-only,
+and OP2 is not required to handle write conflicts.</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pyop2.RW">
 <tt class="descclassname">pyop2.</tt><tt class="descname">RW</tt><em class="property"> = Access('RW')</em><a class="headerlink" href="#pyop2.RW" title="Permalink to this definition">¶</a></dt>
-<dd><p>The  <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>, or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> is accessed for reading and writing, and OP2 is not required to handle write conflicts.</p>
+<dd><p>The  <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>, or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> is accessed for reading
+and writing, and OP2 is not required to handle write conflicts.</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pyop2.INC">
 <tt class="descclassname">pyop2.</tt><tt class="descname">INC</tt><em class="property"> = Access('INC')</em><a class="headerlink" href="#pyop2.INC" title="Permalink to this definition">¶</a></dt>
-<dd><p>The kernel computes increments to be summed onto a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>, or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>. OP2 is responsible for managing the write conflicts caused.</p>
+<dd><p>The kernel computes increments to be summed onto a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>,
+<a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>, or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>. OP2 is responsible for managing the write
+conflicts caused.</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pyop2.MIN">
 <tt class="descclassname">pyop2.</tt><tt class="descname">MIN</tt><em class="property"> = Access('MIN')</em><a class="headerlink" href="#pyop2.MIN" title="Permalink to this definition">¶</a></dt>
-<dd><p>The kernel contributes to a reduction into a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a> using a <tt class="docutils literal"><span class="pre">min</span></tt> operation. OP2 is responsible for reducing over the different kernel invocations.</p>
+<dd><p>The kernel contributes to a reduction into a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a> using a <tt class="docutils literal"><span class="pre">min</span></tt>
+operation. OP2 is responsible for reducing over the different kernel
+invocations.</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="pyop2.MAX">
 <tt class="descclassname">pyop2.</tt><tt class="descname">MAX</tt><em class="property"> = Access('MAX')</em><a class="headerlink" href="#pyop2.MAX" title="Permalink to this definition">¶</a></dt>
-<dd><p>The kernel contributes to a reduction into a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a> using a <tt class="docutils literal"><span class="pre">max</span></tt> operation. OP2 is responsible for reducing over the different kernel invocations.</p>
+<dd><p>The kernel contributes to a reduction into a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a> using a <tt class="docutils literal"><span class="pre">max</span></tt>
+operation. OP2 is responsible for reducing over the different kernel
+invocations.</p>
 </dd></dl>
 
 </div>

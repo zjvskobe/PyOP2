@@ -61,6 +61,11 @@ void wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
   %(const_inits)s;
   %(off_inits)s;
   %(map_decl)s
+  if (likwid_init == 0){
+    likwid_markerInit();
+  }
+  likwid_markerThreadInit();
+  likwid_markerStartRegion("accumulate");
   for ( int n = start; n < end; n++ ) {
     int i = %(index_expr)s;
     %(vec_inits)s;
@@ -76,6 +81,11 @@ void wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
     %(extr_loop_close)s
     %(addtos_scalar_field)s;
   }
+  likwid_markerStopRegion("accumulate");
+  if (likwid_init == 99){
+    likwid_markerClose();
+  }
+  likwid_init++;
 }
 """
 

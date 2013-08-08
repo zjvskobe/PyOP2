@@ -377,11 +377,15 @@ class JITModule(base.JITModule):
         if any(arg._is_soa for arg in self._args):
             kernel_code = """
             #define OP2_STRIDE(a, idx) a[idx]
+            #include <likwid.h>
+            static int likwid_init = 0;
             inline %(code)s
             #undef OP2_STRIDE
             """ % {'code': self._kernel.code}
         else:
             kernel_code = """
+            #include <likwid.h>
+            static int likwid_init = 0;
             inline %(code)s
             """ % {'code': self._kernel.code}
         code_to_compile = strip(dedent(self._wrapper) % self.generate_code())
@@ -513,13 +517,13 @@ class JITModule(base.JITModule):
         self._fun = inline_with_numpy(
             code_to_compile, additional_declarations=kernel_code,
             additional_definitions=_const_decs + kernel_code,
-            cppargs=self._cppargs + (['-O0', '-g'] if cfg.debug else []),
-            include_dirs=[d + '/include' for d in get_petsc_dir()],
+            cppargs=self._cppargs + (['-O0', '-g', '-pthread'] if cfg.debug else []),
+            include_dirs=[d + '/include' for d in get_petsc_dir(), "/usr/local/include"],
             source_directory=os.path.dirname(os.path.abspath(__file__)),
             wrap_headers=["mat_utils.h"],
             system_headers=self._system_headers,
-            library_dirs=[d + '/lib' for d in get_petsc_dir()],
-            libraries=['petsc'] + self._libraries,
+            library_dirs=[d + '/lib' for d in get_petsc_dir(),  "/usr/local/lib"],
+            libraries=['petsc', 'likwid'] + self._libraries,
             sources=["mat_utils.cxx"],
             modulename=self._kernel.name if cfg.debug else None)
         if cc:

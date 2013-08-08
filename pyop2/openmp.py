@@ -161,8 +161,14 @@ void wrap_%(kernel_name)s__(PyObject* _boffset,
   int nthread = 1;
   #endif
 
+  if (likwid_init == 0){
+    likwid_markerInit();
+  }
+
   #pragma omp parallel shared(boffset, nblocks, nelems, blkmap) %(privates)s
   {
+    likwid_markerThreadInit();
+    likwid_markerStartRegion("accumulate");
     int tid = omp_get_thread_num();
     %(interm_globals_decl)s;
     %(interm_globals_init)s;
@@ -191,7 +197,12 @@ void wrap_%(kernel_name)s__(PyObject* _boffset,
       }
     }
     %(interm_globals_writeback)s;
+    likwid_markerStopRegion("accumulate");
   }
+  if (likwid_init == 99){
+    likwid_markerClose();
+  }
+  likwid_init++;
 }
 """
 

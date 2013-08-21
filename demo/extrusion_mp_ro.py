@@ -73,6 +73,18 @@ void comp_vol(double A[1], double *x[], double *y[])
   A[0]+=0.5*area*0.1 * y[0][0];
 }""", "comp_vol")
 
+fill_coords = op2.Kernel("""
+void fill_coords(double *x[], double *y[])
+{
+  x[0][0] = y[0][0];
+  x[0][1] = y[0][1];
+}""", "fill_coords")
+
+fill_field = op2.Kernel("""
+void fill_field(double *x[], double *y[])
+{
+  x[0][0] = y[0][0];
+}""", "fill_field")
 
 # Set up simulation data structures
 valuetype = np.float64
@@ -238,10 +250,18 @@ tdat = time.clock() - t0dat
 # DECLARE OP2 STRUCTURES
 
 coords_dofsSet = op2.Set(nums[0] * layers, "coords_dofsSet")
-coords = op2.Dat(coords_dofsSet ** 2, coords_dat, np.float64, "coords")
+coords_vals = op2.Dat(coords_dofsSet ** 2, coords_dat, np.float64, "coords_vals")
 
 wedges_dofsSet = op2.Set(nums[2] * wedges, "wedges_dofsSet")
-field = op2.Dat(wedges_dofsSet, field_dat, np.float64, "field")
+field_vals = op2.Dat(wedges_dofsSet, field_dat, np.float64, "field_vals")
+
+# DECLARE FINAL OP2 DATS
+
+coords_dat_temp = np.zeros(coords_size)
+coords = op2.Dat(coords_dofsSet ** 2, coords_dat_temp, np.float64, "coords")
+
+field_dat_temp = np.zeros(field_size)
+field = op2.Dat(wedges_dofsSet, field_dat_temp, np.float64, "field")
 
 # THE MAP from the ind
 # create the map from element to dofs for each element in the 2D mesh
@@ -256,6 +276,20 @@ elem_dofs = op2.Map(elements, coords_dofsSet, map_dofs_coords, ind_coords,
                     "elem_dofs", off_coords)
 elem_elem = op2.Map(elements, wedges_dofsSet, map_dofs_field, ind_field,
                     "elem_elem", off_field)
+
+#STAGE IN DATA USING THREAD EXECUTION
+iter_nodes = op2.Set(nums[0], "it_nodes", layers=(layers+1))
+nodes_map = np.arange(nums[0]) * layers
+nodes_nodes = op2.Map(iter_nodes, coords_dofsSet, 1, nodes_map, 
+                    "nodes_nodes", np.array([1], np.int32))
+
+op2.par_loop(fill_coords, iter_nodes,
+            coords(nodes_nodes, op2.WRITE),
+            coords_vals(nodes_nodes, op2.READ))
+
+op2.par_loop(fill_field, elements,
+            field(elem_elem, op2.WRITE),
+            field_vals(elem_elem, op2.READ))
 
 # THE RESULT ARRAY
 g = op2.Global(1, data=0.0, name='g')

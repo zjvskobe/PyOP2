@@ -86,17 +86,21 @@ same backend or not specifying a backend will update the configuration.
 Calling <tt class="docutils literal"><span class="pre">init</span></tt> after <tt class="docutils literal"><span class="pre">exit</span></tt> has been called is an error and will
 raise an exception.</p>
 </div>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.exit">
 <tt class="descclassname">pyop2.</tt><tt class="descname">exit</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.exit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exit OP2 and clean up</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.par_loop">
-<tt class="descclassname">pyop2.</tt><tt class="descname">par_loop</tt><big>(</big><em>kernel</em>, <em>it_space</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.par_loop" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.</tt><tt class="descname">par_loop</tt><big>(</big><em>kernel</em>, <em>iterset</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.par_loop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invocation of an OP2 kernel</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -104,35 +108,43 @@ raise an exception.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>kernel</strong> &#8211; The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> to be executed.</li>
-<li><strong>it_space</strong> &#8211; The iteration space over which the kernel should be
-executed. The primary iteration space will be a
-<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>. If a local iteration space is required, then
-this can be provided in brackets. The local iteration space
-may be either rank-1 or rank-2. For example, to iterate over
-a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> named <tt class="docutils literal"><span class="pre">elements</span></tt> assembling a 3x3 local
-matrix at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt> argument should be
-<tt class="docutils literal"><span class="pre">elements(3,3)</span></tt>. To iterate over <tt class="docutils literal"><span class="pre">elements</span></tt> assembling
-a dimension-3 local vector at each entry, the <tt class="docutils literal"><span class="pre">it_space</span></tt>
-argument should be <tt class="docutils literal"><span class="pre">elements(3)</span></tt>.</li>
-<li><strong>*args</strong> &#8211; One or more objects of type <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or
-<a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> which are the global data structures from and to
+<li><strong>iterset</strong> &#8211; The iteration <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> over which the kernel should be
+executed.</li>
+<li><strong>*args</strong> &#8211; One or more <a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a>s constructed from a
+<a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> using the call
+syntax and passing in an optionally indexed <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>
+through which this <a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a> is accessed and the
+<a class="reference internal" href="pyop2.html#pyop2.base.Access" title="pyop2.base.Access"><tt class="xref py py-class docutils literal"><span class="pre">base.Access</span></tt></a> descriptor indicating how the
+<a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> is going to access this data (see the example
+below). These are the global data structures from and to
 which the kernel will read and write.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p><tt class="docutils literal"><span class="pre">par_loop</span></tt> invocation is illustrated by the following example:</p>
-<div class="highlight-python"><pre>pyop2.par_loop(mass, elements(3,3),
-       mat((elem_node[pyop2.i[0]]), elem_node[pyop2.i[1]]), pyop2.INC),
-       coords(elem_node, pyop2.READ))</pre>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is the caller&#8217;s responsibility that the number and type of all
+<a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a>s passed to the <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> match those expected
+by the <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a>. No runtime check is performed to ensure this!</p>
+</div>
+<p>If a <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> argument indexes into a <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> using an
+<a class="reference internal" href="pyop2.html#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">base.IterationIndex</span></tt></a>, this implies the use of a local
+<a class="reference internal" href="pyop2.html#pyop2.base.IterationSpace" title="pyop2.base.IterationSpace"><tt class="xref py py-class docutils literal"><span class="pre">base.IterationSpace</span></tt></a> of a size given by the arity of the
+<a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>. It is an error to have several arguments using local
+iteration spaces of different size.</p>
+<p><a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> invocation is illustrated by the following example</p>
+<div class="highlight-python"><pre>pyop2.par_loop(mass, elements,
+               mat((elem_node[pyop2.i[0]]), elem_node[pyop2.i[1]]), pyop2.INC),
+               coords(elem_node, pyop2.READ))</pre>
 </div>
 <p>This example will execute the <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> <tt class="docutils literal"><span class="pre">mass</span></tt> over the
 <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> <tt class="docutils literal"><span class="pre">elements</span></tt> executing 3x3 times for each
-<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> member. The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> takes four arguments, the
-first is a <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> named <tt class="docutils literal"><span class="pre">mat</span></tt>, the second is a field named
-<cite>coords</cite>. The remaining two arguments indicate which local
-iteration space point the kernel is to execute.</p>
+<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> member, assuming the <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> <tt class="docutils literal"><span class="pre">elem_node</span></tt> is of arity 3.
+The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> takes four arguments, the first is a <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> named
+<tt class="docutils literal"><span class="pre">mat</span></tt>, the second is a field named <tt class="docutils literal"><span class="pre">coords</span></tt>. The remaining two arguments
+indicate which local iteration space point the kernel is to execute.</p>
 <p>A <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> requires a pair of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> objects, one each
 for the row and column spaces. In this case both are the same
 <tt class="docutils literal"><span class="pre">elem_node</span></tt> map. The row <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is indexed by the first
@@ -144,12 +156,17 @@ values using the <tt class="docutils literal"><span class="pre">pyop2.INC</span>
 <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>, however no indices are passed so all entries of
 <tt class="docutils literal"><span class="pre">elem_node</span></tt> for the relevant member of <tt class="docutils literal"><span class="pre">elements</span></tt> will be
 passed to the kernel as a vector.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.solve">
 <tt class="descclassname">pyop2.</tt><tt class="descname">solve</tt><big>(</big><em>M</em>, <em>x</em>, <em>b</em><big>)</big><a class="headerlink" href="#pyop2.solve" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>None</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
 
 <dl class="class">
 <dt id="pyop2.Kernel">
@@ -677,6 +694,8 @@ the product of the dim tuple.</p>
 <dt id="pyop2.Dat.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pyop2.Dat.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy array containing the data values.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -713,12 +732,16 @@ the product of the dim tuple.</p>
 <dt id="pyop2.Dat.halo_exchange_begin">
 <tt class="descname">halo_exchange_begin</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.halo_exchange_begin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Begin halo exchange.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.Dat.halo_exchange_end">
 <tt class="descname">halo_exchange_end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.halo_exchange_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>End halo exchange. Waits on MPI recv.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -749,6 +772,8 @@ the product of the dim tuple.</p>
 <dt id="pyop2.Dat.zero">
 <tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.zero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Zero the data associated with this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 </dd></dl>

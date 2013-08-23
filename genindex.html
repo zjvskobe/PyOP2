@@ -108,11 +108,19 @@
 
       <dd><dl>
         
+  <dt><a href="pyop2.html#pyop2.cuda.Arg">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.Arg">(class in pyop2.device)</a>
   </dt>
 
         
   <dt><a href="pyop2.html#pyop2.host.Arg">(class in pyop2.host)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Arg">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -147,10 +155,14 @@
   </dt>
 
       
-  <dt><a href="pyop2.html#pyop2.device.Dat.array">array (pyop2.device.Dat attribute)</a>
+  <dt><a href="pyop2.html#pyop2.cuda.Mat.array">array (pyop2.cuda.Mat attribute)</a>
   </dt>
 
       <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.device.Dat.array">(pyop2.device.Dat attribute)</a>
+  </dt>
+
         
   <dt><a href="pyop2.html#pyop2.petsc_base.Mat.array">(pyop2.petsc_base.Mat attribute)</a>
   </dt>
@@ -165,6 +177,10 @@
   </dt>
 
       
+  <dt><a href="pyop2.html#pyop2.opencl.Mat.assemble">assemble() (pyop2.opencl.Mat method)</a>
+  </dt>
+
+      
   <dt><a href="pyop2.html#pyop2.profiling.Timer.average">average (pyop2.profiling.Timer attribute)</a>
   </dt>
 
@@ -173,6 +189,18 @@
 
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.blkmap">blkmap (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.blkmap">(pyop2.opencl.Plan attribute)</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.device.DeviceDataMixin.BOTH">BOTH (pyop2.device.DeviceDataMixin attribute)</a>
@@ -302,12 +330,12 @@
   <dt><a href="pyop2.html#pyop2.host.Arg.c_wrapper_dec">c_wrapper_dec() (pyop2.host.Arg method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.host.Arg.c_zero_tmp">c_zero_tmp() (pyop2.host.Arg method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.base.IterationSpace.cache_key">cache_key (pyop2.base.IterationSpace attribute)</a>
   </dt>
@@ -359,6 +387,10 @@
   <dt><a href="pyop2.html#pyop2.base.DataSet.cdim">(pyop2.base.DataSet attribute)</a>
   </dt>
 
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Mat.cdim">(pyop2.opencl.Mat attribute)</a>
+  </dt>
+
       </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.utils.validate_in.check_arg">check_arg() (pyop2.utils.validate_in method)</a>
@@ -384,6 +416,14 @@
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin.CL_TYPES">CL_TYPES (pyop2.opencl.DeviceDataMixin attribute)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin.ClTypeInfo.clstring">clstring (pyop2.opencl.DeviceDataMixin.ClTypeInfo attribute)</a>
+  </dt>
+
       
   <dt><a href="pyop2.html#pyop2.base.Sparsity.cmaps">cmaps (pyop2.base.Sparsity attribute)</a>
   </dt>
@@ -413,7 +453,19 @@
   <dt><a href="user.html#pyop2.Sparsity.colidx">(pyop2.Sparsity attribute)</a>
   </dt>
 
+        
+  <dt><a href="pyop2.html#pyop2.cuda.Sparsity.colidx">(pyop2.cuda.Sparsity attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Sparsity.colidx">(pyop2.opencl.Sparsity attribute)</a>
+  </dt>
+
       </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.mpi.collective">collective() (in module pyop2.mpi)</a>
+  </dt>
+
       
   <dt><a href="pyop2.html#pyop2.base.Halo.comm">comm (pyop2.base.Halo attribute)</a>
   </dt>
@@ -433,9 +485,19 @@
   </dt>
 
       
-  <dt><a href="pyop2.html#pyop2.host.JITModule.compile">compile() (pyop2.host.JITModule method)</a>
+  <dt><a href="pyop2.html#pyop2.cuda.JITModule.compile">compile() (pyop2.cuda.JITModule method)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.host.JITModule.compile">(pyop2.host.JITModule method)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.JITModule.compile">(pyop2.opencl.JITModule method)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.ffc_interface.compile_form">compile_form() (in module pyop2.ffc_interface)</a>
   </dt>
@@ -445,6 +507,14 @@
   </dt>
 
       <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.cuda.ParLoop.compute">(pyop2.cuda.ParLoop method)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.ParLoop.compute">(pyop2.opencl.ParLoop method)</a>
+  </dt>
+
         
   <dt><a href="pyop2.html#pyop2.openmp.ParLoop.compute">(pyop2.openmp.ParLoop method)</a>
   </dt>
@@ -464,6 +534,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Const">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.Const">(class in pyop2.device)</a>
   </dt>
 
@@ -473,6 +547,10 @@
 
         
   <dt><a href="pyop2.html#pyop2.op2.Const">(class in pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Const">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -554,6 +632,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Dat">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.Dat">(class in pyop2.device)</a>
   </dt>
 
@@ -563,6 +645,10 @@
 
         
   <dt><a href="pyop2.html#pyop2.op2.Dat">(class in pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Dat">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -604,11 +690,19 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Global.data">(pyop2.cuda.Global attribute)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.Const.data">(pyop2.device.Const attribute)</a>
   </dt>
 
         
   <dt><a href="pyop2.html#pyop2.device.DeviceDataMixin.data">(pyop2.device.DeviceDataMixin attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Global.data">(pyop2.opencl.Global attribute)</a>
   </dt>
 
       </dl></dd>
@@ -670,18 +764,32 @@
   <dt><a href="pyop2.html#pyop2.base.DEFAULT_SOLVER_PARAMETERS">DEFAULT_SOLVER_PARAMETERS (in module pyop2.base)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.device.DeviceDataMixin.DEVICE">DEVICE (pyop2.device.DeviceDataMixin attribute)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.device.DeviceDataMixin.DEVICE_UNALLOCATED">DEVICE_UNALLOCATED (pyop2.device.DeviceDataMixin attribute)</a>
   </dt>
 
       
-  <dt><a href="pyop2.html#pyop2.device.DeviceDataMixin">DeviceDataMixin (class in pyop2.device)</a>
+  <dt><a href="pyop2.html#pyop2.cuda.DeviceDataMixin">DeviceDataMixin (class in pyop2.cuda)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.device.DeviceDataMixin">(class in pyop2.device)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin">(class in pyop2.opencl)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin.ClTypeInfo">DeviceDataMixin.ClTypeInfo (class in pyop2.opencl)</a>
   </dt>
 
       
@@ -782,6 +890,10 @@
       </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.petsc_base.Mat.dump">dump() (pyop2.petsc_base.Mat method)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#pyop2.opencl.JITModule.dump_gen_code">dump_gen_code() (pyop2.opencl.JITModule method)</a>
   </dt>
 
   </dl></td>
@@ -920,6 +1032,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Global">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.Global">(class in pyop2.device)</a>
   </dt>
 
@@ -929,6 +1045,10 @@
 
         
   <dt><a href="pyop2.html#pyop2.op2.Global">(class in pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Global">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -1075,6 +1195,36 @@
 
       </dl></dd>
       
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.ind_map">ind_map (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.ind_map">(pyop2.opencl.Plan attribute)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.ind_offs">ind_offs (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.ind_offs">(pyop2.opencl.Plan attribute)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.ind_sizes">ind_sizes (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.ind_sizes">(pyop2.opencl.Plan attribute)</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="pyop2.html#pyop2.base.IterationIndex.index">index (pyop2.base.IterationIndex attribute)</a>
   </dt>
 
@@ -1082,12 +1232,16 @@
   <dt><a href="pyop2.html#pyop2.exceptions.IndexTypeError">IndexTypeError</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.exceptions.IndexValueError">IndexValueError</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.html#pyop2.base.Arg.indirect_position">indirect_position (pyop2.base.Arg attribute)</a>
+  </dt>
+
       
   <dt><a href="user.html#pyop2.init">init() (in module pyop2)</a>
   </dt>
@@ -1095,6 +1249,20 @@
       <dd><dl>
         
   <dt><a href="pyop2.html#pyop2.op2.init">(in module pyop2.op2)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Kernel.instrument">instrument() (pyop2.cuda.Kernel method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Kernel.instrument">(pyop2.opencl.Kernel method)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Kernel.Instrument.instrument">(pyop2.opencl.Kernel.Instrument method)</a>
   </dt>
 
       </dl></dd>
@@ -1122,20 +1290,6 @@
   <dt><a href="pyop2.html#pyop2.base.IterationSpace">IterationSpace (class in pyop2.base)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="pyop2.html#pyop2.finalised.IterationSpace">(class in pyop2.finalised)</a>
-  </dt>
-
-        
-  <dt><a href="pyop2.html#pyop2.op2.IterationSpace">(class in pyop2.op2)</a>
-  </dt>
-
-        
-  <dt><a href="pyop2.html#pyop2.void.IterationSpace">(class in pyop2.void)</a>
-  </dt>
-
-      </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.base.IterationSpace.iterset">iterset (pyop2.base.IterationSpace attribute)</a>
   </dt>
@@ -1162,7 +1316,15 @@
 
       <dd><dl>
         
+  <dt><a href="pyop2.html#pyop2.cuda.JITModule">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.host.JITModule">(class in pyop2.host)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.JITModule">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -1190,6 +1352,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Kernel">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.finalised.Kernel">(class in pyop2.finalised)</a>
   </dt>
 
@@ -1198,14 +1364,26 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.opencl.Kernel">(class in pyop2.opencl)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.void.Kernel">(class in pyop2.void)</a>
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.base.ParLoop.kernel">kernel (pyop2.base.ParLoop attribute)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="pyop2.html#pyop2.base.ParLoop.kernel">kernel (pyop2.base.ParLoop attribute)</a>
+  <dt><a href="pyop2.html#pyop2.opencl.Kernel.Instrument">Kernel.Instrument (class in pyop2.opencl)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#pyop2.exceptions.KernelTypeError">KernelTypeError</a>
   </dt>
 
   </dl></td>
@@ -1214,6 +1392,16 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.ParLoop.launch_configuration">launch_configuration() (pyop2.cuda.ParLoop method)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.ParLoop.launch_configuration">(pyop2.opencl.ParLoop method)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.base.IterationSpace.layers">layers (pyop2.base.IterationSpace attribute)</a>
   </dt>
@@ -1225,6 +1413,18 @@
 
         
   <dt><a href="pyop2.html#pyop2.base.Set.layers">(pyop2.base.Set attribute)</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.loc_map">loc_map (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.loc_map">(pyop2.opencl.Plan attribute)</a>
   </dt>
 
       </dl></dd>
@@ -1244,6 +1444,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Map">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.Map">(class in pyop2.device)</a>
   </dt>
 
@@ -1253,6 +1457,10 @@
 
         
   <dt><a href="pyop2.html#pyop2.op2.Map">(class in pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Map">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -1292,6 +1500,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Mat">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.Mat">(class in pyop2.device)</a>
   </dt>
 
@@ -1301,6 +1513,10 @@
 
         
   <dt><a href="pyop2.html#pyop2.op2.Mat">(class in pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Mat">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -1316,8 +1532,6 @@
   <dt><a href="pyop2.html#pyop2.exceptions.MatTypeError">MatTypeError</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="user.html#pyop2.MAX">MAX (in module pyop2)</a>
   </dt>
@@ -1328,6 +1542,12 @@
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin.ClTypeInfo.max">max (pyop2.opencl.DeviceDataMixin.ClTypeInfo attribute)</a>
+  </dt>
+
       
   <dt><a href="pyop2.html#pyop2.base.ParLoop.maybe_set_halo_update_needed">maybe_set_halo_update_needed() (pyop2.base.ParLoop method)</a>
   </dt>
@@ -1351,6 +1571,10 @@
 
       </dl></dd>
       
+  <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin.ClTypeInfo.min">min (pyop2.opencl.DeviceDataMixin.ClTypeInfo attribute)</a>
+  </dt>
+
+      
   <dt><a href="pyop2.html#pyop2.exceptions.ModeValueError">ModeValueError</a>
   </dt>
 
@@ -1371,7 +1595,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="pyop2.html#pyop2.base.DataCarrier.name">name (pyop2.base.DataCarrier attribute)</a>
+  <dt><a href="pyop2.html#pyop2.base.Arg.name">name (pyop2.base.Arg attribute)</a>
   </dt>
 
       <dd><dl>
@@ -1408,6 +1632,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.base.DataCarrier.name">(pyop2.base.DataCarrier attribute)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.base.DataSet.name">(pyop2.base.DataSet attribute)</a>
   </dt>
 
@@ -1429,6 +1657,10 @@
 
         
   <dt><a href="pyop2.html#pyop2.base.Sparsity.name">(pyop2.base.Sparsity attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.device.Arg.name">(pyop2.device.Arg attribute)</a>
   </dt>
 
         
@@ -1458,8 +1690,6 @@
   <dt><a href="pyop2.html#pyop2.base.ParLoop.needs_exec_halo">needs_exec_halo (pyop2.base.ParLoop attribute)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.base.Dat.needs_halo_update">needs_halo_update (pyop2.base.Dat attribute)</a>
   </dt>
@@ -1467,6 +1697,18 @@
       <dd><dl>
         
   <dt><a href="user.html#pyop2.Dat.needs_halo_update">(pyop2.Dat attribute)</a>
+  </dt>
+
+      </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.nelems">nelems (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.nelems">(pyop2.opencl.Plan attribute)</a>
   </dt>
 
       </dl></dd>
@@ -1489,6 +1731,14 @@
   <dt><a href="user.html#pyop2.Dat.norm">(pyop2.Dat attribute)</a>
   </dt>
 
+        
+  <dt><a href="pyop2.html#pyop2.cuda.Dat.norm">(pyop2.cuda.Dat attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Dat.norm">(pyop2.opencl.Dat attribute)</a>
+  </dt>
+
       </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.base.Sparsity.nrows">nrows (pyop2.base.Sparsity attribute)</a>
@@ -1497,6 +1747,16 @@
       <dd><dl>
         
   <dt><a href="user.html#pyop2.Sparsity.nrows">(pyop2.Sparsity attribute)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.nthrcol">nthrcol (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.nthrcol">(pyop2.opencl.Plan attribute)</a>
   </dt>
 
       </dl></dd>
@@ -1523,6 +1783,14 @@
       <dd><dl>
         
   <dt><a href="user.html#pyop2.Map.offset">(pyop2.Map attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.offset">(pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.offset">(pyop2.opencl.Plan attribute)</a>
   </dt>
 
       </dl></dd>
@@ -1586,11 +1854,19 @@
 
       <dd><dl>
         
+  <dt><a href="pyop2.html#pyop2.cuda.par_loop">(in module pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.finalised.par_loop">(in module pyop2.finalised)</a>
   </dt>
 
         
   <dt><a href="pyop2.html#pyop2.op2.par_loop">(in module pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.par_loop">(in module pyop2.opencl)</a>
   </dt>
 
         
@@ -1616,7 +1892,15 @@
 
       <dd><dl>
         
+  <dt><a href="pyop2.html#pyop2.cuda.ParLoop">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.device.ParLoop">(class in pyop2.device)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.ParLoop">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -1651,7 +1935,21 @@
 
       </dl></dd>
       
-  <dt><a href="pyop2.html#pyop2.device.Plan">Plan (in module pyop2.device)</a>
+  <dt><a href="pyop2.html#pyop2.cuda.Plan">Plan (class in pyop2.cuda)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan">(class in pyop2.opencl)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.device.Plan">(in module pyop2.device)</a>
+  </dt>
+
+      </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.base.Arg.position">position (pyop2.base.Arg attribute)</a>
   </dt>
 
       
@@ -1686,10 +1984,14 @@
   <dt><a href="pyop2.html#module-pyop2.caching">pyop2.caching (module)</a>
   </dt>
 
+      
+  <dt><a href="pyop2.html#module-pyop2.configuration">pyop2.configuration (module)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="pyop2.html#module-pyop2.configuration">pyop2.configuration (module)</a>
+  <dt><a href="pyop2.html#module-pyop2.cuda">pyop2.cuda (module)</a>
   </dt>
 
       
@@ -1726,6 +2028,10 @@
 
       
   <dt><a href="pyop2.html#module-pyop2.op2">pyop2.op2 (module)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#module-pyop2.opencl">pyop2.opencl (module)</a>
   </dt>
 
       
@@ -1835,6 +2141,14 @@
       <dd><dl>
         
   <dt><a href="user.html#pyop2.Sparsity.rowptr">(pyop2.Sparsity attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.cuda.Sparsity.rowptr">(pyop2.cuda.Sparsity attribute)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Sparsity.rowptr">(pyop2.opencl.Sparsity attribute)</a>
   </dt>
 
       </dl></dd>
@@ -1972,6 +2286,14 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Solver.solve">(pyop2.cuda.Solver method)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Solver.solve">(pyop2.opencl.Solver method)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.petsc_base.Solver.solve">(pyop2.petsc_base.Solver method)</a>
   </dt>
 
@@ -1982,7 +2304,15 @@
 
       <dd><dl>
         
+  <dt><a href="pyop2.html#pyop2.cuda.Solver">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.op2.Solver">(class in pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Solver">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -2004,7 +2334,15 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Sparsity">(class in pyop2.cuda)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.op2.Sparsity">(class in pyop2.op2)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Sparsity">(class in pyop2.opencl)</a>
   </dt>
 
         
@@ -2054,6 +2392,16 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.html#pyop2.cuda.Plan.thrcol">thrcol (pyop2.cuda.Plan attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.opencl.Plan.thrcol">(pyop2.opencl.Plan attribute)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.profiling.tic">tic() (in module pyop2.profiling)</a>
   </dt>
@@ -2138,8 +2486,6 @@
   <dt><a href="pyop2.html#pyop2.utils.validate_type">validate_type (class in pyop2.utils)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.base.Map.values">values (pyop2.base.Map attribute)</a>
   </dt>
@@ -2158,10 +2504,16 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.cuda.Mat.values">(pyop2.cuda.Mat attribute)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.petsc_base.Mat.values">(pyop2.petsc_base.Mat attribute)</a>
   </dt>
 
       </dl></dd>
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.petsc_base.Dat.vec">vec (pyop2.petsc_base.Dat attribute)</a>
   </dt>
@@ -2172,6 +2524,14 @@
 
       
   <dt><a href="pyop2.html#pyop2.utils.verify_reshape">verify_reshape() (in module pyop2.utils)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#pyop2.opencl.Kernel.Instrument.visit_FuncDef">visit_FuncDef() (pyop2.opencl.Kernel.Instrument method)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#pyop2.opencl.Kernel.Instrument.visit_ParamList">visit_ParamList() (pyop2.opencl.Kernel.Instrument method)</a>
   </dt>
 
   </dl></td>
@@ -2197,12 +2557,20 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="pyop2.html#pyop2.opencl.DeviceDataMixin.ClTypeInfo.zero">zero (pyop2.opencl.DeviceDataMixin.ClTypeInfo attribute)</a>
+  </dt>
+
+      
   <dt><a href="pyop2.html#pyop2.base.Dat.zero">zero() (pyop2.base.Dat method)</a>
   </dt>
 
       <dd><dl>
         
   <dt><a href="user.html#pyop2.Dat.zero">(pyop2.Dat method)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.cuda.Mat.zero">(pyop2.cuda.Mat method)</a>
   </dt>
 
         
@@ -2213,9 +2581,15 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="pyop2.html#pyop2.petsc_base.Mat.zero_rows">zero_rows() (pyop2.petsc_base.Mat method)</a>
+  <dt><a href="pyop2.html#pyop2.cuda.Mat.zero_rows">zero_rows() (pyop2.cuda.Mat method)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="pyop2.html#pyop2.petsc_base.Mat.zero_rows">(pyop2.petsc_base.Mat method)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
 </tr></table>
 

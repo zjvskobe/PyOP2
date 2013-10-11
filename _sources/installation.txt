@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/OP2/PyOP2.png?branch=master
+  :target: https://travis-ci.org/OP2/PyOP2
+
 Installing PyOP2
 ================
 
@@ -58,7 +61,7 @@ dependencies using the above install script.
 Preparing the system
 --------------------
 
-OP2 and PyOP2 require a number of tools to be available: 
+PyOP2 require a number of tools to be available: 
 
 * gcc, make, CMake 
 * bzr, Git, Mercurial 
@@ -69,24 +72,6 @@ On a Debian-based system (Ubuntu, Mint, etc.) install them by running::
 
   sudo apt-get install -y build-essential python-dev bzr git-core mercurial \
   cmake cmake-curses-gui python-pip swig
-
-OP2-Common
-----------
-
-PyOP2 depends on the `OP2-Common <https://github.com/OP2/OP2-Common>`__
-library (only sequential is needed), which is built in-place as follows::
-
-  git clone git://github.com/OP2/OP2-Common.git 
-  cd OP2-Common/op2/c 
-  ./cmake.local -DOP2_WITH_CUDA=0 -DOP2_WITH_HDF5=0 -DOP2_WITH_MPI=0 -DOP2_WITH_OPENMP=0 
-  cd .. 
-  export OP2_DIR=`pwd`
-
-For further instructions refer to the `OP2-Common README
-<https://github.com/OP2/OP2-Common/blob/master/op2/c/README>`.
-
-If you have already built OP2-Common, make sure ``OP2_DIR`` is exported
-or the PyOP2 setup will fail.
 
 Dependencies
 ------------
@@ -110,10 +95,10 @@ Common dependencies:
 
 * Cython >= 0.17 
 * decorator 
-* instant >= 1.0 
+* instant revision 7301ecb or newer
 * numpy >= 1.6 
-* `PETSc <https://bitbucket.org/ggorman/petsc-3.3-omp>`__ >= 3.3 with Fortran interface, C++ and OpenMP support 
-* `PETSc4py <https://bitbucket.org/mapdes/petsc4py>`__ >= 3.3 
+* PETSc_ >= 3.4 with Fortran interfaces
+* PETSc4py_ >= 3.4
 * PyYAML
 
 Testing dependencies (optional, required to run the tests):
@@ -121,12 +106,12 @@ Testing dependencies (optional, required to run the tests):
 * pytest >= 2.3
 * flake8
 
-With the exception of the PETSc dependencies, these can be installed
+With the exception of the PETSc_ dependencies, these can be installed
 using the package management system of your OS, or via ``pip``.
 
 Install the dependencies via the package manager (Debian based systems)::
 
-  sudo apt-get install cython python-decorator python-instant python-numpy python-yaml
+  sudo apt-get install cython python-decorator python-numpy python-yaml
 
 **Note:** This may not give you recent enough versions of those packages
 (in particular the Cython version shipped with 12.04 is too old). You
@@ -134,7 +119,8 @@ can selectively upgrade packages via ``pip``, see below.
 
 Install dependencies via ``pip``::
 
-  pip install Cython=>0.17 decorator instant numpy pyyaml
+  pip install "Cython=>0.17" decorator "numpy>=1.6" pyyaml
+  pip install git+https://bitbucket.org/fenics-project/instant
 
 Additional Python 2.6 dependencies: 
 
@@ -148,57 +134,38 @@ Install these via ``pip``::
 PETSc
 ~~~~~
 
-PyOP2 uses `petsc4py <http://packages.python.org/petsc4py/>`__, the
-Python bindings for the `PETSc <http://www.mcs.anl.gov/petsc/>`__ linear
-algebra library.
-
-We maintain `a fork of
-petsc4py <https://bitbucket.org/mapdes/petsc4py>`__ with extensions that
-are required by PyOP2 and requires: 
+PyOP2 uses petsc4py_, the Python bindings for the PETSc_ linear algebra
+library and requires:
 
 * an MPI implementation built with *shared libraries* 
-* PETSc 3.3 built with *shared libraries*
+* PETSc_ 3.4 or later built with *shared libraries*
 
-If you have a suitable PETSc installed on your system, ``PETSC_DIR`` and
-``PETSC_ARCH`` need to be set for the petsc4py installer to find it. On
-a Debian/Ubuntu system with PETSc 3.3 installed, this can be achieved
+If you have a suitable PETSc_ installed on your system, ``PETSC_DIR`` and
+``PETSC_ARCH`` need to be set for the petsc4py_ installer to find it. On
+a Debian/Ubuntu system with PETSc_ 3.4 installed, this can be achieved
 via::
 
-  export PETSC_DIR=/usr/lib/petscdir/3.3 
+  export PETSC_DIR=/usr/lib/petscdir/3.4
   export PETSC_ARCH=linux-gnu-c-opt
 
-If not, make sure all PETSc dependencies (BLAS/LAPACK, MPI and a Fortran
+If not, make sure all PETSc_ dependencies (BLAS/LAPACK, MPI and a Fortran
 compiler) are installed. On a Debian based system, run::
 
   sudo apt-get install -y libopenmpi-dev openmpi-bin libblas-dev liblapack-dev gfortran
 
-If you want OpenMP support or don't have a suitable PETSc installed on
-your system, build the `PETSc OMP branch <https://bitbucket.org/ggorman/petsc-3.3-omp>`__::
+Then install PETSc_ via ``pip`` ::
 
-  PETSC_CONFIGURE_OPTIONS="--with-fortran-interfaces=1 --with-c++-support --with-openmp" \   
-  pip install hg+https://bitbucket.org/ggorman/petsc-3.3-omp 
+  PETSC_CONFIGURE_OPTIONS="--with-fortran-interfaces=1 --with-c++-support" \
+    pip install "petsc >= 3.4"
   unset PETSC_DIR
   unset PETSC_ARCH
 
-If you built PETSc using ``pip``, ``PETSC_DIR`` and ``PETSC_ARCH``
-should be left unset when building petsc4py.
+If you built PETSc_ using ``pip``, ``PETSC_DIR`` and ``PETSC_ARCH``
+should be left unset when building petsc4py_.
 
-Install `petsc4py <https://bitbucket.org/mapdes/petsc4py>`__ via
-``pip``::
+Install petsc4py_ via ``pip``::
 
-  pip install hg+https://bitbucket.org/mapdes/petsc4py#egg=petsc4py 
-
-PETSc and Fluidity
-^^^^^^^^^^^^^^^^^^
-
-When using PyOP2 with Fluidity it's crucial that both are built against
-the same PETSc, which must be build with Fortran support!
-
-Fluidity does presently not support PETSc >= 3.4, therefore you will
-need a version of petsc4py compatible with PETSc 3.3, available as the
-``3.3`` bookmark::
-
-  pip install hg+https://bitbucket.org/mapdes/petsc4py@3.3#egg=petsc4py
+  pip install "petsc4py >= 3.4"
 
 CUDA backend:
 ~~~~~~~~~~~~~
@@ -324,9 +291,7 @@ Clone the PyOP2 repository::
 
   git clone git://github.com/OP2/PyOP2.git
  
-If not set, ``OP2_DIR`` should be set to the location of the 'op2'
-folder within the OP2-Common build. PyOP2 uses
-`Cython <http://cython.org>`__ extension modules, which need to be built
+PyOP2 uses `Cython <http://cython.org>`__ extension modules, which need to be built
 in-place when using PyOP2 from the source tree::
 
   python setup.py build_ext --inplace
@@ -343,46 +308,39 @@ necessary.
 FFC Interface
 -------------
 
-Solving `UFL <https://bitbucket.org/fenics-project/ufl>`__ finite
-element equations requires a `fork of
-FFC <https://bitbucket.org/mapdes/ffc>`__ and dependencies: 
+Solving UFL_ finite element equations requires a fork of FFC_ and dependencies:
 
-* `UFL <https://bitbucket.org/fenics-project/ufl>`__ 
-* `UFC <https://bitbucket.org/fenics-project/ufc>`__ 
-* `FIAT <https://bitbucket.org/fenics-project/fiat>`__
+* UFL_
+* FIAT_
 
 Install via the package manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On a supported platform, get all the dependencies for FFC by installing
-the FEniCS toolchain from
-`packages <http://fenicsproject.org/download/>`__::
+On a supported platform, get all the dependencies for FFC_ by `installing
+the FEniCS toolchain packages <http://fenicsproject.org/download/>`__::
 
   sudo apt-get install fenics
 
-Our `FFC fork <https://bitbucket.org/mapdes/ffc>`__ is required, and
-must be added to your ``$PYTHONPATH``::
+Our FFC_ fork is required, and must be added to your ``$PYTHONPATH``::
 
   git clone -b pyop2 https://bitbucket.org/mapdes/ffc.git $FFC_DIR 
   export PYTHONPATH=$FFC_DIR:$PYTHONPATH
 
-This branch of FFC also requires the latest version of
-`UFL <https://bitbucket.org/fenics-project/ufl>`__, also added to
+This branch of FFC_ also requires the latest version of UFL_, also added to
 ``$PYTHONPATH``::
 
-  git clone https://bitbucket.org/fenics-project/ufl.git $UFL_DIR 
+  git clone https://bitbucket.org/mapdes/ufl.git $UFL_DIR
   export PYTHONPATH=$UFL_DIR:$PYTHONPATH
 
 Install via pip
 ~~~~~~~~~~~~~~~
 
-Alternatively, install FFC and all dependencies via pip::
+Alternatively, install FFC_ and all dependencies via pip::
 
   pip install \
     git+https://bitbucket.org/mapdes/ffc.git@pyop2#egg=ffc   
-    bzr+http://bazaar.launchpad.net/~florian-rathgeber/ufc/python-setup#egg=ufc_utils   
-    git+https://bitbucket.org/fenics-project/ufl.git#egg=ufl   
-    git+https://bitbucket.org/fenics-project/fiat.git#egg=fiat   
+    git+https://bitbucket.org/mapdes/ufl.git#egg=ufl
+    git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
     hg+https://bitbucket.org/khinsen/scientificpython
 
 Setting up the environment
@@ -392,11 +350,6 @@ To make sure PyOP2 finds all its dependencies, create a file ``.env``
 e.g. in your PyOP2 root directory and source it via ``. .env`` when
 using PyOP2. Use the template below, adjusting paths and removing
 definitions as necessary::
-
-  # Root directory of your OP2 installation, always needed 
-  export OP2_DIR=/path/to/OP2-Common/op2 
-  # If you have installed the OP2 library define e.g. 
-  export OP2_PREFIX=/usr/local
 
   #PETSc installation, not necessary when PETSc was installed via pip
   export PETSC_DIR=/path/to/petsc 
@@ -409,7 +362,7 @@ definitions as necessary::
   # Add any other Python module in non-standard locations
 
   #Add PyOP2 to PYTHONPATH
-  export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH \`\`\`
+  export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH
 
 Alternatively, package the configuration in an `environment
 module <http://modules.sourceforge.net/>`__.
@@ -442,13 +395,11 @@ If all tests in our test suite pass, you should be good to go::
 
   make test
 
-This will run both unit and regression tests, the latter require UFL
-and FFC.
+This will run both unit and regression tests, the latter require UFL_ and FFC_.
 
 This will attempt to run tests for all backends and skip those for not
-available backends. If the `FFC
-fork <https://bitbucket.org/mapdes/ffc>`__ is not found, tests for the
-FFC interface are xfailed.
+available backends. If the FFC_ fork is not found, tests for the FFC_ interface
+are xfailed.
 
 Troubleshooting
 ---------------
@@ -461,3 +412,9 @@ Run ``pydoc <module>`` to find out where a module/package is loaded
 from. To print the module search path, run::
 
  python -c 'from pprint import pprint; import sys; pprint(sys.path)'
+
+.. _PETSc: http://www.mcs.anl.gov/petsc/
+.. _petsc4py: http://pythonhosted.org/petsc4py/
+.. _FFC: https://bitbucket.org/mapdes/ffc
+.. _FIAT: https://bitbucket.org/mapdes/fiat
+.. _UFL: https://bitbucket.org/mapdes/ufl

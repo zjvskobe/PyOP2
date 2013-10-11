@@ -54,7 +54,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="installing-pyop2">
+  <a class="reference external image-reference" href="https://travis-ci.org/OP2/PyOP2"><img alt="https://travis-ci.org/OP2/PyOP2.png?branch=master" src="https://travis-ci.org/OP2/PyOP2.png?branch=master" /></a>
+<div class="section" id="installing-pyop2">
 <h1>Installing PyOP2<a class="headerlink" href="#installing-pyop2" title="Permalink to this headline">¶</a></h1>
 <p>The main testing platform for PyOP2 is Ubuntu 12.04 64-bit with Python
 2.7.3. Other UNIX-like systems may or may not work. Microsoft Windows is
@@ -101,7 +102,7 @@ dependencies using the above install script.</p>
 </div>
 <div class="section" id="preparing-the-system">
 <h2>Preparing the system<a class="headerlink" href="#preparing-the-system" title="Permalink to this headline">¶</a></h2>
-<p>OP2 and PyOP2 require a number of tools to be available:</p>
+<p>PyOP2 require a number of tools to be available:</p>
 <ul class="simple">
 <li>gcc, make, CMake</li>
 <li>bzr, Git, Mercurial</li>
@@ -112,21 +113,6 @@ dependencies using the above install script.</p>
 <div class="highlight-python"><pre>sudo apt-get install -y build-essential python-dev bzr git-core mercurial \
 cmake cmake-curses-gui python-pip swig</pre>
 </div>
-</div>
-<div class="section" id="op2-common">
-<h2>OP2-Common<a class="headerlink" href="#op2-common" title="Permalink to this headline">¶</a></h2>
-<p>PyOP2 depends on the <a class="reference external" href="https://github.com/OP2/OP2-Common">OP2-Common</a>
-library (only sequential is needed), which is built in-place as follows:</p>
-<div class="highlight-python"><pre>git clone git://github.com/OP2/OP2-Common.git
-cd OP2-Common/op2/c
-./cmake.local -DOP2_WITH_CUDA=0 -DOP2_WITH_HDF5=0 -DOP2_WITH_MPI=0 -DOP2_WITH_OPENMP=0
-cd ..
-export OP2_DIR=`pwd`</pre>
-</div>
-<p>For further instructions refer to the <cite>OP2-Common README
-&lt;https://github.com/OP2/OP2-Common/blob/master/op2/c/README&gt;</cite>.</p>
-<p>If you have already built OP2-Common, make sure <tt class="docutils literal"><span class="pre">OP2_DIR</span></tt> is exported
-or the PyOP2 setup will fail.</p>
 </div>
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
@@ -145,10 +131,10 @@ priority over system installed packages on your <tt class="docutils literal"><sp
 <ul class="simple">
 <li>Cython &gt;= 0.17</li>
 <li>decorator</li>
-<li>instant &gt;= 1.0</li>
+<li>instant revision 7301ecb or newer</li>
 <li>numpy &gt;= 1.6</li>
-<li><a class="reference external" href="https://bitbucket.org/ggorman/petsc-3.3-omp">PETSc</a> &gt;= 3.3 with Fortran interface, C++ and OpenMP support</li>
-<li><a class="reference external" href="https://bitbucket.org/mapdes/petsc4py">PETSc4py</a> &gt;= 3.3</li>
+<li><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> &gt;= 3.4 with Fortran interfaces</li>
+<li><a class="reference external" href="http://pythonhosted.org/petsc4py/">PETSc4py</a> &gt;= 3.4</li>
 <li>PyYAML</li>
 </ul>
 <p>Testing dependencies (optional, required to run the tests):</p>
@@ -156,16 +142,17 @@ priority over system installed packages on your <tt class="docutils literal"><sp
 <li>pytest &gt;= 2.3</li>
 <li>flake8</li>
 </ul>
-<p>With the exception of the PETSc dependencies, these can be installed
+<p>With the exception of the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> dependencies, these can be installed
 using the package management system of your OS, or via <tt class="docutils literal"><span class="pre">pip</span></tt>.</p>
 <p>Install the dependencies via the package manager (Debian based systems):</p>
-<div class="highlight-python"><pre>sudo apt-get install cython python-decorator python-instant python-numpy python-yaml</pre>
+<div class="highlight-python"><pre>sudo apt-get install cython python-decorator python-numpy python-yaml</pre>
 </div>
 <p><strong>Note:</strong> This may not give you recent enough versions of those packages
 (in particular the Cython version shipped with 12.04 is too old). You
 can selectively upgrade packages via <tt class="docutils literal"><span class="pre">pip</span></tt>, see below.</p>
 <p>Install dependencies via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install Cython=&gt;0.17 decorator instant numpy pyyaml</pre>
+<div class="highlight-python"><pre>pip install "Cython=&gt;0.17" decorator "numpy&gt;=1.6" pyyaml
+pip install git+https://bitbucket.org/fenics-project/instant</pre>
 </div>
 <p>Additional Python 2.6 dependencies:</p>
 <ul class="simple">
@@ -178,49 +165,33 @@ can selectively upgrade packages via <tt class="docutils literal"><span class="p
 </div>
 <div class="section" id="petsc">
 <h3>PETSc<a class="headerlink" href="#petsc" title="Permalink to this headline">¶</a></h3>
-<p>PyOP2 uses <a class="reference external" href="http://packages.python.org/petsc4py/">petsc4py</a>, the
-Python bindings for the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> linear
-algebra library.</p>
-<p>We maintain <a class="reference external" href="https://bitbucket.org/mapdes/petsc4py">a fork of
-petsc4py</a> with extensions that
-are required by PyOP2 and requires:</p>
+<p>PyOP2 uses <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>, the Python bindings for the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> linear algebra
+library and requires:</p>
 <ul class="simple">
 <li>an MPI implementation built with <em>shared libraries</em></li>
-<li>PETSc 3.3 built with <em>shared libraries</em></li>
+<li><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> 3.4 or later built with <em>shared libraries</em></li>
 </ul>
-<p>If you have a suitable PETSc installed on your system, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and
-<tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt> need to be set for the petsc4py installer to find it. On
-a Debian/Ubuntu system with PETSc 3.3 installed, this can be achieved
+<p>If you have a suitable <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> installed on your system, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and
+<tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt> need to be set for the <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> installer to find it. On
+a Debian/Ubuntu system with <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> 3.4 installed, this can be achieved
 via:</p>
-<div class="highlight-python"><pre>export PETSC_DIR=/usr/lib/petscdir/3.3
+<div class="highlight-python"><pre>export PETSC_DIR=/usr/lib/petscdir/3.4
 export PETSC_ARCH=linux-gnu-c-opt</pre>
 </div>
-<p>If not, make sure all PETSc dependencies (BLAS/LAPACK, MPI and a Fortran
+<p>If not, make sure all <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> dependencies (BLAS/LAPACK, MPI and a Fortran
 compiler) are installed. On a Debian based system, run:</p>
 <div class="highlight-python"><pre>sudo apt-get install -y libopenmpi-dev openmpi-bin libblas-dev liblapack-dev gfortran</pre>
 </div>
-<p>If you want OpenMP support or don&#8217;t have a suitable PETSc installed on
-your system, build the <a class="reference external" href="https://bitbucket.org/ggorman/petsc-3.3-omp">PETSc OMP branch</a>:</p>
-<div class="highlight-python"><pre>PETSC_CONFIGURE_OPTIONS="--with-fortran-interfaces=1 --with-c++-support --with-openmp" \
-pip install hg+https://bitbucket.org/ggorman/petsc-3.3-omp
+<p>Then install <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> via <tt class="docutils literal"><span class="pre">pip</span></tt></p>
+<div class="highlight-python"><pre>PETSC_CONFIGURE_OPTIONS="--with-fortran-interfaces=1 --with-c++-support" \
+  pip install "petsc &gt;= 3.4"
 unset PETSC_DIR
 unset PETSC_ARCH</pre>
 </div>
-<p>If you built PETSc using <tt class="docutils literal"><span class="pre">pip</span></tt>, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt>
-should be left unset when building petsc4py.</p>
-<p>Install <a class="reference external" href="https://bitbucket.org/mapdes/petsc4py">petsc4py</a> via
-<tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install hg+https://bitbucket.org/mapdes/petsc4py#egg=petsc4py</pre>
-</div>
-<div class="section" id="petsc-and-fluidity">
-<h4>PETSc and Fluidity<a class="headerlink" href="#petsc-and-fluidity" title="Permalink to this headline">¶</a></h4>
-<p>When using PyOP2 with Fluidity it&#8217;s crucial that both are built against
-the same PETSc, which must be build with Fortran support!</p>
-<p>Fluidity does presently not support PETSc &gt;= 3.4, therefore you will
-need a version of petsc4py compatible with PETSc 3.3, available as the
-<tt class="docutils literal"><span class="pre">3.3</span></tt> bookmark:</p>
-<div class="highlight-python"><pre>pip install hg+https://bitbucket.org/mapdes/petsc4py@3.3#egg=petsc4py</pre>
-</div>
+<p>If you built <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> using <tt class="docutils literal"><span class="pre">pip</span></tt>, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt>
+should be left unset when building <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>.</p>
+<p>Install <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
+<div class="highlight-python"><pre>pip install "petsc4py &gt;= 3.4"</pre>
 </div>
 </div>
 <div class="section" id="cuda-backend">
@@ -331,9 +302,7 @@ files. To use this feature you need the optional dependency
 <p>Clone the PyOP2 repository:</p>
 <div class="highlight-python"><pre>git clone git://github.com/OP2/PyOP2.git</pre>
 </div>
-<p>If not set, <tt class="docutils literal"><span class="pre">OP2_DIR</span></tt> should be set to the location of the &#8216;op2&#8217;
-folder within the OP2-Common build. PyOP2 uses
-<a class="reference external" href="http://cython.org">Cython</a> extension modules, which need to be built
+<p>PyOP2 uses <a class="reference external" href="http://cython.org">Cython</a> extension modules, which need to be built
 in-place when using PyOP2 from the source tree:</p>
 <div class="highlight-python"><pre>python setup.py build_ext --inplace</pre>
 </div>
@@ -347,41 +316,34 @@ necessary.</p>
 </div>
 <div class="section" id="ffc-interface">
 <h2>FFC Interface<a class="headerlink" href="#ffc-interface" title="Permalink to this headline">¶</a></h2>
-<p>Solving <a class="reference external" href="https://bitbucket.org/fenics-project/ufl">UFL</a> finite
-element equations requires a <a class="reference external" href="https://bitbucket.org/mapdes/ffc">fork of
-FFC</a> and dependencies:</p>
+<p>Solving <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a> finite element equations requires a fork of <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> and dependencies:</p>
 <ul class="simple">
-<li><a class="reference external" href="https://bitbucket.org/fenics-project/ufl">UFL</a></li>
-<li><a class="reference external" href="https://bitbucket.org/fenics-project/ufc">UFC</a></li>
-<li><a class="reference external" href="https://bitbucket.org/fenics-project/fiat">FIAT</a></li>
+<li><a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a></li>
+<li><a class="reference external" href="https://bitbucket.org/mapdes/fiat">FIAT</a></li>
 </ul>
 <div class="section" id="install-via-the-package-manager">
 <h3>Install via the package manager<a class="headerlink" href="#install-via-the-package-manager" title="Permalink to this headline">¶</a></h3>
-<p>On a supported platform, get all the dependencies for FFC by installing
-the FEniCS toolchain from
-<a class="reference external" href="http://fenicsproject.org/download/">packages</a>:</p>
+<p>On a supported platform, get all the dependencies for <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> by <a class="reference external" href="http://fenicsproject.org/download/">installing
+the FEniCS toolchain packages</a>:</p>
 <div class="highlight-python"><pre>sudo apt-get install fenics</pre>
 </div>
-<p>Our <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC fork</a> is required, and
-must be added to your <tt class="docutils literal"><span class="pre">$PYTHONPATH</span></tt>:</p>
+<p>Our <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> fork is required, and must be added to your <tt class="docutils literal"><span class="pre">$PYTHONPATH</span></tt>:</p>
 <div class="highlight-python"><pre>git clone -b pyop2 https://bitbucket.org/mapdes/ffc.git $FFC_DIR
 export PYTHONPATH=$FFC_DIR:$PYTHONPATH</pre>
 </div>
-<p>This branch of FFC also requires the latest version of
-<a class="reference external" href="https://bitbucket.org/fenics-project/ufl">UFL</a>, also added to
+<p>This branch of <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> also requires the latest version of <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a>, also added to
 <tt class="docutils literal"><span class="pre">$PYTHONPATH</span></tt>:</p>
-<div class="highlight-python"><pre>git clone https://bitbucket.org/fenics-project/ufl.git $UFL_DIR
+<div class="highlight-python"><pre>git clone https://bitbucket.org/mapdes/ufl.git $UFL_DIR
 export PYTHONPATH=$UFL_DIR:$PYTHONPATH</pre>
 </div>
 </div>
 <div class="section" id="install-via-pip">
 <h3>Install via pip<a class="headerlink" href="#install-via-pip" title="Permalink to this headline">¶</a></h3>
-<p>Alternatively, install FFC and all dependencies via pip:</p>
+<p>Alternatively, install <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> and all dependencies via pip:</p>
 <div class="highlight-python"><pre>pip install \
   git+https://bitbucket.org/mapdes/ffc.git@pyop2#egg=ffc
-  bzr+http://bazaar.launchpad.net/~florian-rathgeber/ufc/python-setup#egg=ufc_utils
-  git+https://bitbucket.org/fenics-project/ufl.git#egg=ufl
-  git+https://bitbucket.org/fenics-project/fiat.git#egg=fiat
+  git+https://bitbucket.org/mapdes/ufl.git#egg=ufl
+  git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
   hg+https://bitbucket.org/khinsen/scientificpython</pre>
 </div>
 </div>
@@ -392,12 +354,7 @@ export PYTHONPATH=$UFL_DIR:$PYTHONPATH</pre>
 e.g. in your PyOP2 root directory and source it via <tt class="docutils literal"><span class="pre">.</span> <span class="pre">.env</span></tt> when
 using PyOP2. Use the template below, adjusting paths and removing
 definitions as necessary:</p>
-<div class="highlight-python"><pre># Root directory of your OP2 installation, always needed
-export OP2_DIR=/path/to/OP2-Common/op2
-# If you have installed the OP2 library define e.g.
-export OP2_PREFIX=/usr/local
-
-#PETSc installation, not necessary when PETSc was installed via pip
+<div class="highlight-python"><pre>#PETSc installation, not necessary when PETSc was installed via pip
 export PETSC_DIR=/path/to/petsc
 export PETSC_ARCH=linux-gnu-c-opt
 
@@ -408,7 +365,7 @@ export PYTHONPATH=$UFL_DIR:$FFC_DIR:$PYTHONPATH
 # Add any other Python module in non-standard locations
 
 #Add PyOP2 to PYTHONPATH
-export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH \`\`\`</pre>
+export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH</pre>
 </div>
 <p>Alternatively, package the configuration in an <a class="reference external" href="http://modules.sourceforge.net/">environment
 module</a>.</p>
@@ -435,12 +392,10 @@ export PATH=${PATH}:${HOME}/.local/bin</pre>
 <p>If all tests in our test suite pass, you should be good to go:</p>
 <div class="highlight-python"><pre>make test</pre>
 </div>
-<p>This will run both unit and regression tests, the latter require UFL
-and FFC.</p>
+<p>This will run both unit and regression tests, the latter require <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a> and <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a>.</p>
 <p>This will attempt to run tests for all backends and skip those for not
-available backends. If the <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC
-fork</a> is not found, tests for the
-FFC interface are xfailed.</p>
+available backends. If the <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> fork is not found, tests for the <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> interface
+are xfailed.</p>
 </div>
 <div class="section" id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
@@ -466,13 +421,9 @@ from. To print the module search path, run:</p>
 <li><a class="reference internal" href="#quick-start">Quick start</a></li>
 <li><a class="reference internal" href="#provisioning-a-virtual-machine">Provisioning a virtual machine</a></li>
 <li><a class="reference internal" href="#preparing-the-system">Preparing the system</a></li>
-<li><a class="reference internal" href="#op2-common">OP2-Common</a></li>
 <li><a class="reference internal" href="#dependencies">Dependencies</a><ul>
 <li><a class="reference internal" href="#common">Common</a></li>
-<li><a class="reference internal" href="#petsc">PETSc</a><ul>
-<li><a class="reference internal" href="#petsc-and-fluidity">PETSc and Fluidity</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#petsc">PETSc</a></li>
 <li><a class="reference internal" href="#cuda-backend">CUDA backend:</a></li>
 <li><a class="reference internal" href="#opencl-backend">OpenCL backend:</a></li>
 <li><a class="reference internal" href="#hdf5">HDF5</a></li>

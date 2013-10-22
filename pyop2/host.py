@@ -384,6 +384,7 @@ class JITModule(base.JITModule):
         cc = os.environ.get('CC')
         os.environ['CC'] = 'mpicc'
 
+        # Print loops to files.
         if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
            os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
             filename = "/tmp/"+self._kernel.name + "-" + \

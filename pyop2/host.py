@@ -403,6 +403,18 @@ class JITModule(base.JITModule):
         # We need to build with mpicc since that's required by PETSc
         cc = os.environ.get('CC')
         os.environ['CC'] = 'mpicc'
+
+        if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
+           os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
+            filename = "/tmp/"+self._kernel.name + "-" + \
+              str(str.split(self._itspace.name, "/")[-1]) + \
+              "-" + str(self._kernel.cache_key)
+            print filename
+            with open(filename, 'wb') as f:
+                f.write(code_to_compile+ \
+                        "\\n"+ \
+                        self._kernel.code)
+
         self._fun = inline_with_numpy(
             code_to_compile, additional_declarations=kernel_code,
             additional_definitions=_const_decs + kernel_code,

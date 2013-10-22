@@ -41,6 +41,7 @@ from pyop2 import op2, utils
 from triangle_reader import read_triangle
 from ufl import *
 from pyop2.computeind import compute_ind_extr
+import pyop2.profiling as p
 
 import numpy as np
 import time
@@ -280,3 +281,4 @@ tloop2 = time.time() - t0loop2
 
 ttloop = tloop / 10
 print nums[0], nums[1], nums[2], layers, duration1, tloop, tloop2, g.data
+p.summary()

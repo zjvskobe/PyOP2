@@ -47,6 +47,7 @@ from utils import *
 from backends import _make_object
 from mpi import MPI, _MPI, _check_comm, collective
 from sparsity import build_sparsity
+import profiling as p
 
 
 class LazyComputation(object):
@@ -694,7 +695,8 @@ class Subset(Set):
             # Unroll indices to point to those in the parent
             indices = superset.indices[indices]
             superset = superset.superset
-        assert type(superset) is Set, 'Subset construction failed, should not happen'
+        assert type(
+            superset) is Set, 'Subset construction failed, should not happen'
 
         self._superset = superset
         self._indices = verify_reshape(indices, np.int32, (len(indices),))
@@ -717,7 +719,8 @@ class Subset(Set):
 
     def __pow__(self, e):
         """Derive a :class:`DataSet` with dimension ``e``"""
-        raise NotImplementedError("Deriving a DataSet from a Subset is unsupported")
+        raise NotImplementedError(
+            "Deriving a DataSet from a Subset is unsupported")
 
     def __call__(self, *indices):
         """Build a :class:`Subset` from this :class:`Subset`
@@ -744,6 +747,7 @@ class Subset(Set):
 
 
 class SetPartition(object):
+
     def __init__(self, set, offset, size):
         self.set = set
         self.offset = offset
@@ -844,6 +848,7 @@ class MixedSet(Set):
 
 
 class DataSet(object):
+
     """PyOP2 Data Set
 
     Set used in the op2.Dat structures to specify the dimension of the data.
@@ -855,7 +860,8 @@ class DataSet(object):
                    ('name', str, NameTypeError))
     def __init__(self, iter_set, dim=1, name=None):
         if isinstance(iter_set, Subset):
-            raise NotImplementedError("Deriving a DataSet from a Subset is unsupported")
+            raise NotImplementedError(
+                "Deriving a DataSet from a Subset is unsupported")
         self._set = iter_set
         self._dim = as_tuple(dim, int)
         self._cdim = np.asscalar(np.prod(self._dim))
@@ -1381,7 +1387,8 @@ class Dat(DataCarrier):
             # If a Set, rather than a dataset is passed in, default to
             # a dataset dimension of 1.
             dataset = dataset ** 1
-        self._shape = (dataset.total_size,) + (() if dataset.cdim == 1 else dataset.dim)
+        self._shape = (dataset.total_size,) + \
+            (() if dataset.cdim == 1 else dataset.dim)
         self._dataset = dataset
         if data is None:
             self._dtype = np.dtype(dtype if dtype is not None else np.float64)
@@ -1456,7 +1463,8 @@ class Dat(DataCarrier):
         """
         _trace.evaluate(set([self]), set([self]))
         if self.dataset.total_size > 0 and self._data.size == 0:
-            raise RuntimeError("Illegal access: no data associated with this Dat!")
+            raise RuntimeError(
+                "Illegal access: no data associated with this Dat!")
         maybe_setflags(self._data, write=True)
         v = self._data[:self.dataset.size].view()
         self.needs_halo_update = True
@@ -1494,7 +1502,8 @@ class Dat(DataCarrier):
         """
         _trace.evaluate(set([self]), set())
         if self.dataset.total_size > 0 and self._data.size == 0:
-            raise RuntimeError("Illegal access: no data associated with this Dat!")
+            raise RuntimeError(
+                "Illegal access: no data associated with this Dat!")
         v = self._data[:self.dataset.size].view()
         v.setflags(write=False)
         return v
@@ -1948,7 +1957,8 @@ class Const(DataCarrier):
     def data(self):
         """Data array."""
         if len(self._data) is 0:
-            raise RuntimeError("Illegal access: No data associated with this Const!")
+            raise RuntimeError(
+                "Illegal access: No data associated with this Const!")
         return self._data
 
     @data.setter
@@ -2070,7 +2080,8 @@ class Global(DataCarrier):
         """Data array."""
         _trace.evaluate(set([self]), set())
         if len(self._data) is 0:
-            raise RuntimeError("Illegal access: No data associated with this Global!")
+            raise RuntimeError(
+                "Illegal access: No data associated with this Global!")
         return self._data
 
     @property
@@ -2089,7 +2100,8 @@ class Global(DataCarrier):
         objects."""
         return False
 
-# FIXME: Part of kernel API, but must be declared before Map for the validation.
+# FIXME: Part of kernel API, but must be declared before Map for the
+# validation.
 
 
 class IterationIndex(object):
@@ -2153,14 +2165,16 @@ class Map(object):
 
     _globalcount = 0
 
-    @validate_type(('iterset', Set, SetTypeError), ('toset', Set, SetTypeError),
-                  ('arity', int, ArityTypeError), ('name', str, NameTypeError))
+    @validate_type(
+        ('iterset', Set, SetTypeError), ('toset', Set, SetTypeError),
+        ('arity', int, ArityTypeError), ('name', str, NameTypeError))
     def __init__(self, iterset, toset, arity, values=None, name=None, offset=None, parent=None):
         self._iterset = iterset
         self._toset = toset
         self._arity = arity
-        self._values = verify_reshape(values, np.int32, (iterset.total_size, arity),
-                                      allow_none=True)
+        self._values = verify_reshape(
+            values, np.int32, (iterset.total_size, arity),
+            allow_none=True)
         self._name = name or "map_%d" % Map._globalcount
         self._offset = offset
         # This is intended to be used for modified maps, for example
@@ -2843,6 +2857,7 @@ class JITModule(Cached):
 
 
 class ParLoop(LazyComputation):
+
     """Represents the kernel, iteration space and arguments of a parallel loop
     invocation.
 
@@ -2878,7 +2893,16 @@ class ParLoop(LazyComputation):
         self._it_space = self.build_itspace(iterset)
 
     def _run(self):
-        return self.compute()
+        if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
+           os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
+            loop_name = self._kernel.name + "-" + \
+              str(str.split(self.it_space.name, "/")[-1]) + \
+              "-" + str(self._kernel.cache_key)
+            p.tic(loop_name)
+            self.compute()
+            p.toc(loop_name)
+        else:
+            self.compute()
 
     @collective
     def compute(self):
@@ -3107,7 +3131,13 @@ class Solver(object):
         :arg b: The :class:`Dat` containing the RHS.
         """
         _trace.evaluate(set([A, b]), set([x]))
-        self._solve(A, x, b)
+        if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
+           os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
+            p.tic("solve")
+            self._solve(A, x, b)
+            p.toc("solve")
+        else:
+            self._solve(A, x, b)
 
     def _solve(self, A, x, b):
         raise NotImplementedError("solve must be implemented by backend")

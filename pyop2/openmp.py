@@ -163,7 +163,7 @@ void wrap_%(kernel_name)s__(PyObject* _boffset,
   int nthread = 1;
   #endif
 
-  #pragma omp parallel shared(boffset, nblocks, nelems, blkmap)
+  #pragma omp parallel shared(boffset, nblocks, nelems, blkmap) %(privates)s
   {
     int tid = omp_get_thread_num();
     %(interm_globals_decl)s;

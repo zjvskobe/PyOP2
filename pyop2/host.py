@@ -145,7 +145,8 @@ class Arg(base.Arg):
                          'name': self.c_kernel_arg_name(i, j),
                          'idx': idx}
                 else:
-                    raise RuntimeError("Don't know how to pass kernel arg %s" % self)
+                    raise RuntimeError(
+                        "Don't know how to pass kernel arg %s" % self)
             else:
                 if self.data is not None and self.data.dataset.set.layers > 1:
                     return self.c_ind_data_xtr("i_%d" % self.idx.index, i)
@@ -467,10 +468,12 @@ class JITModule(base.JITModule):
 
         if len(Const._defs) > 0:
             _const_args = ', '
-            _const_args += ', '.join([c_const_arg(c) for c in Const._definitions()])
+            _const_args += ', '.join(
+                [c_const_arg(c) for c in Const._definitions()])
         else:
             _const_args = ''
-        _const_inits = ';\n'.join([c_const_init(c) for c in Const._definitions()])
+        _const_inits = ';\n'.join([c_const_init(c)
+                                  for c in Const._definitions()])
 
         _intermediate_globals_decl = ';\n'.join(
             [arg.c_intermediate_globals_decl(count)
@@ -500,9 +503,17 @@ class JITModule(base.JITModule):
                                      if arg._is_mat and arg.data._is_scalar_field])
             _map_decl += ';\n'.join([arg.c_map_decl_itspace() for arg in self._args
                                      if arg._uses_itspace and not arg._is_mat])
+            if _map_decl != '':
+                _privates = ' private(' + ','.join([','.join(["xtr_" + arg.c_map_name(idx) for idx in range(2)]) for arg in self._args
+                                                    if arg._is_mat and arg.data._is_scalar_field]) + \
+                    ','.join(["xtr_" + arg.c_map_name() for arg in self._args
+                              if arg._uses_itspace and not arg._is_mat]) + ')'
+            else:
+                _privates = ''
         else:
             _off_args = ""
             _off_inits = ""
+            _privates = ""
 
         def itset_loop_body(i, j, shape, offsets):
             nloops = len(shape)
@@ -586,4 +597,5 @@ class JITModule(base.JITModule):
                 'interm_globals_decl': indent(_intermediate_globals_decl, 3),
                 'interm_globals_init': indent(_intermediate_globals_init, 3),
                 'interm_globals_writeback': indent(_intermediate_globals_writeback, 3),
+                'privates': _privates,
                 'itset_loop_body': '\n'.join([itset_loop_body(i, j, shape, offsets) for i, j, shape, offsets in self._itspace])}

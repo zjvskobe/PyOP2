@@ -33,6 +33,14 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`computeind` Module
+------------------------
+
+.. automodule:: pyop2.computeind
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`configuration` Module
 ---------------------------
 
@@ -145,6 +153,14 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`plan` Module
+------------------
+
+.. automodule:: pyop2.plan
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`profiling` Module
 -----------------------
 
@@ -157,6 +173,14 @@ pyop2 Package
 ------------------------
 
 .. automodule:: pyop2.sequential
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`sparsity` Module
+----------------------
+
+.. automodule:: pyop2.sparsity
     :members:
     :undoc-members:
     :show-inheritance:

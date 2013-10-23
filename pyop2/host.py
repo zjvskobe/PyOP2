@@ -116,13 +116,15 @@ class Arg(base.Arg):
                 if self.data._is_vector_field:
                     return self.c_kernel_arg_name()
                 elif self.data._is_scalar_field:
-                    idx = ''.join(["[i_%d]" % i for i, _ in enumerate(self.data.dims)])
+                    idx = ''.join(
+                        ["[i_%d]" % i for i, _ in enumerate(self.data.dims)])
                     return "(%(t)s (*)[1])&%(name)s%(idx)s" % \
                         {'t': self.ctype,
                          'name': self.c_kernel_arg_name(),
                          'idx': idx}
                 else:
-                    raise RuntimeError("Don't know how to pass kernel arg %s" % self)
+                    raise RuntimeError(
+                        "Don't know how to pass kernel arg %s" % self)
             else:
                 if self.data is not None and self.data.dataset.set.layers > 1:
                     return self.c_ind_data_xtr("i_%d" % self.idx.index)
@@ -233,7 +235,8 @@ class Arg(base.Arg):
             if self._flatten:
                 dims = '[1][1]'
         else:
-            raise RuntimeError("Don't know how to declare temp array for %s" % self)
+            raise RuntimeError(
+                "Don't know how to declare temp array for %s" % self)
         return "%s %s%s" % (t, self.c_local_tensor_name(), dims)
 
     def c_zero_tmp(self):
@@ -250,7 +253,8 @@ class Arg(base.Arg):
             return "memset(%(name)s, 0, sizeof(%(t)s) * %(size)s)" % \
                 {'name': self.c_kernel_arg_name(), 't': t, 'size': size}
         else:
-            raise RuntimeError("Don't know how to zero temp array for %s" % self)
+            raise RuntimeError(
+                "Don't know how to zero temp array for %s" % self)
 
     def c_add_offset(self):
         return '\n'.join(["%(name)s[%(j)d] += _off%(num)s[%(j)d] * %(dim)s;" %
@@ -387,13 +391,13 @@ class JITModule(base.JITModule):
         # Print loops to files.
         if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
            os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
-            filename = "/tmp/"+ "FIRE-" +self._kernel.name + "-" + \
-              str(str.split(self._itspace.name, "/")[-1]) + \
-              "-" + str(self._kernel.cache_key)
+            filename = "/tmp/" + "FIRE-" + self._kernel.name + "-" + \
+                str(str.split(self._itspace.name, "/")[-1]) + \
+                "-" + str(self._kernel.cache_key)
             print filename
             with open(filename, 'wb') as f:
-                f.write(code_to_compile+ \
-                        "\\n"+ \
+                f.write(code_to_compile +
+                        "\\n" +
                         self._kernel.code)
 
         self._fun = inline_with_numpy(
@@ -468,21 +472,25 @@ class JITModule(base.JITModule):
                     break
         _itspace_loops = '\n'.join(['  ' * i + itspace_loop(i, e)
                                     for i, e in enumerate(extents)])
-        _itspace_loop_close = '\n'.join('  ' * i + '}' for i in range(nloops - 1, -1, -1))
+        _itspace_loop_close = '\n'.join(
+            '  ' * i + '}' for i in range(nloops - 1, -1, -1))
 
         _addtos_vector_field = ';\n'.join([arg.c_addto_vector_field() for arg in self._args
                                            if arg._is_mat and arg.data._is_vector_field])
         _addtos_scalar_field = ';\n'.join([arg.c_addto_scalar_field(None) for arg in self._args
                                            if arg._is_mat and arg.data._is_scalar_field])
 
-        _zero_tmps = ';\n'.join([arg.c_zero_tmp() for arg in self._args if arg._is_mat])
+        _zero_tmps = ';\n'.join([arg.c_zero_tmp()
+                                for arg in self._args if arg._is_mat])
 
         if len(Const._defs) > 0:
             _const_args = ', '
-            _const_args += ', '.join([c_const_arg(c) for c in Const._definitions()])
+            _const_args += ', '.join(
+                [c_const_arg(c) for c in Const._definitions()])
         else:
             _const_args = ''
-        _const_inits = ';\n'.join([c_const_init(c) for c in Const._definitions()])
+        _const_inits = ';\n'.join([c_const_init(c)
+                                  for c in Const._definitions()])
 
         _intermediate_globals_decl = ';\n'.join(
             [arg.c_intermediate_globals_decl(count)
@@ -521,7 +529,16 @@ class JITModule(base.JITModule):
             _addtos_scalar_field = ""
 
             _extr_loop = '\n' + extrusion_loop(self._layers - 1)
+
             _extr_loop_close = '}\n'
+
+            if _map_decl != '':
+                _privates = ' private(' + ','.join([','.join(["xtr_" + arg.c_map_name(idx) for idx in range(2)]) for arg in self._args
+                                                    if arg._is_mat and arg.data._is_scalar_field]) + \
+                    ','.join(["xtr_" + arg.c_map_name() for arg in self._args
+                              if arg._uses_itspace and not arg._is_mat]) + ')'
+            else:
+                _privates = ''
         else:
             _off_args = ""
             _off_inits = ""
@@ -530,6 +547,7 @@ class JITModule(base.JITModule):
             _addtos_scalar_field_extruded = ""
             _map_decl = ""
             _map_init = ""
+            _privayes = ""
 
         indent = lambda t, i: ('\n' + '  ' * i).join(t.split('\n'))
 
@@ -560,4 +578,5 @@ class JITModule(base.JITModule):
                 'interm_globals_writeback': indent(_intermediate_globals_writeback, 3),
                 'addtos_scalar_field_extruded': indent(_addtos_scalar_field_extruded, 2 + nloops),
                 'map_init': indent(_map_init, 5),
-                'map_decl': indent(_map_decl, 1)}
+                'map_decl': indent(_map_decl, 1),
+                'privates': _privates}

@@ -2286,6 +2286,9 @@ class ParLoop(LazyComputation):
               "-" + str(self._kernel.cache_key)
             vol = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize 
                        for arg in self.args if arg._is_dat])
+            vol += sum([(arg.data._sparsity.onz + arg.data._sparsity.nz) * 
+                         arg.dtype.itemsize 
+                        for arg in self.args if arg._is_mat])
             p.data_volume(loop_name, vol)
             #from IPython import embed
             #embed()

@@ -2898,6 +2898,11 @@ class ParLoop(LazyComputation):
             loop_name = self._kernel.name + "-" + \
               str(str.split(self.it_space.name, "/")[-1]) + \
               "-" + str(self._kernel.cache_key)
+            vol = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize 
+                       for arg in self.args if arg._is_dat])
+            p.data_volume(loop_name, vol)
+            #from IPython import embed
+            #embed()
             p.tic(loop_name)
             self.compute()
             p.toc(loop_name)

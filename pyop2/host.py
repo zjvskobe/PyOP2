@@ -396,8 +396,7 @@ class JITModule(base.JITModule):
                 "-" + str(self._kernel.cache_key)
             print filename
             with open(filename, 'wb') as f:
-                f.write(code_to_compile +
-                        "\\n" +
+                f.write(code_to_compile + \
                         self._kernel.code)
 
         self._fun = inline_with_numpy(

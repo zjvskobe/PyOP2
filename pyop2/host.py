@@ -503,12 +503,25 @@ class JITModule(base.JITModule):
                                      if arg._is_mat and arg.data._is_scalar_field])
             _map_decl += ';\n'.join([arg.c_map_decl_itspace() for arg in self._args
                                      if arg._uses_itspace and not arg._is_mat])
-            if _map_decl != '':
-                _privates = ' private(' + ','.join([','.join(["xtr_" + arg.c_map_name(idx) for idx in range(2)]) for arg in self._args
-                                                    if arg._is_mat and arg.data._is_scalar_field]) + \
+			_xtr_map_content = ''
+            _arg_vec_content = ''            
+			if _map_decl != '':
+                _xtr_map_content += ','.join([','.join(["xtr_" + arg.c_map_name(idx) for idx in range(2)]) for arg in self._args
+                                                        if arg._is_mat and arg.data._is_scalar_field]) + \
                     ','.join(["xtr_" + arg.c_map_name() for arg in self._args
-                              if arg._uses_itspace and not arg._is_mat]) + ')'
-            else:
+                              if arg._uses_itspace and not arg._is_mat])
+
+            _arg_vec_content = ', '.join([arg.c_vec_name() for arg in self._args
+                              if arg._is_vec_map and not arg._is_mat])
+
+            _privates = ' private('
+            if _xtr_map_content != '':
+                _privates += _xtr_map_content
+            if _arg_vec_content != '':
+                if _xtr_map_content != '':
+                    _privates += ', '
+                _privates += _arg_vec_content + ')'
+            if _arg_vec_content == '' and _xtr_map_content == '':
                 _privates = ''
         else:
             _off_args = ""

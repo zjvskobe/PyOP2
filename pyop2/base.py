@@ -2877,7 +2877,6 @@ class ParLoop(LazyComputation):
         self._actual_args = args
         self._kernel = kernel
         self._is_layered = iterset.layers > 1
-        print "Sizes in init: ", iterset.sizes
 
         for i, arg in enumerate(self._actual_args):
             arg.position = i
@@ -2896,22 +2895,22 @@ class ParLoop(LazyComputation):
     def _run(self):
         if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
            os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
-            loop_name = self._kernel.name + "-" + \
+            self.loop_name = self._kernel.name + "-" + \
               str(str.split(self.it_space.name, "/")[-1]) + \
               "-" + str(self._kernel.cache_key)
             #print "Number of args", len(self.args)
-            vol = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize 
+            self.vol = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize
                        for arg in self.args if arg._is_dat])
-            vol += sum([(arg.data._sparsity.onz + arg.data._sparsity.nz) * 
+            self.vol += sum([(arg.data._sparsity.onz + arg.data._sparsity.nz) *
                          arg.dtype.itemsize 
                         for arg in self.args if arg._is_mat])
-            p.data_volume(loop_name, vol)
-            print "Sizes", self.it_space.iterset.sizes
+            p.data_volume(self.loop_name, self.vol)
+            #print "Sizes", self.it_space.iterset.sizes
             #from IPython import embed
             #embed()
-            p.tic(loop_name)
+            p.tic(self.loop_name)
             self.compute()
-            p.toc(loop_name)
+            p.toc(self.loop_name)
         else:
             self.compute()
 

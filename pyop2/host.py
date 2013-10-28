@@ -546,7 +546,7 @@ class JITModule(base.JITModule):
             _addtos_scalar_field_extruded = ""
             _map_decl = ""
             _map_init = ""
-            _privayes = ""
+            _privates = ""
 
         indent = lambda t, i: ('\n' + '  ' * i).join(t.split('\n'))
 

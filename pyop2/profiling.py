@@ -78,6 +78,7 @@ class Timer(object):
 
     def data_volume(self, volume):
         """Record the ideal data volume."""
+        print "Partial volume", volume
         self._data_volumes.append(volume)
 
     @property
@@ -104,6 +105,7 @@ class Timer(object):
     @property
     def total_vol(self):
         """Total data_volume for all recorded events."""
+        #print "Total volume = ", sum(self._data_volumes)
         return sum(self._data_volumes)
 
     @property

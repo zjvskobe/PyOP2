@@ -2,7 +2,7 @@
 
 log_level: WARN
 
-lazy_evaluation: true
+lazy_evaluation: false
 lazy_max_trace_length: 0
 
 backend: sequential

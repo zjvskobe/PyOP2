@@ -66,9 +66,6 @@ def _detect_openmp_flags():
 
 class Arg(host.Arg):
 
-    def c_vec_name(self, idx=None):
-        return self.c_arg_name() + "_vec[%s]" % (idx or 'tid')
-
     def c_kernel_arg_name(self, idx=None):
         return "p_%s[%s]" % (self.c_arg_name(), idx or 'tid')
 
@@ -79,7 +76,7 @@ class Arg(host.Arg):
         cdim = self.data.dataset.cdim if self._flatten else 1
         return ";\n%(type)s *%(vec_name)s[%(arity)s]" % \
             {'type': self.ctype,
-             'vec_name': self.c_vec_name(str(_max_threads)),
+             'vec_name': self.c_vec_name(),
              'arity': self.map.arity * cdim}
 
     def padding(self):

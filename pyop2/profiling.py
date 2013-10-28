@@ -78,7 +78,7 @@ class Timer(object):
 
     def data_volume(self, volume):
         """Record the ideal data volume."""
-        print "Partial volume", volume
+        #print "Partial volume", volume
         self._data_volumes.append(volume)
 
     @property

@@ -408,9 +408,10 @@ class JITModule(base.JITModule):
         # Print loops to files.
         if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
            os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
-            filename = "/tmp/"+ "FIRE-" +self._kernel.name + "-" + \
-              str(str.split(self._itspace.name, "/")[-1]) + \
-              "-" + str(self._kernel.cache_key)
+            loop_id = self._kernel.name + "-" + \
+                str(str.split(self._itspace.name, "/")[-1]) + \
+                "-" + str(self._kernel.cache_key)
+            filename = "/tmp/" + "FIRE-" + loop_id
             print filename
             with open(filename, 'wb') as f:
                 f.write(code_to_compile+ \

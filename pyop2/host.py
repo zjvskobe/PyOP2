@@ -386,19 +386,123 @@ class JITModule(base.JITModule):
 
         # We need to build with mpicc since that's required by PETSc
         cc = os.environ.get('CC')
-        os.environ['CC'] = 'mpicc'
+        os.environ['CC'] = 'icc'
 
         # Print loops to files.
         if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
            os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
-            filename = "/tmp/" + "FIRE-" + self._kernel.name + "-" + \
+            loop_id = self._kernel.name + "-" + \
                 str(str.split(self._itspace.name, "/")[-1]) + \
                 "-" + str(self._kernel.cache_key)
+            filename = "/tmp/" + "FIRE-" + loop_id
             print filename
             with open(filename, 'wb') as f:
                 f.write(code_to_compile + \
                         self._kernel.code)
 
+            if loop_id == 'form_cell_integral_0_otherwise-spacefilling1.node_elements-134c0d55f757baeebea1b681d18d1118':
+                code_to_compile="""
+                void wrap_form_cell_integral_0_otherwise__(PyObject* _boffset,
+                            PyObject* _nblocks,
+                            PyObject* _blkmap,
+                            PyObject* _offset,
+                            PyObject* _nelems,
+                            PyObject *_arg0, PyObject *_arg0_map0, PyObject *_arg1, PyObject *_arg1_map0, PyObject *_arg2, PyObject *_arg2_map0
+                            , PyObject *off00, PyObject *off10, PyObject *off20) {
+  int boffset = (int)PyInt_AsLong(_boffset);
+  int nblocks = (int)PyInt_AsLong(_nblocks);
+  int* blkmap = (int *)(((PyArrayObject *)_blkmap)->data);
+  int* offset = (int *)(((PyArrayObject *)_offset)->data);
+  int* nelems = (int *)(((PyArrayObject *)_nelems)->data);
+  double *arg0 = (double *)(((PyArrayObject *)_arg0)->data);
+  int *arg0_map0 = (int *)(((PyArrayObject *)_arg0_map0)->data);
+  double *arg1 = (double *)(((PyArrayObject *)_arg1)->data);
+  int *arg1_map0 = (int *)(((PyArrayObject *)_arg1_map0)->data);
+  //double *arg1_vec[18];
+  double *arg2 = (double *)(((PyArrayObject *)_arg2)->data);
+  int *arg2_map0 = (int *)(((PyArrayObject *)_arg2_map0)->data);
+  //double *arg2_vec[6];
+  int * _off00 = (int *)(((PyArrayObject *)off00)->data);
+  int * _off10 = (int *)(((PyArrayObject *)off10)->data);
+  int * _off20 = (int *)(((PyArrayObject *)off20)->data);
+  
+  #ifdef _OPENMP
+  int nthread = omp_get_max_threads();
+  #else
+  int nthread = 1;
+  #endif
+  
+  #pragma omp parallel shared(boffset, nblocks, nelems, blkmap)  //private(arg2_vec, arg1_vec)
+  {
+    int tid = omp_get_thread_num();
+    #pragma omp for schedule(static)
+    for ( int __b = boffset; __b < boffset + nblocks; __b++ )
+    {
+      int bid = blkmap[__b];
+      int nelem = nelems[bid];
+      int efirst = offset[bid];
+      double arg0_vec[6*99];
+      int xtr_arg0_map0[6];
+      double *arg1_vec[18];
+      double *arg2_vec[6];
+      for (int n = efirst; n < efirst+ nelem; n++ )
+      {
+        int i = n;
+        arg1_vec[0] = arg1 + arg1_map0[i * 6 + 0] * 3;
+        arg1_vec[1] = arg1 + arg1_map0[i * 6 + 1] * 3;
+        arg1_vec[2] = arg1 + arg1_map0[i * 6 + 2] * 3;
+        arg1_vec[3] = arg1 + arg1_map0[i * 6 + 3] * 3;
+        arg1_vec[4] = arg1 + arg1_map0[i * 6 + 4] * 3;
+        arg1_vec[5] = arg1 + arg1_map0[i * 6 + 5] * 3;
+        arg1_vec[6] = arg1 + arg1_map0[i * 6 + 0] * 3 + 1;
+        arg1_vec[7] = arg1 + arg1_map0[i * 6 + 1] * 3 + 1;
+        arg1_vec[8] = arg1 + arg1_map0[i * 6 + 2] * 3 + 1;
+        arg1_vec[9] = arg1 + arg1_map0[i * 6 + 3] * 3 + 1;
+        arg1_vec[10] = arg1 + arg1_map0[i * 6 + 4] * 3 + 1;
+        arg1_vec[11] = arg1 + arg1_map0[i * 6 + 5] * 3 + 1;
+        arg1_vec[12] = arg1 + arg1_map0[i * 6 + 0] * 3 + 2;
+        arg1_vec[13] = arg1 + arg1_map0[i * 6 + 1] * 3 + 2;
+        arg1_vec[14] = arg1 + arg1_map0[i * 6 + 2] * 3 + 2;
+        arg1_vec[15] = arg1 + arg1_map0[i * 6 + 3] * 3 + 2;
+        arg1_vec[16] = arg1 + arg1_map0[i * 6 + 4] * 3 + 2;
+        arg1_vec[17] = arg1 + arg1_map0[i * 6 + 5] * 3 + 2;
+        arg2_vec[0] = arg2 + arg2_map0[i * 6 + 0] * 1;
+        arg2_vec[1] = arg2 + arg2_map0[i * 6 + 1] * 1;
+        arg2_vec[2] = arg2 + arg2_map0[i * 6 + 2] * 1;
+        arg2_vec[3] = arg2 + arg2_map0[i * 6 + 3] * 1;
+        arg2_vec[4] = arg2 + arg2_map0[i * 6 + 4] * 1;
+        arg2_vec[5] = arg2 + arg2_map0[i * 6 + 5] * 1;
+
+        for (int j_0=0; j_0<99; ++j_0){
+          for (int i_0=0; i_0<6; ++i_0) {
+            form_cell_integral_0_otherwise(arg0_vec + i_0*99 + j_0, arg1_vec, arg2_vec, i_0);
+          }
+            arg1_vec[0] += _off10[0] * 3;
+            arg1_vec[1] += _off10[1] * 3;
+            arg1_vec[2] += _off10[2] * 3;
+            arg1_vec[3] += _off10[3] * 3;
+            arg1_vec[4] += _off10[4] * 3;
+            arg1_vec[5] += _off10[5] * 3;
+            arg2_vec[0] += _off20[0] * 1;
+            arg2_vec[1] += _off20[1] * 1;
+            arg2_vec[2] += _off20[2] * 1;
+            arg2_vec[3] += _off20[3] * 1;
+            arg2_vec[4] += _off20[4] * 1;
+            arg2_vec[5] += _off20[5] * 1;
+        }
+
+        for (int i_0=0; i_0<6; ++i_0) {
+            xtr_arg0_map0[i_0] = *(arg0_map0 + i * 6 + i_0);
+            for (int j_0=0; j_0<99; ++j_0){               
+                (arg0 + xtr_arg0_map0[i_0] + _off00[i_0] * j_0)[0] = arg0_vec[i_0*99 + j_0];
+            }
+        }
+      }
+    }
+  }
+}
+                """
+        
         self._fun = inline_with_numpy(
             code_to_compile, additional_declarations=kernel_code,
             additional_definitions=_const_decs + kernel_code,

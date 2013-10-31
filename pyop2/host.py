@@ -386,7 +386,7 @@ class JITModule(base.JITModule):
 
         # We need to build with mpicc since that's required by PETSc
         cc = os.environ.get('CC')
-        os.environ['CC'] = 'icc'
+        os.environ['CC'] = 'mpicc'
 
         # Print loops to files.
         if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \

@@ -200,13 +200,8 @@ void wrap_%(kernel_name)s__(PyObject* _boffset,
     likwid_markerStopRegion("accumulate");
   }
 
-  if (%(cond)s){
-    if (likwid_init == 99){
-      likwid_markerClose();
-    }
-  } else {
-    printf("STOP \\n");
-    likwid_markerClose();
+  if (likwid_init == 0){
+     likwid_markerClose();
   }
   likwid_init++;
 }

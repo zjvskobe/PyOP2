@@ -520,11 +520,11 @@ class JITModule(base.JITModule):
             code_to_compile, additional_declarations=kernel_code,
             additional_definitions=_const_decs + kernel_code,
             cppargs=self._cppargs + (['-O3', '-g', '-pthread'] if cfg.debug else []),
-            include_dirs=[d + '/include' for d in get_petsc_dir(), "/usr/local/include"],
+            include_dirs=[d + '/include' for d in get_petsc_dir()]+["/usr/local/include"],
             source_directory=os.path.dirname(os.path.abspath(__file__)),
             wrap_headers=["mat_utils.h"],
             system_headers=self._system_headers,
-            library_dirs=[d + '/lib' for d in get_petsc_dir(), "/usr/local/lib"],
+            library_dirs=[d + '/lib' for d in get_petsc_dir()] + ["/usr/local/lib"],
             libraries=['petsc', 'likwid'] + self._libraries,
             sources=["mat_utils.cxx"],
             modulename=self._kernel.name if cfg.debug else None)
@@ -708,5 +708,4 @@ class JITModule(base.JITModule):
                 'addtos_scalar_field_extruded': indent(_addtos_scalar_field_extruded, 2 + nloops),
                 'map_init': indent(_map_init, 5),
                 'map_decl': indent(_map_decl, 1),
-                'privates': _privates,
-                'cond' : _cond}
+                'privates': _privates}

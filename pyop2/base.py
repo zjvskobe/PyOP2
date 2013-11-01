@@ -736,11 +736,6 @@ class DataSet(object):
         return getattr(self.set, name)
 
     @property
-    def total_size(self):
-        """Total set size, including halo elements."""
-        return self.set._inh_size * self.layers
-
-    @property
     def dim(self):
         """The shape tuple of the values for each element of the set."""
         return self._dim

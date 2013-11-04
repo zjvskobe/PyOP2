@@ -101,13 +101,6 @@ class Arg(base.Arg):
              'idx': idx,
              'dim': self.data.cdim}
 
-    def c_ind_data_xtr(self, idx):
-        return "%(name)s + xtr_%(map_name)s[%(idx)s] * %(dim)s" % \
-            {'name': self.c_arg_name(),
-             'map_name': self.c_map_name(),
-             'idx': idx,
-             'dim': self.data.cdim}
-
     def c_kernel_arg_name(self):
         return "p_%s" % self.c_arg_name()
 
@@ -378,7 +371,6 @@ class JITModule(base.JITModule):
             kernel_code = """
             #define OP2_STRIDE(a, idx) a[idx]
             #include <likwid.h>
-            #include <string.h>
             static int likwid_init = 0;
             inline %(code)s
             #undef OP2_STRIDE
@@ -386,7 +378,6 @@ class JITModule(base.JITModule):
         else:
             kernel_code = """
             #include <likwid.h>
-            #include <string.h>
             static int likwid_init = 0;
             inline %(code)s
             """ % {'code': self._kernel.code}

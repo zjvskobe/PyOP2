@@ -55,18 +55,6 @@
   J[7] = vertex_coordinates[4][2] - vertex_coordinates[0][2]; \
   J[8] = vertex_coordinates[1][2] - vertex_coordinates[0][2];
 
-/// Compute Jacobian J for tensor product prism embedded in R^3
-#define compute_jacobian_prism_3d(J, vertex_coordinates) \
-  J[0] = vertex_coordinates[2][0] - vertex_coordinates[0][0]; \
-  J[1] = vertex_coordinates[4][0] - vertex_coordinates[0][0]; \
-  J[2] = vertex_coordinates[1][0] - vertex_coordinates[0][0]; \
-  J[3] = vertex_coordinates[2][1] - vertex_coordinates[0][1]; \
-  J[4] = vertex_coordinates[4][1] - vertex_coordinates[0][1]; \
-  J[5] = vertex_coordinates[1][1] - vertex_coordinates[0][1]; \
-  J[6] = vertex_coordinates[2][2] - vertex_coordinates[0][2]; \
-  J[7] = vertex_coordinates[4][2] - vertex_coordinates[0][2]; \
-  J[8] = vertex_coordinates[1][2] - vertex_coordinates[0][2];
-
 //--- Computation of Jacobian inverses ---
 
 /// Compute Jacobian inverse K for interval embedded in R^1

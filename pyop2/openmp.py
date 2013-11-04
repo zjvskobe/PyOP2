@@ -203,7 +203,7 @@ void wrap_%(kernel_name)s__(PyObject* _boffset,
   if (likwid_init == 0){
      likwid_markerClose();
   }
-  likwid_init++;
+  //likwid_init++;
 }
 """
 

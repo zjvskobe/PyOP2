@@ -41,12 +41,6 @@ from host import Arg  # noqa: needed by BackendSelector
 
 # Parallel loop API
 
-
-def par_loop(kernel, it_space, *args):
-    """Invocation of an OP2 kernel with an access descriptor"""
-    ParLoop(kernel, it_space, *args).compute()
-
-
 class JITModule(host.JITModule):
 
     _wrapper = """
@@ -82,10 +76,10 @@ void wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
     %(addtos_scalar_field)s;
   }
   likwid_markerStopRegion("accumulate");
-  if (likwid_init == 99){
+  if (likwid_init == 0){
     likwid_markerClose();
   }
-  likwid_init++;
+  //likwid_init++;
 }
 """
 

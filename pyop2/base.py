@@ -2910,9 +2910,9 @@ class ParLoop(LazyComputation):
             vol3 = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize
                        for arg in self.args if arg._is_dat and (arg._is_INC or arg._is_RW)])
             vol2 = sum([(2 * arg.data._sparsity.onz + arg.data._sparsity.nz) *
-                         arg.dtype.itemsize 
+                        arg.dtype.itemsize
                         for arg in self.args if arg._is_mat])
-            self.vol = vol1+vol2+vol3
+            self.vol = vol1 + vol2 + vol3
             p.data_volume(self.loop_name, self.vol)
             p.tic(self.loop_name)
             self.compute()

@@ -238,7 +238,7 @@ class ParLoop(device.ParLoop, host.ParLoop):
             self._jit_args.extend(self.offset_args())
 
         if part.size > 0:
-            #TODO: compute partition size
+            # TODO: compute partition size
             plan = self._get_plan(part, 1024)
             self._jit_args[2] = plan.blkmap
             self._jit_args[3] = plan.offset
@@ -279,13 +279,17 @@ class ParLoop(device.ParLoop, host.ParLoop):
             class FakePlan(object):
 
                 def __init__(self, part, partition_size):
-                    self.nblocks = int(math.ceil(part.size / float(partition_size)))
+                    self.nblocks = int(
+                        math.ceil(part.size / float(partition_size)))
                     self.ncolors = 1
                     self.ncolblk = np.array([self.nblocks], dtype=np.int32)
                     self.blkmap = np.arange(self.nblocks, dtype=np.int32)
-                    self.nelems = np.array([min(partition_size, part.size - i * partition_size) for i in range(self.nblocks)],
-                                           dtype=np.int32)
-                    self.offset = np.arange(part.offset, part.offset + part.size, partition_size, dtype=np.int32)
+                    self.nelems = np.array(
+                        [min(partition_size, part.size - i * partition_size)
+                         for i in range(self.nblocks)],
+                        dtype=np.int32)
+                    self.offset = np.arange(
+                        part.offset, part.offset + part.size, partition_size, dtype=np.int32)
 
             plan = FakePlan(part, part_size)
         return plan

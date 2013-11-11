@@ -383,7 +383,7 @@ class JITModule(base.JITModule):
         strip = lambda code: '\n'.join([l for l in code.splitlines()
                                         if l.strip() and l.strip() != ';'])
 
-        self.timer_function="""
+        self.timer_function = """
         #include <stdint.h>
         #include <sys/time.h>
         #include <time.h>
@@ -434,8 +434,7 @@ class JITModule(base.JITModule):
             filename = "/tmp/" + "FIRE-" + loop_id
             print filename
             with open(filename, 'wb') as f:
-                f.write(code_to_compile+ \
-                        "\\n"+ \
+                f.write(code_to_compile +
                         self._kernel.code)
 
         self._fun = inline_with_numpy(
@@ -528,12 +527,12 @@ class JITModule(base.JITModule):
             _arg_vec_content = ''            
 			if _map_decl != '':
                 _xtr_map_content += ','.join([','.join(["xtr_" + arg.c_map_name(idx) for idx in range(2)]) for arg in self._args
-                                                        if arg._is_mat and arg.data._is_scalar_field]) + \
+                                              if arg._is_mat and arg.data._is_scalar_field]) + \
                     ','.join(["xtr_" + arg.c_map_name() for arg in self._args
                               if arg._uses_itspace and not arg._is_mat])
 
             _arg_vec_content = ', '.join([arg.c_vec_name() for arg in self._args
-                              if arg._is_vec_map and not arg._is_mat])
+                                          if arg._is_vec_map and not arg._is_mat])
 
             _privates = ' private('
             if _xtr_map_content != '':

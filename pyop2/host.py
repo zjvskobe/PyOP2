@@ -523,9 +523,9 @@ class JITModule(base.JITModule):
                                      if arg._is_mat and arg.data._is_scalar_field])
             _map_decl += ';\n'.join([arg.c_map_decl_itspace() for arg in self._args
                                      if arg._uses_itspace and not arg._is_mat])
-			_xtr_map_content = ''
+            _xtr_map_content = ''
             _arg_vec_content = ''            
-			if _map_decl != '':
+            if _map_decl != '':
                 _xtr_map_content += ','.join([','.join(["xtr_" + arg.c_map_name(idx) for idx in range(2)]) for arg in self._args
                                               if arg._is_mat and arg.data._is_scalar_field]) + \
                     ','.join(["xtr_" + arg.c_map_name() for arg in self._args

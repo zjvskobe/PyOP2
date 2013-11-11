@@ -229,9 +229,6 @@ void kernel_sum(unsigned int* nodes[1], unsigned int *edge)
         expected[:, 0] += numpy.arange(start=2, stop=2 * nnodes, step=4)
         expected[:, 1] += numpy.arange(start=1, stop=2 * nnodes, step=4)
         expected[:, 1] += numpy.arange(start=3, stop=2 * nnodes, step=4)
-        for i in range(len(vd2.data)):
-            if vd2.data[i, 0] != expected[i, 0]:
-                print i, vd2.data[i][0], expected[i][0]
         assert all(vd2.data[:, 0] == expected[:, 0])
         assert all(vd2.data[:, 1] == expected[:, 1])
 

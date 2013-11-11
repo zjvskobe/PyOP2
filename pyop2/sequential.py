@@ -38,6 +38,7 @@ from utils import as_tuple
 from petsc_base import *
 import host
 from host import Arg  # noqa: needed by BackendSelector
+import profiling as p
 
 # Parallel loop API
 
@@ -45,7 +46,7 @@ from host import Arg  # noqa: needed by BackendSelector
 class JITModule(host.JITModule):
 
     _wrapper = """
-void wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
+double wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
                             %(ssinds_arg)s
                             %(wrapper_args)s %(const_args)s %(off_args)s) {
   int start = (int)PyInt_AsLong(_start);
@@ -55,11 +56,21 @@ void wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
   %(const_inits)s;
   %(off_inits)s;
   %(map_decl)s
+  //likwid_markerInit();
+  long start_t, end_t;
+  //likwid_markerThreadInit();
+  //likwid_markerStartRegion("accumulate");
+  start_t = stamp();
   for ( int n = start; n < end; n++ ) {
     int i = %(index_expr)s;
     %(vec_inits)s;
     %(itset_loop_body)s
   }
+  //likwid_markerStopRegion("accumulate");
+  end_t = stamp();
+  //likwid_markerClose();
+  //printf("Time for loop is = %%f\\n", (end_t-start_t)/(1000.0*1000.0* 1000));
+  return  (end_t-start_t)/(1000.0*1000.0* 1000);
 }
 """
 
@@ -98,7 +109,14 @@ class ParLoop(host.ParLoop):
         if part.size > 0:
             self._jit_args[0] = part.offset
             self._jit_args[1] = part.offset + part.size
-            fun(*self._jit_args)
+            if os.environ.has_key('PYOP2_KERNEL_PERFORMANCE') and \
+               os.environ['PYOP2_KERNEL_PERFORMANCE'] == '1':
+                p.tic_call(self.loop_name)
+                loop_time = fun(*self._jit_args)
+                p.toc_call(self.loop_name)
+                p.time(self.loop_name, loop_time)
+            else:
+                loop_time = fun(*self._jit_args)
 
 
 def _setup():

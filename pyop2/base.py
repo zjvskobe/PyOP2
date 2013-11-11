@@ -412,6 +412,10 @@ class Arg(object):
         return self._access == MAX
 
     @property
+    def _is_RW(self):
+        return self._access == RW
+
+    @property
     def _is_direct(self):
         return isinstance(self._dat, Dat) and self.map is None
 
@@ -2791,6 +2795,9 @@ class Kernel(Cached):
         code must conform to the OP2 user kernel API."""
         return self._code
 
+    def _set_code(self, code):
+        self._code = preprocess(code)
+
     def __str__(self):
         return "OP2 Kernel: %s" % self._name
 
@@ -2898,16 +2905,15 @@ class ParLoop(LazyComputation):
             self.loop_name = self._kernel.name + "-" + \
               str(str.split(self.it_space.name, "/")[-1]) + \
               "-" + str(self._kernel.cache_key)
-            #print "Number of args", len(self.args)
-            self.vol = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize
+            vol1 = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize
                        for arg in self.args if arg._is_dat])
-            self.vol += sum([(arg.data._sparsity.onz + arg.data._sparsity.nz) *
+            vol3 = sum([arg.data.dataset.set.size * arg.data.cdim * arg.data.dtype.itemsize
+                       for arg in self.args if arg._is_dat and (arg._is_INC or arg._is_RW)])
+            vol2 = sum([(2 * arg.data._sparsity.onz + arg.data._sparsity.nz) *
                          arg.dtype.itemsize 
                         for arg in self.args if arg._is_mat])
+            self.vol = vol1+vol2+vol3
             p.data_volume(self.loop_name, self.vol)
-            #print "Sizes", self.it_space.iterset.sizes
-            #from IPython import embed
-            #embed()
             p.tic(self.loop_name)
             self.compute()
             p.toc(self.loop_name)

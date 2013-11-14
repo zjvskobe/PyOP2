@@ -156,7 +156,7 @@ class Arg(base.Arg):
                          'dim': self.data.cdim}
                 else:
                     buffer_name = "buffer_" + self.c_arg_name(i)
-                    buffers[buffer_name] = (self.c_ind_data("i_%d" % self.idx.index, i), self._access._mode)
+                    buffers[buffer_name] = self
                     return buffer_name
                     #return self.c_ind_data("i_%d" % self.idx.index, i)
         elif self._is_indirect:
@@ -507,18 +507,24 @@ class JITModule(base.JITModule):
                                                if arg._is_mat and arg.data._is_vector_field])
             _itspace_loop_close = '\n'.join('  ' * n + '}' for n in range(nloops - 1, -1, -1))
             _apply_offset = ""
-            _buffer_decls = ["double %s%s" % (name, list(shape,)) for name in _extra_vars.keys()]
-            _buffer_decls = ";\n".join(_buffer_decls)
+            _buffer_decls = []
             _buffer_scatter = []
-            for _entry, _buf_var in _extra_vars.items():
-                _buf, _mode = _buf_var
-                if _mode == 'WRITE':
+            for _entry, _arg in _extra_vars.items():
+                if _arg._access._mode == 'WRITE':
                     _op = '='
-                elif _mode == 'INC':
+                elif _arg._access._mode == 'INC':
                     _op = '+='
                 else:
                     raise RuntimeError("Don't know how to scatter data for %s access mode" % _mode)
-                _buffer_scatter.append("*(%s) %s %s[i_0]" % (_buf, _op, _entry))
+                size = _arg.data.split[i].cdim
+                _buffer_decls.append("double %s%s" % (_entry, [_arg.map.arity*size]))
+                _buffer_scatter.extend(["*(%(ind)s) %(op)s %(val)s[%(dim)s%(ofs)s]" % \
+                                        {"ind": _arg.c_ind_data("i_%d" % _arg.idx.index, i, j),
+                                         "op": _op,
+                                         "val": _entry, 
+                                         "dim": "i_%d*%d" % (_arg.idx.index, size), 
+                                         "ofs": " + %d" % j if j else ""} for j in range(size)])
+            _buffer_decls = ";\n".join(_buffer_decls)
             _buffer_scatter = ";\n".join(_buffer_scatter)
             if not _addtos_vector_field and not _buffer_scatter:
                 _itspace_loops = ''

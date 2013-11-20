@@ -621,9 +621,6 @@ class JITModule(base.JITModule):
                                             for j in range(size)])
 
             _itspace_loop_close = '\n'.join('  ' * n + '}' for n in range(nloops - 1, -1, -1))
-            if not _addtos_vector_field and not _buf_scatter:
-                _itspace_loops = ''
-                _itspace_loop_close = ''
             if self._itspace.layers > 1:
                 _addtos_scalar_field_extruded = ';\n'.join([arg.c_addto_scalar_field(i, j, "xtr_") for arg in self._args
                                                             if arg._is_mat and arg.data._is_scalar_field])
@@ -636,6 +633,9 @@ class JITModule(base.JITModule):
                                                    if arg._is_mat and arg.data._is_scalar_field])
                 _addtos_vector_field = ';\n'.join([arg.c_addto_vector_field(i, j) for arg in self._args
                                                   if arg._is_mat and arg.data._is_vector_field])
+            if not _addtos_vector_field and not _buf_scatter:
+                _itspace_loops = ''
+                _itspace_loop_close = ''
 
             template = """
     %(itspace_loops)s

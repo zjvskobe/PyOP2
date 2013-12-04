@@ -124,3 +124,15 @@ class ASTKernel(object):
         # Clean up the kernel removing variable qualifiers like 'static'
         for d in self.decl.values():
             d.qual = [q for q in d.qual if q not in ['static', 'const']]
+
+    def plan_cpu(self, opts):
+        """Transform and optimize the kernel suitably for CPU execution."""
+
+        # Fetch user-provided options/hints on how to transform the kernel
+        licm = opts["licm"]
+
+        lo = [LoopOptimiser(l, pre_l) for l, pre_l in self.fors]
+        for nest in lo:
+            if licm:
+                inv_outer_loops = nest.licm()  # noqa
+                self.decl.update(nest.decls)

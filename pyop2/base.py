@@ -2878,12 +2878,13 @@ class Kernel(KernelCached):
         # extracting different functions from the same code
         return md5(code + name).hexdigest()
 
-    def __init__(self, code, name):
+    def __init__(self, code, name, opts={}):
         # Protect against re-initialization when retrieved from cache
         if self._initialized:
             return
         self._name = name or "kernel_%d" % Kernel._globalcount
         self._code = preprocess(code)
+        self._opts = opts
         Kernel._globalcount += 1
         self._initialized = True
 

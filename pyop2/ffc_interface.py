@@ -92,22 +92,31 @@ class FFCKernel(DiskCached, KernelCached):
                    constants.PYOP2_VERSION).hexdigest()
 
     def __init__(self, form, name):
-        if self._initialized:
-            return
+        #if self._initialized:
+        #    return
 
         incl = PreprocessNode('#include "pyop2_geometry.h"\n')
         ffc_tree = ffc_compile_form(form, prefix=name, parameters=ffc_parameters)
 
         form_data = form.form_data()
 
+        # Default ir_opts:
+        # {'licm': True,
+        #  'tile': None,
+        #  'vect': ((ap.V_OP_UAJ, 2), 'avx', 'gnu'),
+        #  'ap': True}
+        ir_opts = {}
+        import os
+        from ast import literal_eval as _eval
+        ir_opts['licm'] = _eval(os.environ.get('PYOP2_IR_LICM') or 'False')
+        ir_opts['tile'] = _eval(os.environ.get('PYOP2_IR_TILE') or 'None')
+        ir_opts['vect'] = _eval(os.environ.get('PYOP2_IR_VECT') or 'None')
+        ir_opts['ap'] = _eval(os.environ.get('PYOP2_IR_AP') or 'False')
+
         kernels = []
         for ida, ker in zip(form_data.integral_data, ffc_tree):
             # Set optimization options
-            opts = {} if ida.domain_type not in ['cell'] else \
-                   {'licm': True,
-                    'tile': None,
-                    'vect': ((ap.V_OP_UAJ, 2), 'avx', 'gnu'),
-                    'ap': True}
+            opts = {} if ida.domain_type not in ['cell'] else ir_opts
             kernels.append(Kernel(Root([incl, ker]), '%s_%s_integral_0_%s' %
                           (name, ida.domain_type, ida.domain_id), opts))
         self.kernels = tuple(kernels)

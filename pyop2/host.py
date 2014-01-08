@@ -579,7 +579,9 @@ class JITModule(base.JITModule):
         self._dump_generated_code(code_to_compile)
         # We need to build with mpicc since that's required by PETSc
         cc = os.environ.get('CC')
-        os.environ['CC'] = 'mpicc'
+        cpp = os.environ.get('CXX')
+        os.environ['CC'] = 'icc'
+        os.environ['CXX'] = 'icpc'
         vect_flag = irvect.compiler.get('vect_flag')
         if configuration["debug"]:
             extra_cppargs = ['-O0', '-g']
@@ -591,7 +593,7 @@ class JITModule(base.JITModule):
             code_to_compile, additional_declarations=kernel_code,
             additional_definitions=_const_decs + kernel_code,
             cppargs=self._cppargs + extra_cppargs,
-            include_dirs=[d + '/include' for d in get_petsc_dir()],
+            include_dirs=[d + '/include' for d in get_petsc_dir()] + ['/usr/include/mpi'],
             source_directory=os.path.dirname(os.path.abspath(__file__)),
             wrap_headers=["mat_utils.h"],
             system_headers=self._system_headers,
@@ -603,6 +605,10 @@ class JITModule(base.JITModule):
             os.environ['CC'] = cc
         else:
             os.environ.pop('CC')
+        if cpp:
+            os.environ['CXX'] = cpp
+        else:
+            os.environ.pop('CXX')
         return self._fun
 
     def generate_code(self):

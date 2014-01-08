@@ -463,7 +463,7 @@ def _init_compiler(compiler):
         return {
             'align': lambda o: '__attribute__((aligned(%s)))' % o,
             'decl_aligned_for': '#pragma vector aligned',
-            'vect_flag': 'xAVX',
+            'vect_flag': '-xAVX',
             'vect_header': 'immintrin.h'
         }
 

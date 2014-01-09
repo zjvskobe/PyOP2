@@ -133,7 +133,7 @@ class LoopVectoriser(object):
                 raise RuntimeError("Don't know how to vectorize option %s" % opts)
 
             # Construct the remainder loop
-            if rows > rows_per_it and rows % rows_per_it > 0:
+            if opts != ap.V_OP_UAJ_EXTRA and rows > rows_per_it and rows % rows_per_it > 0:
                 # peel out
                 loop_peel = dcopy(loops)
                 # Adjust main, layout and remainder loops bound and trip

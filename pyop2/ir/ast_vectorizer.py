@@ -122,7 +122,7 @@ class LoopVectoriser(object):
                     # Unroll factor too big
                     body, layout = op.generate(vect_len)
             elif opts == ap.V_OP_UAJ_EXTRA:
-                if rows <= rows_per_it:
+                if rows <= rows_per_it or vect_roundup(rows) % rows_per_it > 0:
                     # Cannot unroll too much
                     body, layout = op.generate(vect_len)
                 else:

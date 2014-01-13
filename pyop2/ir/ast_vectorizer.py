@@ -114,19 +114,22 @@ class LoopVectoriser(object):
             op = OuterProduct(stmt, loops, self.intr, self.lo)
 
             # Vectorisation
+            import warnings
             rows_per_it = vect_len*u_factor
             if opts == ap.V_OP_UAJ:
                 if rows_per_it <= rows:
                     body, layout = op.generate(rows_per_it)
                 else:
                     # Unroll factor too big
+                    warnings.warn("Warning: unroll factor ignored")
                     body, layout = op.generate(vect_len)
             elif opts == ap.V_OP_UAJ_EXTRA:
-                if rows <= rows_per_it or vect_roundup(rows) % rows_per_it > 0:
-                    # Cannot unroll too much
-                    body, layout = op.generate(vect_len)
-                else:
+                if vect_roundup(rows) % rows_per_it == 0:
                     body, layout = op.generate(rows_per_it)
+                else:
+                    # Cannot unroll
+                    warnings.warn("Warning: unroll factor ignored")
+                    body, layout = op.generate(vect_len)
             elif opts in [ap.V_OP_PADONLY, ap.V_OP_PEEL]:
                 body, layout = op.generate(vect_len)
             else:

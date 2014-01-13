@@ -582,6 +582,7 @@ class JITModule(base.JITModule):
         cpp = os.environ.get('CXX')
         os.environ['CC'] = 'icc'
         os.environ['CXX'] = 'icpc'
+        os.environ['OPT'] = '-DNDEBUG -O2 -Wall -Wstrict-prototypes'
         vect_flag = irvect.compiler.get('vect_flag')
         if configuration["debug"]:
             extra_cppargs = ['-O0', '-g']
@@ -609,6 +610,15 @@ class JITModule(base.JITModule):
             os.environ['CXX'] = cpp
         else:
             os.environ.pop('CXX')
+
+        # Print out kernel info
+        pyop2_opts = [(k, v) for k, v in os.environ.items() if k.startswith('PYOP2')]
+        pyop2_opts = "\n".join(["%s: %s" % (s1, s2) for s1, s2 in pyop2_opts])
+        code = open(os.environ['PYOP2_PROBLEM_NAME'], 'a')
+        code.write("*****************************************\n\n")
+        code.write(pyop2_opts + "\n" + self._kernel.code)
+        code.close()
+
         return self._fun
 
     def generate_code(self):

@@ -612,12 +612,14 @@ class JITModule(base.JITModule):
             os.environ.pop('CXX')
 
         # Print out kernel info
-        pyop2_opts = [(k, v) for k, v in os.environ.items() if k.startswith('PYOP2')]
-        pyop2_opts = "\n".join(["%s: %s" % (s1, s2) for s1, s2 in pyop2_opts])
-        code = open(os.environ['PYOP2_PROBLEM_NAME'], 'a')
-        code.write("*****************************************\n\n")
-        code.write(pyop2_opts + "\n" + self._kernel.code)
-        code.close()
+        prob_name = os.environ['PYOP2_PROBLEM_NAME']
+        if prob_name != 'TEST_RUN':
+            pyop2_opts = [(k, v) for k, v in os.environ.items() if k.startswith('PYOP2')]
+            pyop2_opts = "\n".join(["%s: %s" % (s1, s2) for s1, s2 in pyop2_opts])
+            code = open(prob_name, 'a')
+            code.write("*****************************************\n\n")
+            code.write(pyop2_opts + "\n" + self._kernel.code)
+            code.close()
 
         return self._fun
 

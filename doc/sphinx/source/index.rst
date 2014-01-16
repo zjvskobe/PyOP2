@@ -19,6 +19,7 @@ Contents:
    backends
    linear_algebra
    plan
+   lazy
    mixed
    mpi
    user

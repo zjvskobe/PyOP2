@@ -52,7 +52,9 @@ class LoopOptimiser(object):
         relatively small (let's say less than 50-60).
 
         * register tiling:
-        * interchange: """
+        Given a rectangular iteration space, register tiling slices it into
+        square tiles of user-provided size, with the aim of improving register
+        pressure and register re-use."""
 
     def __init__(self, loop_nest, pre_header, kernel_decls):
         self.loop_nest = loop_nest
@@ -164,8 +166,7 @@ class LoopOptimiser(object):
                 return (extract_const(node.children[0], expr_dep))
 
             # Traverse the expression tree
-            left = node.children[0]
-            right = node.children[1]
+            left, right = node.children
             dep_left, invariant_l = extract_const(left, expr_dep)
             dep_right, invariant_r = extract_const(right, expr_dep)
 

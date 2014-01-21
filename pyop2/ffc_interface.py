@@ -37,6 +37,7 @@ generated code in order to make it suitable for passing to the backends."""
 from hashlib import md5
 import os
 import tempfile
+from ast import literal_eval as _eval
 
 from ufl import Form
 from ufl.algorithms import as_form
@@ -48,7 +49,7 @@ from caching import DiskCached, KernelCached
 from op2 import Kernel
 from mpi import MPI
 
-from ir.ast_base import PreprocessNode, Root
+from ir.ast_base import PreprocessNode, Root, FlatBlock
 import ir.ast_plan as ap
 
 _form_cache = {}
@@ -59,7 +60,6 @@ set_level(ERROR)
 ffc_parameters = default_parameters()
 ffc_parameters['write_file'] = False
 ffc_parameters['format'] = 'pyop2'
-ffc_parameters['pyop2-ir'] = True
 
 # Include an md5 hash of pyop2_geometry.h in the cache key
 with open(os.path.join(os.path.dirname(__file__), 'pyop2_geometry.h')) as f:
@@ -95,8 +95,18 @@ class FFCKernel(DiskCached, KernelCached):
         #if self._initialized:
         #    return
 
+        if _eval(os.environ.get('PYOP2_NOZEROS')):
+            ffc_parameters['pyop2-ir'] = False
+            ffc_parameters['optimize'] = True
+        else:
+            ffc_parameters['pyop2-ir'] = True
+            ffc_parameters['optimize'] = False
+
         incl = PreprocessNode('#include "pyop2_geometry.h"\n')
         ffc_tree = ffc_compile_form(form, prefix=name, parameters=ffc_parameters)
+        
+        if isinstance(ffc_tree, str):
+            ffc_tree = [FlatBlock(ffc_tree)]
 
         form_data = form.form_data()
 
@@ -106,8 +116,6 @@ class FFCKernel(DiskCached, KernelCached):
         #  'vect': ((ap.V_OP_UAJ, 2), 'avx', 'gnu'),
         #  'ap': True}
         ir_opts = {}
-        import os
-        from ast import literal_eval as _eval
         ir_opts['licm'] = _eval(os.environ.get('PYOP2_IR_LICM') or 'False')
         ir_opts['tile'] = _eval(os.environ.get('PYOP2_IR_TILE') or 'None')
         ir_opts['vect'] = _eval(os.environ.get('PYOP2_IR_VECT') or 'None')

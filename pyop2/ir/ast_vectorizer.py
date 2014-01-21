@@ -43,7 +43,7 @@ class LoopVectoriser(object):
     """ Loop vectorizer """
 
     def __init__(self, loop_optimiser):
-        if not vectorizer_init:
+        if not initialized:
             raise RuntimeError("Vectorizer must be initialized first.")
         self.lo = loop_optimiser
         self.intr = intrinsics
@@ -149,11 +149,6 @@ class LoopVectoriser(object):
                 loop_peel[1].incr.children[1] = c_sym(1)
                 # Append peeling loop after the main loop
                 parent_loop = self.lo.fors[0]
-                for l in self.lo.fors[1:]:
-                    if l.it_var() == loops[0].it_var():
-                        break
-                    else:
-                        parent_loop = l
                 parent_loop.children[0].children.append(loop_peel[0])
 
             # Insert the vectorized code at the right point in the loop nest
@@ -429,14 +424,17 @@ class OuterProduct():
 
 intrinsics = {}
 compiler = {}
-vectorizer_init = False
+initialized = False
 
 
 def init_vectorizer(isa, comp):
-    global intrinsics, compiler, vectorizer_init
+    global intrinsics, compiler, initialized
     intrinsics = _init_isa(isa)
     compiler = _init_compiler(comp)
-    vectorizer_init = True
+    if intrinsics and compiler:
+        initialized = True
+    else:
+        warnings.warn("Warning: Vectorized NOT initialized")
 
 
 def _init_isa(isa):

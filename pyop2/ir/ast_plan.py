@@ -36,6 +36,7 @@
 from ast_base import *
 from ast_optimizer import LoopOptimiser
 from ast_vectorizer import init_vectorizer, LoopVectoriser
+import ast_vectorizer
 
 # Possibile optimizations
 AUTOVECT = 1        # Auto-vectorization
@@ -167,11 +168,11 @@ class ASTKernel(object):
                 nest.op_tiling(tile_sz)
 
             # 3) Vectorization
-            if v_type in [AUTOVECT, V_OP_PADONLY, V_OP_PEEL, V_OP_UAJ, V_OP_UAJ_EXTRA]:
+            if ast_vectorizer.initialized:
                 vect = LoopVectoriser(nest)
                 if ap:
                     vect.align_and_pad(self.decls)
-                if v_type != AUTOVECT:
+                if v_type and v_type != AUTOVECT:
                     vect.outer_product(v_type, v_param)
 
 

@@ -162,6 +162,9 @@ class ASTKernel(object):
             if licm:
                 inv_outer_loops = nest.op_licm()  # noqa
                 self.decls.update(nest.decls)
+            
+            # 1.5) Loop interchange
+            nest.op_interchange(self.decls)
 
             # 2) Register tiling
             if tile_opt and v_type == AUTOVECT:

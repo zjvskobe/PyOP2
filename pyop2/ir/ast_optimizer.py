@@ -123,7 +123,7 @@ class LoopOptimiser(object):
                 return (fors, decls, symbols)
             else:
                 return (fors, decls, symbols)
-
+    
         return inspect(node, self.pre_header, [], {}, set())
 
     def extract_itspace(self):
@@ -293,6 +293,37 @@ class LoopOptimiser(object):
                     ext_loops.append(inv_for)
 
         return ext_loops
+
+    def op_interchange(self, decl_scope):
+        """Interchange outer product loops based on amount of redundancy."""
+
+        if not self.out_prods:
+            return
+
+        n_outer = 0
+        n_inner = 0
+        acc_decls = [d[0].sym.symbol for s, d in decl_scope.items() if d[1] != ast_plan.PARAM_VAR]
+        acc_syms = [s for s in self.sym if s.symbol in acc_decls]
+        
+        for s in acc_syms:
+            if s.rank and s.rank[-1] == self.fors[-1].it_var():
+                n_inner += 1
+            elif s.rank and s.rank[-1] == self.fors[-2].it_var():
+                n_outer += 1
+
+        if n_inner >= n_outer:
+            ex_outer_loop = dcopy(self.fors[-2])
+            self.fors[-2].init.sym.symbol = self.fors[-1].init.sym.symbol
+            self.fors[-2].cond.children[0].symbol = self.fors[-1].cond.children[0].symbol
+            self.fors[-2].incr.children[0].symbol = self.fors[-1].incr.children[0].symbol
+            self.fors[-1].init.sym.symbol = ex_outer_loop.init.sym.symbol
+            self.fors[-1].cond.children[0].symbol = ex_outer_loop.cond.children[0].symbol
+            self.fors[-1].incr.children[0].symbol = ex_outer_loop.incr.children[0].symbol
+
+            acc_decls = [d[0].sym.symbol for s, d in decl_scope.items() if d[1] == ast_plan.PARAM_VAR]
+            acc_syms = [s for s in self.sym if s.symbol in acc_decls]
+            acc_syms[0].rank = (acc_syms[0].rank[1], acc_syms[0].rank[0])
+
 
     def op_tiling(self, tile_sz=None):
         """Perform tiling at the register level for this nest.

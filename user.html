@@ -312,6 +312,119 @@ by executing over these set elements as well as owned ones.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.Subset">
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Subset</tt><big>(</big><em>superset</em>, <em>indices</em><big>)</big><a class="headerlink" href="#pyop2.Subset" title="Permalink to this definition">¶</a></dt>
+<dd><p>OP2 subset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>superset</strong> (a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> or a <a class="reference internal" href="#pyop2.Subset" title="pyop2.Subset"><tt class="xref py py-class docutils literal"><span class="pre">Subset</span></tt></a>.) &#8211; The superset of the subset.</li>
+<li><strong>indices</strong> (<em>a list of integers, or a numpy array.</em>) &#8211; Elements of the superset that form the
+subset. Duplicate values are removed when constructing the subset.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pyop2.Subset.all_part">
+<tt class="descname">all_part</tt><a class="headerlink" href="#pyop2.Subset.all_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.core_part">
+<tt class="descname">core_part</tt><a class="headerlink" href="#pyop2.Subset.core_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.core_size">
+<tt class="descname">core_size</tt><a class="headerlink" href="#pyop2.Subset.core_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Core set size.  Owned elements not touching halo elements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.exec_part">
+<tt class="descname">exec_part</tt><a class="headerlink" href="#pyop2.Subset.exec_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.exec_size">
+<tt class="descname">exec_size</tt><a class="headerlink" href="#pyop2.Subset.exec_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set size including execute halo elements.</p>
+<p>If a <tt class="xref py py-class docutils literal"><span class="pre">ParLoop</span></tt> is indirect, we do redundant computation
+by executing over these set elements as well as owned ones.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyop2.Subset.fromhdf5">
+<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.Subset.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> from set named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.halo">
+<tt class="descname">halo</tt><a class="headerlink" href="#pyop2.Subset.halo" title="Permalink to this definition">¶</a></dt>
+<dd><p><tt class="xref py py-class docutils literal"><span class="pre">Halo</span></tt> associated with this Set</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.indices">
+<tt class="descname">indices</tt><a class="headerlink" href="#pyop2.Subset.indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the indices pointing in the superset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.layers">
+<tt class="descname">layers</tt><a class="headerlink" href="#pyop2.Subset.layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of layers in the extruded mesh</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pyop2.Subset.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>User-defined label</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.owned_part">
+<tt class="descname">owned_part</tt><a class="headerlink" href="#pyop2.Subset.owned_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.partition_size">
+<tt class="descname">partition_size</tt><a class="headerlink" href="#pyop2.Subset.partition_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default partition size</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.size">
+<tt class="descname">size</tt><a class="headerlink" href="#pyop2.Subset.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set size, owned elements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.sizes">
+<tt class="descname">sizes</tt><a class="headerlink" href="#pyop2.Subset.sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set sizes: core, owned, execute halo, total.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.superset">
+<tt class="descname">superset</tt><a class="headerlink" href="#pyop2.Subset.superset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the superset Set</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Subset.total_size">
+<tt class="descname">total_size</tt><a class="headerlink" href="#pyop2.Subset.total_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total set size, including halo elements.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.MixedSet">
 <em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">MixedSet</tt><big>(</big><em>sets</em><big>)</big><a class="headerlink" href="#pyop2.MixedSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>A container for a bag of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s.</p>

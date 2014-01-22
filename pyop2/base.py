@@ -2876,7 +2876,7 @@ class Kernel(KernelCached):
     def _cache_key(cls, code, name, opts={}):
         # Both code and name are relevant since there might be multiple kernels
         # extracting different functions from the same code
-        return md5(code + name).hexdigest()
+        return md5(code + name + str(opts)).hexdigest()
 
     def __init__(self, code, name, opts={}):
         # Protect against re-initialization when retrieved from cache

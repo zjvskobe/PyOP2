@@ -247,9 +247,9 @@ class OuterProduct():
             if not decls.get(node.gencode()):
                 decls[node.gencode()] = reg
                 stmt.append(Decl(self.intr["decl_var"], reg, exp))
+
         return stmt
 
-        return (decls, in_vrs, out_vrs)
 
     def _vect_expr(self, node, ofs, regs, decls, vrs):
         """Turn a scalar expression into its intrinsics equivalent.

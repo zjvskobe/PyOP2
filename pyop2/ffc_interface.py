@@ -86,14 +86,20 @@ class FFCKernel(DiskCached, KernelCached):
 
     @classmethod
     def _cache_key(cls, form, name):
+        ir_opts = {}
+        ir_opts['licm'] = _eval(os.environ.get('PYOP2_IR_LICM') or 'False')
+        ir_opts['tile'] = _eval(os.environ.get('PYOP2_IR_TILE') or 'None')
+        ir_opts['vect'] = _eval(os.environ.get('PYOP2_IR_VECT') or 'None')
+        ir_opts['ap'] = _eval(os.environ.get('PYOP2_IR_AP') or 'False')
+        
         form_data = form.compute_form_data()
         return md5(form_data.signature + name + Kernel._backend.__name__ +
                    _pyop2_geometry_md5 + constants.FFC_VERSION +
-                   constants.PYOP2_VERSION).hexdigest()
+                   constants.PYOP2_VERSION + str(ir_opts) + os.environ.get('PYOP2_NOZEROS')).hexdigest()
 
     def __init__(self, form, name):
-        #if self._initialized:
-        #    return
+        if self._initialized:
+            return
 
         if _eval(os.environ.get('PYOP2_NOZEROS')):
             ffc_parameters['pyop2-ir'] = False

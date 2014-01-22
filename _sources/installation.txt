@@ -1,5 +1,6 @@
 .. image:: https://travis-ci.org/OP2/PyOP2.png?branch=master
   :target: https://travis-ci.org/OP2/PyOP2
+  :alt: build status
 
 Installing PyOP2
 ================
@@ -15,11 +16,21 @@ For the impatient there is a script for the unattended installation of
 PyOP2 and its dependencies on a Ubuntu 12.04 or compatible platform.
 Only the sequential and OpenMP backends are covered at the moment.
 
+.. note::
+  This script is not intended to be used by PyOP2 developers. If you intend
+  to contribute to PyOP2 it is recommended to follow the instructions below
+  for a manual installation.
+
 Running with superuser privileges will install missing packages and
 Python dependencies will be installed system wide::
 
   wget -O - https://github.com/OP2/PyOP2/raw/master/install.sh | sudo bash
 
+.. warning::
+  This will fail if you if you require a password for ``sudo``. Run e.g. the
+  following beforehand to assure your password is cached ::
+
+      sudo whoami
 
 Running without superuser privileges will instruct you which packages
 need to be installed. Python dependencies will be installed to the user
@@ -78,9 +89,8 @@ Dependencies
 
 To install dependencies system-wide use ``sudo -E pip install ...``, to
 install to a user site use ``pip install --user ...``. If you don't want
-PyOP2 or its dependencies interfering with your exisiting Pyhton
-environment, consider creating a
-`virtualenv <http://virtualenv.org/>`__.
+PyOP2 or its dependencies interfering with your existing Python environment,
+consider creating a `virtualenv <http://virtualenv.org/>`__.
 
 **Note:** In the following we will use ``pip install ...`` to mean any
 of the above options.
@@ -99,19 +109,18 @@ Common dependencies:
 * numpy >= 1.6 
 * PETSc_ >= 3.4 with Fortran interfaces
 * PETSc4py_ >= 3.4
-* PyYAML
 
 Testing dependencies (optional, required to run the tests):
 
 * pytest >= 2.3
-* flake8
+* flake8 >= 2.1.0
 
 With the exception of the PETSc_ dependencies, these can be installed
 using the package management system of your OS, or via ``pip``.
 
 Install the dependencies via the package manager (Debian based systems)::
 
-  sudo apt-get install cython python-decorator python-numpy python-yaml
+  sudo apt-get install cython python-decorator python-numpy
 
 **Note:** This may not give you recent enough versions of those packages
 (in particular the Cython version shipped with 12.04 is too old). You
@@ -119,7 +128,7 @@ can selectively upgrade packages via ``pip``, see below.
 
 Install dependencies via ``pip``::
 
-  pip install "Cython=>0.17" decorator "numpy>=1.6" pyyaml
+  pip install "Cython>=0.17" decorator "numpy>=1.6"
   pip install git+https://bitbucket.org/fenics-project/instant
 
 Additional Python 2.6 dependencies: 
@@ -143,10 +152,13 @@ library and requires:
 If you have a suitable PETSc_ installed on your system, ``PETSC_DIR`` and
 ``PETSC_ARCH`` need to be set for the petsc4py_ installer to find it. On
 a Debian/Ubuntu system with PETSc_ 3.4 installed, this can be achieved
-via::
+via e.g. (adapt for your system) ::
 
   export PETSC_DIR=/usr/lib/petscdir/3.4
   export PETSC_ARCH=linux-gnu-c-opt
+
+If you are on Ubuntu 12.04 LTS, you can install the binary package for PETSc_
+3.4.2 from the PPA_ ``ppa:amcg/petsc3.4``.
 
 If not, make sure all PETSc_ dependencies (BLAS/LAPACK, MPI and a Fortran
 compiler) are installed. On a Debian based system, run::
@@ -203,7 +215,7 @@ manually. Make sure ``nvcc`` is in your ``$PATH`` and ``libcuda.so`` in
 your ``$LIBRARY_PATH`` if in a non-standard location::
 
   export CUDA_ROOT=/usr/local/cuda # change as appropriate 
-  git clone https://github.com/induce/pycuda.git 
+  git clone https://github.com/inducer/pycuda.git 
   cd pycuda 
   git submodule init 
   git submodule update 
@@ -308,37 +320,12 @@ necessary.
 FFC Interface
 -------------
 
-Solving UFL_ finite element equations requires a fork of FFC_ and dependencies:
+Solving UFL_ finite element equations requires a fork of FFC_, UFL_ and FIAT_.
 
-* UFL_
-* FIAT_
-
-Install via the package manager
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On a supported platform, get all the dependencies for FFC_ by `installing
-the FEniCS toolchain packages <http://fenicsproject.org/download/>`__::
-
-  sudo apt-get install fenics
-
-Our FFC_ fork is required, and must be added to your ``$PYTHONPATH``::
-
-  git clone -b pyop2 https://bitbucket.org/mapdes/ffc.git $FFC_DIR 
-  export PYTHONPATH=$FFC_DIR:$PYTHONPATH
-
-This branch of FFC_ also requires the latest version of UFL_, also added to
-``$PYTHONPATH``::
-
-  git clone https://bitbucket.org/mapdes/ufl.git $UFL_DIR
-  export PYTHONPATH=$UFL_DIR:$PYTHONPATH
-
-Install via pip
-~~~~~~~~~~~~~~~
-
-Alternatively, install FFC_ and all dependencies via pip::
+Install FFC_ and all dependencies via pip::
 
   pip install \
-    git+https://bitbucket.org/mapdes/ffc.git@pyop2#egg=ffc   
+    git+https://bitbucket.org/mapdes/ffc.git#egg=ffc
     git+https://bitbucket.org/mapdes/ufl.git#egg=ufl
     git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
     hg+https://bitbucket.org/khinsen/scientificpython
@@ -377,12 +364,12 @@ manager::
 
 or pip::
 
-  pip install pytest>=2.3
+  pip install "pytest>=2.3"
 
 The code linting test uses `flake8 <http://flake8.readthedocs.org>`__.
 Install via pip::
 
-  pip install flake8
+  pip install "flake8>=2.1.0"
 
 If you install *pytest* and *flake8* using ``pip --user``, you should
 include the binary folder of your local site in your path by adding the
@@ -413,6 +400,7 @@ from. To print the module search path, run::
 
  python -c 'from pprint import pprint; import sys; pprint(sys.path)'
 
+.. _PPA: https://launchpad.net/~amcg/+archive/petsc3.4/
 .. _PETSc: http://www.mcs.anl.gov/petsc/
 .. _petsc4py: http://pythonhosted.org/petsc4py/
 .. _FFC: https://bitbucket.org/mapdes/ffc

@@ -1,0 +1,27 @@
+ir Package
+==========
+
+:mod:`ast_base` Module
+----------------------
+
+.. automodule:: pyop2.ir.ast_base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ast_optimizer` Module
+---------------------------
+
+.. automodule:: pyop2.ir.ast_optimizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ast_plan` Module
+----------------------
+
+.. automodule:: pyop2.ir.ast_plan
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

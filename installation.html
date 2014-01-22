@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installing PyOP2 &mdash; PyOP2 0.5.0 documentation</title>
+    <title>Installing PyOP2 &mdash; PyOP2 0.8.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.0',
+        VERSION:     '0.8.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.5.0 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.8.3 documentation" href="index.html" />
     <link rel="next" title="pyop2 user documentation" href="user.html" />
     <link rel="prev" title="Welcome to PyOP2’s documentation!" href="index.html" /> 
   </head>
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to PyOP2’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.8.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -52,7 +52,7 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <a class="reference external image-reference" href="https://travis-ci.org/OP2/PyOP2"><img alt="https://travis-ci.org/OP2/PyOP2.png?branch=master" src="https://travis-ci.org/OP2/PyOP2.png?branch=master" /></a>
+  <a class="reference external image-reference" href="https://travis-ci.org/OP2/PyOP2"><img alt="build status" src="https://travis-ci.org/OP2/PyOP2.png?branch=master" /></a>
 <div class="section" id="installing-pyop2">
 <h1>Installing PyOP2<a class="headerlink" href="#installing-pyop2" title="Permalink to this headline">¶</a></h1>
 <p>The main testing platform for PyOP2 is Ubuntu 12.04 64-bit with Python
@@ -63,9 +63,22 @@ not supported.</p>
 <p>For the impatient there is a script for the unattended installation of
 PyOP2 and its dependencies on a Ubuntu 12.04 or compatible platform.
 Only the sequential and OpenMP backends are covered at the moment.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This script is not intended to be used by PyOP2 developers. If you intend
+to contribute to PyOP2 it is recommended to follow the instructions below
+for a manual installation.</p>
+</div>
 <p>Running with superuser privileges will install missing packages and
 Python dependencies will be installed system wide:</p>
 <div class="highlight-python"><pre>wget -O - https://github.com/OP2/PyOP2/raw/master/install.sh | sudo bash</pre>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>This will fail if you if you require a password for <tt class="docutils literal"><span class="pre">sudo</span></tt>. Run e.g. the
+following beforehand to assure your password is cached</p>
+<div class="last highlight-python"><pre>sudo whoami</pre>
+</div>
 </div>
 <p>Running without superuser privileges will instruct you which packages
 need to be installed. Python dependencies will be installed to the user
@@ -116,9 +129,8 @@ cmake cmake-curses-gui python-pip swig</pre>
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <p>To install dependencies system-wide use <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">-E</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></tt>, to
 install to a user site use <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--user</span> <span class="pre">...</span></tt>. If you don&#8217;t want
-PyOP2 or its dependencies interfering with your exisiting Pyhton
-environment, consider creating a
-<a class="reference external" href="http://virtualenv.org/">virtualenv</a>.</p>
+PyOP2 or its dependencies interfering with your existing Python environment,
+consider creating a <a class="reference external" href="http://virtualenv.org/">virtualenv</a>.</p>
 <p><strong>Note:</strong> In the following we will use <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></tt> to mean any
 of the above options.</p>
 <p><strong>Note:</strong> Installing to the user site does not always give packages
@@ -133,23 +145,22 @@ priority over system installed packages on your <tt class="docutils literal"><sp
 <li>numpy &gt;= 1.6</li>
 <li><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> &gt;= 3.4 with Fortran interfaces</li>
 <li><a class="reference external" href="http://pythonhosted.org/petsc4py/">PETSc4py</a> &gt;= 3.4</li>
-<li>PyYAML</li>
 </ul>
 <p>Testing dependencies (optional, required to run the tests):</p>
 <ul class="simple">
 <li>pytest &gt;= 2.3</li>
-<li>flake8</li>
+<li>flake8 &gt;= 2.1.0</li>
 </ul>
 <p>With the exception of the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> dependencies, these can be installed
 using the package management system of your OS, or via <tt class="docutils literal"><span class="pre">pip</span></tt>.</p>
 <p>Install the dependencies via the package manager (Debian based systems):</p>
-<div class="highlight-python"><pre>sudo apt-get install cython python-decorator python-numpy python-yaml</pre>
+<div class="highlight-python"><pre>sudo apt-get install cython python-decorator python-numpy</pre>
 </div>
 <p><strong>Note:</strong> This may not give you recent enough versions of those packages
 (in particular the Cython version shipped with 12.04 is too old). You
 can selectively upgrade packages via <tt class="docutils literal"><span class="pre">pip</span></tt>, see below.</p>
 <p>Install dependencies via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install "Cython=&gt;0.17" decorator "numpy&gt;=1.6" pyyaml
+<div class="highlight-python"><pre>pip install "Cython&gt;=0.17" decorator "numpy&gt;=1.6"
 pip install git+https://bitbucket.org/fenics-project/instant</pre>
 </div>
 <p>Additional Python 2.6 dependencies:</p>
@@ -172,10 +183,12 @@ library and requires:</p>
 <p>If you have a suitable <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> installed on your system, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and
 <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt> need to be set for the <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> installer to find it. On
 a Debian/Ubuntu system with <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> 3.4 installed, this can be achieved
-via:</p>
+via e.g. (adapt for your system)</p>
 <div class="highlight-python"><pre>export PETSC_DIR=/usr/lib/petscdir/3.4
 export PETSC_ARCH=linux-gnu-c-opt</pre>
 </div>
+<p>If you are on Ubuntu 12.04 LTS, you can install the binary package for <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>
+3.4.2 from the <a class="reference external" href="https://launchpad.net/~amcg/+archive/petsc3.4/">PPA</a> <tt class="docutils literal"><span class="pre">ppa:amcg/petsc3.4</span></tt>.</p>
 <p>If not, make sure all <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> dependencies (BLAS/LAPACK, MPI and a Fortran
 compiler) are installed. On a Debian based system, run:</p>
 <div class="highlight-python"><pre>sudo apt-get install -y libopenmpi-dev openmpi-bin libblas-dev liblapack-dev gfortran</pre>
@@ -221,7 +234,7 @@ is too old, you will need to install it via <tt class="docutils literal"><span c
 manually. Make sure <tt class="docutils literal"><span class="pre">nvcc</span></tt> is in your <tt class="docutils literal"><span class="pre">$PATH</span></tt> and <tt class="docutils literal"><span class="pre">libcuda.so</span></tt> in
 your <tt class="docutils literal"><span class="pre">$LIBRARY_PATH</span></tt> if in a non-standard location:</p>
 <div class="highlight-python"><pre>export CUDA_ROOT=/usr/local/cuda # change as appropriate
-git clone https://github.com/induce/pycuda.git
+git clone https://github.com/inducer/pycuda.git
 cd pycuda
 git submodule init
 git submodule update
@@ -314,36 +327,13 @@ necessary.</p>
 </div>
 <div class="section" id="ffc-interface">
 <h2>FFC Interface<a class="headerlink" href="#ffc-interface" title="Permalink to this headline">¶</a></h2>
-<p>Solving <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a> finite element equations requires a fork of <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> and dependencies:</p>
-<ul class="simple">
-<li><a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a></li>
-<li><a class="reference external" href="https://bitbucket.org/mapdes/fiat">FIAT</a></li>
-</ul>
-<div class="section" id="install-via-the-package-manager">
-<h3>Install via the package manager<a class="headerlink" href="#install-via-the-package-manager" title="Permalink to this headline">¶</a></h3>
-<p>On a supported platform, get all the dependencies for <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> by <a class="reference external" href="http://fenicsproject.org/download/">installing
-the FEniCS toolchain packages</a>:</p>
-<div class="highlight-python"><pre>sudo apt-get install fenics</pre>
-</div>
-<p>Our <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> fork is required, and must be added to your <tt class="docutils literal"><span class="pre">$PYTHONPATH</span></tt>:</p>
-<div class="highlight-python"><pre>git clone -b pyop2 https://bitbucket.org/mapdes/ffc.git $FFC_DIR
-export PYTHONPATH=$FFC_DIR:$PYTHONPATH</pre>
-</div>
-<p>This branch of <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> also requires the latest version of <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a>, also added to
-<tt class="docutils literal"><span class="pre">$PYTHONPATH</span></tt>:</p>
-<div class="highlight-python"><pre>git clone https://bitbucket.org/mapdes/ufl.git $UFL_DIR
-export PYTHONPATH=$UFL_DIR:$PYTHONPATH</pre>
-</div>
-</div>
-<div class="section" id="install-via-pip">
-<h3>Install via pip<a class="headerlink" href="#install-via-pip" title="Permalink to this headline">¶</a></h3>
-<p>Alternatively, install <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> and all dependencies via pip:</p>
+<p>Solving <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a> finite element equations requires a fork of <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a>, <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a> and <a class="reference external" href="https://bitbucket.org/mapdes/fiat">FIAT</a>.</p>
+<p>Install <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> and all dependencies via pip:</p>
 <div class="highlight-python"><pre>pip install \
-  git+https://bitbucket.org/mapdes/ffc.git@pyop2#egg=ffc
+  git+https://bitbucket.org/mapdes/ffc.git#egg=ffc
   git+https://bitbucket.org/mapdes/ufl.git#egg=ufl
   git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
   hg+https://bitbucket.org/khinsen/scientificpython</pre>
-</div>
 </div>
 </div>
 <div class="section" id="setting-up-the-environment">
@@ -375,11 +365,11 @@ manager:</p>
 <div class="highlight-python"><pre>sudo apt-get install python-pytest</pre>
 </div>
 <p>or pip:</p>
-<div class="highlight-python"><pre>pip install pytest&gt;=2.3</pre>
+<div class="highlight-python"><pre>pip install "pytest&gt;=2.3"</pre>
 </div>
 <p>The code linting test uses <a class="reference external" href="http://flake8.readthedocs.org">flake8</a>.
 Install via pip:</p>
-<div class="highlight-python"><pre>pip install flake8</pre>
+<div class="highlight-python"><pre>pip install "flake8&gt;=2.1.0"</pre>
 </div>
 <p>If you install <em>pytest</em> and <em>flake8</em> using <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">--user</span></tt>, you should
 include the binary folder of your local site in your path by adding the
@@ -428,11 +418,7 @@ from. To print the module search path, run:</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#building-pyop2">Building PyOP2</a></li>
-<li><a class="reference internal" href="#ffc-interface">FFC Interface</a><ul>
-<li><a class="reference internal" href="#install-via-the-package-manager">Install via the package manager</a></li>
-<li><a class="reference internal" href="#install-via-pip">Install via pip</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#ffc-interface">FFC Interface</a></li>
 <li><a class="reference internal" href="#setting-up-the-environment">Setting up the environment</a></li>
 <li><a class="reference internal" href="#testing-your-installation">Testing your installation</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
@@ -483,7 +469,7 @@ from. To print the module search path, run:</p>
         <li class="right" >
           <a href="index.html" title="Welcome to PyOP2’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.8.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

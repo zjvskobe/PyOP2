@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyop2 user documentation &mdash; PyOP2 0.5.0 documentation</title>
+    <title>pyop2 user documentation &mdash; PyOP2 0.8.3 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.0',
+        VERSION:     '0.8.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.5.0 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.8.3 documentation" href="index.html" />
     <link rel="next" title="pyop2 Package" href="pyop2.html" />
     <link rel="prev" title="Installing PyOP2" href="installation.html" /> 
   </head>
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing PyOP2"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.8.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -85,6 +85,10 @@ defaults to <cite>MPI_COMM_WORLD</cite></li>
 </tr>
 </tbody>
 </table>
+<p>For debugging purposes, <cite>init</cite> accepts all keyword arguments
+accepted by the PyOP2 <tt class="xref py py-class docutils literal"><span class="pre">Configuration</span></tt> object, see
+<tt class="xref py py-meth docutils literal"><span class="pre">Configuration.__init__()</span></tt> for details of further accepted
+options.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Calling <tt class="docutils literal"><span class="pre">init</span></tt> again with a different backend raises an exception.
@@ -308,6 +312,106 @@ by executing over these set elements as well as owned ones.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.MixedSet">
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">MixedSet</tt><big>(</big><em>sets</em><big>)</big><a class="headerlink" href="#pyop2.MixedSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container for a bag of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sets</strong> (<em>iterable</em>) &#8211; Iterable of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pyop2.MixedSet.all_part">
+<tt class="descname">all_part</tt><a class="headerlink" href="#pyop2.MixedSet.all_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.core_part">
+<tt class="descname">core_part</tt><a class="headerlink" href="#pyop2.MixedSet.core_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.core_size">
+<tt class="descname">core_size</tt><a class="headerlink" href="#pyop2.MixedSet.core_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Core set size. Owned elements not touching halo elements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.exec_part">
+<tt class="descname">exec_part</tt><a class="headerlink" href="#pyop2.MixedSet.exec_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.exec_size">
+<tt class="descname">exec_size</tt><a class="headerlink" href="#pyop2.MixedSet.exec_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set size including execute halo elements.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyop2.MixedSet.fromhdf5">
+<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.MixedSet.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> from set named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.halo">
+<tt class="descname">halo</tt><a class="headerlink" href="#pyop2.MixedSet.halo" title="Permalink to this definition">¶</a></dt>
+<dd><p><tt class="xref py py-class docutils literal"><span class="pre">Halo</span></tt>s associated with these <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.layers">
+<tt class="descname">layers</tt><a class="headerlink" href="#pyop2.MixedSet.layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numbers of layers in the extruded mesh.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pyop2.MixedSet.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>User-defined labels.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.owned_part">
+<tt class="descname">owned_part</tt><a class="headerlink" href="#pyop2.MixedSet.owned_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.partition_size">
+<tt class="descname">partition_size</tt><a class="headerlink" href="#pyop2.MixedSet.partition_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default partition size</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.size">
+<tt class="descname">size</tt><a class="headerlink" href="#pyop2.MixedSet.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set size, owned elements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.sizes">
+<tt class="descname">sizes</tt><a class="headerlink" href="#pyop2.MixedSet.sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set sizes: core, owned, execute halo, total.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.split">
+<tt class="descname">split</tt><a class="headerlink" href="#pyop2.MixedSet.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>The underlying tuple of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedSet.total_size">
+<tt class="descname">total_size</tt><a class="headerlink" href="#pyop2.MixedSet.total_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total set size, including halo elements.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.DataSet">
 <em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">DataSet</tt><big>(</big><em>iter_set</em>, <em>dim=1</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.DataSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>PyOP2 Data Set</p>
@@ -340,8 +444,94 @@ the product of the dim tuple.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.MixedDataSet">
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">MixedDataSet</tt><big>(</big><em>arg</em>, <em>dims=None</em><big>)</big><a class="headerlink" href="#pyop2.MixedDataSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container for a bag of <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>s.</p>
+<p>Initialized either from a <a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a> and an iterable or iterator of
+<tt class="docutils literal"><span class="pre">dims</span></tt> of corresponding length</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mdset</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDataSet</span><span class="p">(</span><span class="n">mset</span><span class="p">,</span> <span class="p">[</span><span class="n">dim1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">dimN</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>or from a tuple of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s and an iterable of <tt class="docutils literal"><span class="pre">dims</span></tt> of
+corresponding length</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mdset</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDataSet</span><span class="p">([</span><span class="n">set1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">setN</span><span class="p">],</span> <span class="p">[</span><span class="n">dim1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">dimN</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If all <tt class="docutils literal"><span class="pre">dims</span></tt> are to be the same, they can also be given as an
+<tt class="xref py py-class docutils literal"><span class="pre">int</span></tt> for either of above invocations</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mdset</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDataSet</span><span class="p">(</span><span class="n">mset</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+<span class="n">mdset</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDataSet</span><span class="p">([</span><span class="n">set1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">setN</span><span class="p">],</span> <span class="n">dim</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Initialized from a <a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a> without explicitly specifying <tt class="docutils literal"><span class="pre">dims</span></tt>
+they default to 1</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mdset</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDataSet</span><span class="p">(</span><span class="n">mset</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Initialized from an iterable or iterator of <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>s and/or
+<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s, where <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s are implicitly upcast to
+<a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>s of dim 1</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mdset</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDataSet</span><span class="p">([</span><span class="n">dset1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">dsetN</span><span class="p">])</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>arg</strong> &#8211; a <a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a> or an iterable or a generator
+expression of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s or <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>s or a
+mixture of both</li>
+<li><strong>dims</strong> &#8211; <cite>None</cite> (the default) or an <tt class="xref py py-class docutils literal"><span class="pre">int</span></tt> or an iterable or
+generator expression of <tt class="xref py py-class docutils literal"><span class="pre">int</span></tt>s, which <strong>must</strong> be
+of same length as <cite>arg</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When using generator expressions for <tt class="docutils literal"><span class="pre">arg</span></tt> or <tt class="docutils literal"><span class="pre">dims</span></tt>, these
+<strong>must</strong> terminate or else will cause an infinite loop.</p>
+</div>
+<dl class="attribute">
+<dt id="pyop2.MixedDataSet.cdim">
+<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.MixedDataSet.cdim" title="Permalink to this definition">¶</a></dt>
+<dd><p>The scalar number of values for each member of the sets. This is
+the product of the dim tuples.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDataSet.dim">
+<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.MixedDataSet.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shape tuple of the values for each element of the sets.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDataSet.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pyop2.MixedDataSet.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the data sets.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDataSet.set">
+<tt class="descname">set</tt><a class="headerlink" href="#pyop2.MixedDataSet.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a> this <a class="reference internal" href="#pyop2.MixedDataSet" title="pyop2.MixedDataSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedDataSet</span></tt></a> is
+defined on.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDataSet.split">
+<tt class="descname">split</tt><a class="headerlink" href="#pyop2.MixedDataSet.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>The underlying tuple of <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>s.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.Map">
-<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>toset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em>, <em>offset=None</em>, <em>parent=None</em><big>)</big><a class="headerlink" href="#pyop2.Map" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>toset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em>, <em>offset=None</em>, <em>parent=None</em>, <em>bt_masks=None</em><big>)</big><a class="headerlink" href="#pyop2.Map" title="Permalink to this definition">¶</a></dt>
 <dd><p>OP2 map, a relation between two <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> objects.</p>
 <p>Each entry in the <tt class="docutils literal"><span class="pre">iterset</span></tt> maps to <tt class="docutils literal"><span class="pre">arity</span></tt> entries in the
 <tt class="docutils literal"><span class="pre">toset</span></tt>. When a map is used in a <a class="reference internal" href="pyop2.html#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">pyop2.op2.par_loop()</span></tt></a>, it is
@@ -357,11 +547,45 @@ will take each value from <tt class="docutils literal"><span class="pre">0</span
 <tt class="docutils literal"><span class="pre">n</span></tt> th extent passed to the iteration space for this
 <a class="reference internal" href="pyop2.html#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">pyop2.op2.par_loop()</span></tt></a>. See also <a class="reference internal" href="#pyop2.i" title="pyop2.i"><tt class="xref py py-data docutils literal"><span class="pre">i</span></tt></a>.</li>
 </ul>
+<p>For extruded problems (where <cite>iterset.layers &gt; 1</cite>) with boundary
+conditions applied at the top and bottom of the domain, one needs
+to provide a list of which of the <cite>arity</cite> values in each map entry
+correspond to values on the bottom boundary and which correspond
+to the top.  This is done by supplying two lists of indices in
+<cite>bt_masks</cite>, the first provides indices for the bottom, the second
+for the top.</p>
+<dl class="attribute">
+<dt id="pyop2.Map.arange">
+<tt class="descname">arange</tt><a class="headerlink" href="#pyop2.Map.arange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple of arity offsets for each constituent <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Map.arities">
+<tt class="descname">arities</tt><a class="headerlink" href="#pyop2.Map.arities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arity of the mapping: number of toset elements mapped to per
+iterset element.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Map.arity">
 <tt class="descname">arity</tt><a class="headerlink" href="#pyop2.Map.arity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Arity of the mapping: number of toset elements mapped to per
 iterset element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Map.bottom_mask">
+<tt class="descname">bottom_mask</tt><a class="headerlink" href="#pyop2.Map.bottom_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>The bottom layer mask to be applied on a mesh cell.</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -389,6 +613,17 @@ iterset element.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Map.split">
+<tt class="descname">split</tt><a class="headerlink" href="#pyop2.Map.split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Map.top_mask">
+<tt class="descname">top_mask</tt><a class="headerlink" href="#pyop2.Map.top_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>The top layer mask to be applied on a mesh cell.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Map.toset">
 <tt class="descname">toset</tt><a class="headerlink" href="#pyop2.Map.toset" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> mapped to.</p>
@@ -408,6 +643,113 @@ halo points too, use <a class="reference internal" href="#pyop2.Map.values_with_
 <dd><p>Mapping array.</p>
 <p>This returns all map values (including halo points), see
 <a class="reference internal" href="#pyop2.Map.values" title="pyop2.Map.values"><tt class="xref py py-meth docutils literal"><span class="pre">values()</span></tt></a> if you only need to look at the local
+points.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.MixedMap">
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">MixedMap</tt><big>(</big><em>maps</em><big>)</big><a class="headerlink" href="#pyop2.MixedMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container for a bag of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>maps</strong> (<em>iterable</em>) &#8211; Iterable of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pyop2.MixedMap.arange">
+<tt class="descname">arange</tt><a class="headerlink" href="#pyop2.MixedMap.arange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple of arity offsets for each constituent <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.arities">
+<tt class="descname">arities</tt><a class="headerlink" href="#pyop2.MixedMap.arities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arity of the mapping: number of toset elements mapped to per
+iterset element.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.arity">
+<tt class="descname">arity</tt><a class="headerlink" href="#pyop2.MixedMap.arity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arity of the mapping: total number of toset elements mapped to per
+iterset element.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.bottom_mask">
+<tt class="descname">bottom_mask</tt><a class="headerlink" href="#pyop2.MixedMap.bottom_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>The bottom layer mask to be applied on a mesh cell.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyop2.MixedMap.fromhdf5">
+<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>iterset</em>, <em>toset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.MixedMap.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> from set named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.iterset">
+<tt class="descname">iterset</tt><a class="headerlink" href="#pyop2.MixedMap.iterset" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a> mapped from.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pyop2.MixedMap.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>User-defined labels</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.offset">
+<tt class="descname">offset</tt><a class="headerlink" href="#pyop2.MixedMap.offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vertical offsets.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.split">
+<tt class="descname">split</tt><a class="headerlink" href="#pyop2.MixedMap.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>The underlying tuple of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.top_mask">
+<tt class="descname">top_mask</tt><a class="headerlink" href="#pyop2.MixedMap.top_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>The top layer mask to be applied on a mesh cell.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.toset">
+<tt class="descname">toset</tt><a class="headerlink" href="#pyop2.MixedMap.toset" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a> mapped to.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.values">
+<tt class="descname">values</tt><a class="headerlink" href="#pyop2.MixedMap.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mapping arrays excluding data for halos.</p>
+<p>This only returns the map values for local points, to see the
+halo points too, use <a class="reference internal" href="#pyop2.MixedMap.values_with_halo" title="pyop2.MixedMap.values_with_halo"><tt class="xref py py-meth docutils literal"><span class="pre">values_with_halo()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedMap.values_with_halo">
+<tt class="descname">values_with_halo</tt><a class="headerlink" href="#pyop2.MixedMap.values_with_halo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mapping arrays including data for halos.</p>
+<p>This returns all map values (including halo points), see
+<a class="reference internal" href="#pyop2.MixedMap.values" title="pyop2.MixedMap.values"><tt class="xref py py-meth docutils literal"><span class="pre">values()</span></tt></a> if you only need to look at the local
 points.</p>
 </dd></dl>
 
@@ -554,6 +896,12 @@ PETSc&#8217;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/p
 <dd><p>Row pointer array of CSR data structure.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="pyop2.Sparsity.shape">
+<tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Sparsity.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of block rows and columns.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -640,6 +988,14 @@ accomplished by:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">G</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>It is permissible to pass <cite>None</cite> as the <cite>data</cite> argument.  In this
+case, allocation of the data buffer is postponed until it is
+accessed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the data buffer is not passed in, it is implicitly
+initialised to be zero.</p>
+</div>
 <dl class="attribute">
 <dt id="pyop2.Global.cdim">
 <tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Global.cdim" title="Permalink to this definition">¶</a></dt>
@@ -660,6 +1016,12 @@ the product of the dim tuple.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Global.data_ro">
+<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.Global.data_ro" title="Permalink to this definition">¶</a></dt>
+<dd><p>Data array.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Global.dim">
 <tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Global.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The shape tuple of the values for each element of the object.</p>
@@ -668,14 +1030,18 @@ the product of the dim tuple.</p>
 <dl class="attribute">
 <dt id="pyop2.Global.dtype">
 <tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Global.dtype" title="Permalink to this definition">¶</a></dt>
-<dd><p>The Python type of the data.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.name">
 <tt class="descname">name</tt><a class="headerlink" href="#pyop2.Global.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Global.shape">
+<tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Global.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.soa">
@@ -696,6 +1062,14 @@ than a <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"
 <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> dimension of 1.</p>
 <p>If a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is passed as the <tt class="docutils literal"><span class="pre">dataset</span></tt> argument, a copy is
 returned.</p>
+<p>It is permissible to pass <cite>None</cite> as the <cite>data</cite> argument.  In this
+case, allocation of the data buffer is postponed until it is
+accessed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the data buffer is not passed in, it is implicitly
+initialised to be zero.</p>
+</div>
 <p>When a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is passed to <a class="reference internal" href="pyop2.html#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">pyop2.op2.par_loop()</span></tt></a>, the map via
 which indirection occurs and the access descriptor are passed by
 calling the <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>. For instance, if a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> named <tt class="docutils literal"><span class="pre">D</span></tt> is
@@ -856,9 +1230,20 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Dat.shape">
+<tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Dat.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Dat.soa">
 <tt class="descname">soa</tt><a class="headerlink" href="#pyop2.Dat.soa" title="Permalink to this definition">¶</a></dt>
 <dd><p>Are the data in SoA format?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Dat.split">
+<tt class="descname">split</tt><a class="headerlink" href="#pyop2.Dat.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple containing only this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -867,6 +1252,171 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <dd><p>Zero the data associated with this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.MixedDat">
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">MixedDat</tt><big>(</big><em>mdset_or_dats</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container for a bag of <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s.</p>
+<p>Initialized either from a <a class="reference internal" href="#pyop2.MixedDataSet" title="pyop2.MixedDataSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedDataSet</span></tt></a>, a <a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a>, or
+an iterable of <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>s and/or <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s, where all the
+<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s are implcitly upcast to <a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>s</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mdat</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDat</span><span class="p">(</span><span class="n">mdset</span><span class="p">)</span>
+<span class="n">mdat</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDat</span><span class="p">([</span><span class="n">dset1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">dsetN</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>or from an iterable of <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mdat</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDat</span><span class="p">([</span><span class="n">dat1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">datN</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="pyop2.MixedDat.cdim">
+<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.MixedDat.cdim" title="Permalink to this definition">¶</a></dt>
+<dd><p>The scalar number of values for each member of the object. This is
+the product of the dim tuple.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.MixedDat.copy">
+<tt class="descname">copy</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the data in this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> into another.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; The destination <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></td>
+</tr>
+</tbody>
+</table>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.ctype">
+<tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.MixedDat.ctype" title="Permalink to this definition">¶</a></dt>
+<dd><p>The c type of the data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.data">
+<tt class="descname">data</tt><a class="headerlink" href="#pyop2.MixedDat.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy arrays containing the data excluding halos.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.data_ro">
+<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.MixedDat.data_ro" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy arrays with read-only data excluding halos.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.data_ro_with_halos">
+<tt class="descname">data_ro_with_halos</tt><a class="headerlink" href="#pyop2.MixedDat.data_ro_with_halos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy arrays with read-only data including halos.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.data_with_halos">
+<tt class="descname">data_with_halos</tt><a class="headerlink" href="#pyop2.MixedDat.data_with_halos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy arrays containing the data including halos.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.dataset">
+<tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.MixedDat.dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#pyop2.MixedDataSet" title="pyop2.MixedDataSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedDataSet</span></tt></a>s this <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a> is defined on.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.dim">
+<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.MixedDat.dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shape of the values for each element of the object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.dtype">
+<tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.MixedDat.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>The NumPy dtype of the data.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyop2.MixedDat.fromhdf5">
+<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>dataset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> from a Dat named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.MixedDat.halo_exchange_begin">
+<tt class="descname">halo_exchange_begin</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.halo_exchange_begin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Begin halo exchange.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.MixedDat.halo_exchange_end">
+<tt class="descname">halo_exchange_end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.halo_exchange_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>End halo exchange. Waits on MPI recv.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pyop2.MixedDat.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>User-defined label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.needs_halo_update">
+<tt class="descname">needs_halo_update</tt><a class="headerlink" href="#pyop2.MixedDat.needs_halo_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Has this Dat been written to since the last halo exchange?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.norm">
+<tt class="descname">norm</tt><a class="headerlink" href="#pyop2.MixedDat.norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>The L2-norm on the flattened vector.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.MixedDat.save">
+<tt class="descname">save</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the data array to file <tt class="docutils literal"><span class="pre">filename</span></tt> in NumPy format.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.shape">
+<tt class="descname">shape</tt><a class="headerlink" href="#pyop2.MixedDat.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.soa">
+<tt class="descname">soa</tt><a class="headerlink" href="#pyop2.MixedDat.soa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Are the data in SoA format?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.MixedDat.split">
+<tt class="descname">split</tt><a class="headerlink" href="#pyop2.MixedDat.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>The underlying tuple of <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.MixedDat.zero">
+<tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.zero" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zero the data associated with this <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1094,7 +1644,7 @@ invocations.</p>
         <li class="right" >
           <a href="installation.html" title="Installing PyOP2"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.8.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

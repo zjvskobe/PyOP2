@@ -209,3 +209,10 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+Subpackages
+-----------
+
+.. toctree::
+
+    pyop2.ir
+

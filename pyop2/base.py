@@ -40,13 +40,14 @@ import numpy as np
 import operator
 from hashlib import md5
 
-from caching import Cached
+from caching import Cached, KernelCached
 from configuration import configuration
 from exceptions import *
 from utils import *
 from backends import _make_object
 from mpi import MPI, _MPI, _check_comm, collective
 from sparsity import build_sparsity
+from version import __version__ as version
 
 
 class LazyComputation(object):
@@ -1538,7 +1539,7 @@ class Dat(DataCarrier, _EmptyDataMixin):
 
         """
         _trace.evaluate(set([self]), set([self]))
-        if self.dataset.total_size > 0 and self._data.size == 0:
+        if self.dataset.total_size > 0 and self._data.size == 0 and self.cdim > 0:
             raise RuntimeError("Illegal access: no data associated with this Dat!")
         maybe_setflags(self._data, write=True)
         v = self._data[:self.dataset.size].view()
@@ -1576,7 +1577,7 @@ class Dat(DataCarrier, _EmptyDataMixin):
 
         """
         _trace.evaluate(set([self]), set())
-        if self.dataset.total_size > 0 and self._data.size == 0:
+        if self.dataset.total_size > 0 and self._data.size == 0 and self.cdim > 0:
             raise RuntimeError("Illegal access: no data associated with this Dat!")
         v = self._data[:self.dataset.size].view()
         v.setflags(write=False)
@@ -2270,7 +2271,7 @@ class Map(object):
         # the application of strong boundary conditions
         self._bottom_mask = np.zeros(len(offset)) if offset is not None else []
         self._top_mask = np.zeros(len(offset)) if offset is not None else []
-        if bt_masks is not None:
+        if offset is not None and bt_masks is not None:
             self._bottom_mask[bt_masks[0]] = -1
             self._top_mask[bt_masks[1]] = -1
         Map._globalcount += 1
@@ -2864,7 +2865,7 @@ class Mat(DataCarrier):
 # Kernel API
 
 
-class Kernel(Cached):
+class Kernel(KernelCached):
 
     """OP2 kernel type."""
 
@@ -2876,7 +2877,8 @@ class Kernel(Cached):
     def _cache_key(cls, code, name):
         # Both code and name are relevant since there might be multiple kernels
         # extracting different functions from the same code
-        return md5(code + name).hexdigest()
+        # Also include the PyOP2 version, since the Kernel class might change
+        return md5(code + name + version).hexdigest()
 
     def __init__(self, code, name):
         # Protect against re-initialization when retrieved from cache
@@ -3176,7 +3178,7 @@ DEFAULT_SOLVER_PARAMETERS = {'ksp_type': 'cg',
                              'ksp_rtol': 1.0e-7,
                              'ksp_atol': 1.0e-50,
                              'ksp_divtol': 1.0e+4,
-                             'ksp_max_it': 1000,
+                             'ksp_max_it': 10000,
                              'ksp_monitor': False,
                              'plot_convergence': False,
                              'plot_prefix': '',

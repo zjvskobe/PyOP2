@@ -131,6 +131,5 @@ def _ensure_cachedir():
     if not os.path.exists(FFCKernel._cachedir) and MPI.comm.rank == 0:
         os.makedirs(FFCKernel._cachedir)
 
-#TODO Uncomment, temporary fix
-#_check_version()
+_check_version()
 _ensure_cachedir()

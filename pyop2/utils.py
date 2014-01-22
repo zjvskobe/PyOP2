@@ -241,7 +241,8 @@ def parser(description=None, group=False):
         'pyop2', 'backend configuration options') if group else parser
 
     g.add_argument('-b', '--backend', default='sequential',
-                   choices=['sequential', 'openmp', 'opencl', 'cuda'],
+                   choices=['sequential', 'openmp', 'opencl', 'cuda',
+                            'sequential_llvm'],
                    help='select backend' if group else 'select pyop2 backend')
     g.add_argument('-d', '--debug', default=argparse.SUPPRESS,
                    type=int, choices=range(8),

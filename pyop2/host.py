@@ -582,7 +582,7 @@ class JITModule(base.JITModule):
         cpp = os.environ.get('CXX')
         os.environ['CC'] = 'icc'
         os.environ['CXX'] = 'icpc'
-        os.environ['OPT'] = '-DNDEBUG -O2 -Wall -Wstrict-prototypes'
+        os.environ['OPT'] = '-DNDEBUG -no-multibyte-chars -O2 -Wall -Wstrict-prototypes'
         vect_flag = irvect.compiler.get('vect_flag')
         if configuration["debug"]:
             extra_cppargs = ['-O0', '-g']

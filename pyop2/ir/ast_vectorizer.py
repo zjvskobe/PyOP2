@@ -48,7 +48,6 @@ class LoopVectoriser(object):
         self.lo = loop_optimiser
         self.intr = intrinsics
         self.comp = compiler
-        self.iloops = self._inner_loops(loop_optimiser.loop_nest)
         self.padded = []
 
     def align_and_pad(self, decl_scope, only_align=False):
@@ -80,12 +79,14 @@ class LoopVectoriser(object):
             if d.sym.rank and s != ap.PARAM_VAR:
                 d.attr.append(self.comp["align"](self.intr["alignment"]))
 
+        iloops = self._inner_loops(self.lo.loop_nest)
+
         # Add pragma alignment over innermost loops
-        for l in self.iloops:
+        for l in iloops:
             l.pragma = self.comp["decl_aligned_for"]
 
         # Loop adjustment
-        for l in self.iloops:
+        for l in iloops:
             for stm in l.children[0].children:
                 sym = stm.children[0]
                 if sym.rank and sym.rank[-1] == l.it_var():
@@ -102,10 +103,16 @@ class LoopVectoriser(object):
         jam factor. Note that factor is just a suggestion to the compiler,
         which can freely decide to use a higher or lower value."""
 
+        if not self.lo.out_prods:
+            return
+
         for stmt, stmt_info in self.lo.out_prods.items():
             # First, find outer product loops in the nest
             it_vars, parent = stmt_info
-            loops = [l for l in self.lo.fors if l.it_var() in it_vars]
+            #if not self.lo.op_loops:
+            #    loops = [l for l in self.lo.fors if l.it_var() in it_vars]
+            #else:
+            loops = self.lo.op_loops[stmt]
 
             vect_len = self.intr["dp_reg"]
             rows = loops[0].size()
@@ -156,10 +163,10 @@ class LoopVectoriser(object):
             ofs = blk.index(stmt)
             parent.children = blk[:ofs] + body + blk[ofs + 1:]
 
-            # Append the layout code after the loop nest
-            if layout:
-                parent = self.lo.pre_header.children
-                parent.insert(parent.index(self.lo.loop_nest) + 1, layout)
+        # Append the layout code after the loop nest
+        if layout:
+            parent = self.lo.pre_header.children
+            parent.insert(parent.index(self.lo.loop_nest) + 1, layout)
 
     def _inner_loops(self, node):
         """Find inner loops in the subtree rooted in node."""

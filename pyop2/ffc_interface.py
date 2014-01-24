@@ -91,6 +91,7 @@ class FFCKernel(DiskCached, KernelCached):
         ir_opts['tile'] = _eval(os.environ.get('PYOP2_IR_TILE') or 'None')
         ir_opts['vect'] = _eval(os.environ.get('PYOP2_IR_VECT') or 'None')
         ir_opts['ap'] = _eval(os.environ.get('PYOP2_IR_AP') or 'False')
+        ir_opts['split'] = _eval(os.environ.get('PYOP2_IR_SPLIT') or 'False')
         
         form_data = form.compute_form_data()
         return md5(form_data.signature + name + Kernel._backend.__name__ +
@@ -126,6 +127,7 @@ class FFCKernel(DiskCached, KernelCached):
         ir_opts['tile'] = _eval(os.environ.get('PYOP2_IR_TILE') or 'None')
         ir_opts['vect'] = _eval(os.environ.get('PYOP2_IR_VECT') or 'None')
         ir_opts['ap'] = _eval(os.environ.get('PYOP2_IR_AP') or 'False')
+        ir_opts['split'] = _eval(os.environ.get('PYOP2_IR_SPLIT') or 'False')
 
         kernels = []
         for ida, ker in zip(form_data.integral_data, ffc_tree):

@@ -59,6 +59,7 @@ class LoopOptimiser(object):
         self.pre_header = pre_header
         self.kernel_decls = kernel_decls
         self.out_prods = {}
+        self.op_loops = {}
         self.itspace = []
         fors_loc, self.decls, self.sym = self._visit_nest(loop_nest)
         self.fors, self.for_parents = zip(*fors_loc)
@@ -69,7 +70,7 @@ class LoopOptimiser(object):
             - Declarations and Symbols
             - Optimisations requested by the higher layers via pragmas"""
 
-        def check_opts(node, parent):
+        def check_opts(node, fors, parent):
             """Check if node is associated some pragma. If that is the case,
             it saves this info so as to enable pyop2 optimising such node. """
             if node.pragma:
@@ -87,8 +88,10 @@ class LoopOptimiser(object):
                     if opt_name == "outerproduct":
                         # Found high-level optimisation
                         # Store outer product iteration variables and parent
-                        self.out_prods[node] = (
-                            [opt_par[1], opt_par[3]], parent)
+                        it_vars = [opt_par[1], opt_par[3]]
+                        fors, fors_parents = zip(*fors)
+                        self.out_prods[node] = (it_vars, parent)
+                        self.op_loops[node] = [l for l in fors if l.it_var() in it_vars]
                     else:
                         raise RuntimeError("Unrecognised opt %s - skipping it", opt_name)
                 else:
@@ -101,7 +104,7 @@ class LoopOptimiser(object):
                     inspect(n, node, fors, decls, symbols)
                 return (fors, decls, symbols)
             elif isinstance(node, For):
-                check_opts(node, parent)
+                check_opts(node, fors, parent)
                 fors.append((node, parent))
                 return inspect(node.children[0], node, fors, decls, symbols)
             elif isinstance(node, Par):
@@ -117,7 +120,7 @@ class LoopOptimiser(object):
                 inspect(node.children[1], node, fors, decls, symbols)
                 return (fors, decls, symbols)
             elif perf_stmt(node):
-                check_opts(node, parent)
+                check_opts(node, fors, parent)
                 inspect(node.children[0], node, fors, decls, symbols)
                 inspect(node.children[1], node, fors, decls, symbols)
                 return (fors, decls, symbols)
@@ -294,35 +297,84 @@ class LoopOptimiser(object):
 
         return ext_loops
 
-    def op_interchange(self, decl_scope):
-        """Interchange outer product loops based on amount of redundancy."""
+    def op_split(self, cut, length):
+        """Split outer product RHS based on amount of computation."""
+
+        def split_sum(node, parent, is_left, found, sum_count):
+            if isinstance(node, Symbol):
+                return False
+            elif isinstance(node, Par) and found:
+                return False
+            elif isinstance(node, Par) and not found:
+                return split_sum(node.children[0], (node, 0), is_left, found, sum_count)
+            elif isinstance(node, Prod) and found:
+                return False
+            elif isinstance(node, Prod) and not found:
+                if not split_sum(node.children[0], (node, 0), is_left, found, sum_count):
+                    return split_sum(node.children[1], (node, 1), is_left, found, sum_count)
+                return True
+            elif isinstance(node, Sum):
+                sum_count += 1
+                if not found:
+                    found = parent
+                if sum_count == cut:
+                    if is_left:
+                        parent, parent_leaf = parent
+                        parent.children[parent_leaf] = node.children[0]
+                    else:
+                        found, found_leaf = found
+                        found.children[found_leaf] = node.children[1]
+                    return True
+                else:
+                    if not split_sum(node.children[0], (node, 0), is_left, found, sum_count):
+                        return split_sum(node.children[1], (node, 1), is_left, found, sum_count)
+                    return True
+            else:
+                raise RuntimeError("Splitting expression, shouldn't be here.")
+
+        def split_and_update(out_prods):
+            op_split, op_splittable = ({}, {})
+            for stmt, stmt_info in out_prods.items():
+                it_vars, parent = stmt_info
+                expr = Par(stmt.children[1])
+                stmt_left = dcopy(stmt)
+                stmt_right = dcopy(stmt)
+                expr_left = Par(stmt_left.children[1])
+                expr_right = Par(stmt_right.children[1])
+                sleft = split_sum(expr_left.children[0], (expr_left, 0), True, None, 0)
+                sright = split_sum(expr_right.children[0], (expr_right, 0), False, None, 0)
+
+                if sleft and sright:
+                    # Append the left-split expression. Re-use loop nest
+                    parent.children[parent.children.index(stmt)] = stmt_left
+                    self.op_loops[stmt_left] = self.op_loops.pop(stmt)
+                    # Append the right-split (reminder) expression. Create new loop nest
+                    split_loop = dcopy([f for f in self.fors if f.it_var() == it_vars[0]][0])
+                    split_inner_loop = split_loop.children[0].children[0].children[0]
+                    split_inner_loop.children[0] = stmt_right
+                    self.loop_nest.children[0].children.append(split_loop)
+                    self.op_loops[stmt_right] = [split_loop, split_loop.children[0].children[0]]
+                    # Update outer product dictionaries
+                    op_splittable[stmt_right] = (it_vars, split_inner_loop)
+                    op_split[stmt_left] = (it_vars, parent)
+                    return op_split, op_splittable
+                else:
+                    return out_prods, {}
+
 
         if not self.out_prods:
             return
 
-        n_outer = 0
-        n_inner = 0
-        acc_decls = [d[0].sym.symbol for s, d in decl_scope.items() if d[1] != ast_plan.PARAM_VAR]
-        acc_syms = [s for s in self.sym if s.symbol in acc_decls]
-        
-        for s in acc_syms:
-            if s.rank and s.rank[-1] == self.fors[-1].it_var():
-                n_inner += 1
-            elif s.rank and s.rank[-1] == self.fors[-2].it_var():
-                n_outer += 1
-
-        if n_inner >= n_outer:
-            ex_outer_loop = dcopy(self.fors[-2])
-            self.fors[-2].init.sym.symbol = self.fors[-1].init.sym.symbol
-            self.fors[-2].cond.children[0].symbol = self.fors[-1].cond.children[0].symbol
-            self.fors[-2].incr.children[0].symbol = self.fors[-1].incr.children[0].symbol
-            self.fors[-1].init.sym.symbol = ex_outer_loop.init.sym.symbol
-            self.fors[-1].cond.children[0].symbol = ex_outer_loop.cond.children[0].symbol
-            self.fors[-1].incr.children[0].symbol = ex_outer_loop.incr.children[0].symbol
-
-            acc_decls = [d[0].sym.symbol for s, d in decl_scope.items() if d[1] == ast_plan.PARAM_VAR]
-            acc_syms = [s for s in self.sym if s.symbol in acc_decls]
-            acc_syms[0].rank = (acc_syms[0].rank[1], acc_syms[0].rank[0])
+        new_out_prods = {}
+        splittable = self.out_prods
+        for i in range(length-1):
+            split, splittable = split_and_update(splittable)
+            new_out_prods.update(split)
+            if not splittable:
+                break
+        if splittable:
+            new_out_prods.update(splittable)
+        self.out_prods = new_out_prods
 
 
     def op_tiling(self, tile_sz=None):
@@ -334,9 +386,9 @@ class LoopOptimiser(object):
         if tile_sz == -1:
             tile_sz = 20  # Actually, should be determined for each form
 
-        for loop_vars in set([tuple(x) for x, y in self.out_prods.values()]):
+        for stmt, stmt_info in self.out_prods.items():
             # First, find outer product loops in the nest
-            loops = [l for l in self.fors if l.it_var() in loop_vars]
+            loops = self.op_loops[stmt]
 
             # Build tiled loops
             tiled_loops = []
@@ -359,7 +411,7 @@ class LoopOptimiser(object):
                 tiled_loops.append(loop)
 
             # Append tiled loops at the right point in the nest
-            par_block = self.for_parents[self.fors.index(loops[1])]
+            par_block = loops[0].children[0]
             pb = par_block.children
             idx = pb.index(loops[1])
             par_block.children = pb[:idx] + tiled_loops + pb[idx + 1:]

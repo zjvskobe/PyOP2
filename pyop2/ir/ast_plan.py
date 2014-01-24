@@ -149,11 +149,14 @@ class ASTKernel(object):
         tile = opts.get('tile')
         vect = opts.get('vect')
         ap = opts.get('ap')
+        split = opts.get('split')
 
         v_opt, isa, compiler = vect if vect else ((None, None), None, None)
         v_type, v_param = v_opt
 
         tile_opt, tile_sz = tile if tile else (False, -1)
+       
+        split_opt, split_sz = split if split else (False, -1)
 
         lo = [LoopOptimiser(l, pre_l, self.decls) for l, pre_l in self.fors]
         for nest in lo:
@@ -163,8 +166,9 @@ class ASTKernel(object):
                 inv_outer_loops = nest.op_licm()  # noqa
                 self.decls.update(nest.decls)
             
-            # 1.5) Loop interchange
-            nest.op_interchange(self.decls)
+            # 1.5) Outer product splitting
+            if split_opt:
+                nest.op_split(split_sz[0], split_sz[1])
 
             # 2) Register tiling
             if tile_opt and v_type == AUTOVECT:

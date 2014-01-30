@@ -49,6 +49,7 @@ from op2 import Kernel
 from mpi import MPI
 
 from ir.ast_base import PreprocessNode, Root
+import ir.ast_plan as ap
 
 _form_cache = {}
 
@@ -91,13 +92,47 @@ class FFCKernel(DiskCached, KernelCached):
                    constants.PYOP2_VERSION).hexdigest()
 
     def __init__(self, form, name):
-        if self._initialized:
-            return
+        #if self._initialized:
+        #    return
+        
 
         incl = PreprocessNode('#include "pyop2_geometry.h"\n')
         ffc_tree = ffc_compile_form(form, prefix=name, parameters=ffc_parameters)
 
         form_data = form.form_data()
+
+	if form_data.integral_data[0].domain_type == 'cell':
+	    from copy import deepcopy
+	    from ir.ast_plan import ASTKernel
+            import ir.ast_vectorizer
+	    from ast import literal_eval as _eval
+	    ast = deepcopy(ffc_tree[0])
+	    ast_handler = ASTKernel(ast)
+	    _opts = {'licm': False, 'tile': None, 'vect': None, 'ap': False}
+            _opts['licm'] = _eval(os.environ.get('PYOP2_IR_LICM') or 'False')
+            _opts['tile'] = _eval(os.environ.get('PYOP2_IR_TILE') or 'None')
+            _opts['vect'] = _eval(os.environ.get('PYOP2_IR_VECT') or 'None')
+            _opts['ap'] = _eval(os.environ.get('PYOP2_IR_AP') or 'False')
+            # _opts['split'] = _eval(os.environ.get('PYOP2_IR_SPLIT') or 'False')	   
+	    # print _opts
+	    ir.ast_vectorizer.vectorizer_init = True
+            ast_handler.plan_cpu(_opts)
+	    ir.ast_vectorizer.vectorizer_init = False
+	    #from IPython import embed; embed()
+
+            prob_name = os.environ['PYOP2_PROBLEM_NAME']
+	    print prob_name
+            if prob_name != 'TEST_RUN':
+               #from IPython import embed; embed()
+               pyop2_opts = [(k, v) for k, v in os.environ.items() if k.startswith('PYOP2')]
+               pyop2_opts = "\n".join(["%s: %s" % (s1, s2) for s1, s2 in pyop2_opts])
+               file_name = "%s_%s" % (os.environ.get('PYOP2_SIMD_ISA'), prob_name)
+               code = open(file_name, 'a')
+               code.write("*****************************************\n\n")
+               code.write(pyop2_opts + "\n" + ast.gencode())
+               code.close()
+	
+#    	    print ast.gencode();
 
         kernels = []
         for ida, kernel in zip(form_data.integral_data, ffc_tree):

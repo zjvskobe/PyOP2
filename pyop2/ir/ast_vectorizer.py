@@ -222,17 +222,29 @@ class OuterProduct():
 
     def _swap_reg(self, step, vrs):
         """Swap values in a vector register. """
-
+#ANA: here it deals with the permutations => AVX specific 
+#ANA: specialize 
+	if self.intr["inst_set"] == "AVX":
         # Find inner variables
-        regs = [reg for node, reg in vrs.items()
-                if node.rank and node.rank[-1] == self.loops[1].it_var()]
-
-        if step in [0, 2]:
-            return [Assign(r, self.intr["l_perm"](r, "5")) for r in regs]
-        elif step == 1:
-            return [Assign(r, self.intr["g_perm"](r, r, "1")) for r in regs]
-        elif step == 3:
-            return []
+            regs = [reg for node, reg in vrs.items()
+            if node.rank and node.rank[-1] == self.loops[1].it_var()]
+            if step in [0, 2]:
+               return [Assign(r, self.intr["l_perm"](r, "5")) for r in regs]
+            elif step in [1]:
+               return [Assign(r, self.intr["g_perm"](r, r, "1")) for r in regs]
+            elif step == 3:
+               return []
+	elif self.intr["inst_set"] == "PHI": 
+            regs = [reg for node, reg in vrs.items()
+            if node.rank and node.rank[-1] == self.loops[1].it_var()]
+            if step in [0, 2, 4, 6]:
+               return [Assign(r, self.intr["l_perm"](r, "_MM_SWIZ_REG_CDAB")) for r in regs]
+            if step in [1, 5]:
+               return [Assign(r, self.intr["l_perm"](r, "_MM_SWIZ_REG_BDAC")) for r in regs]
+            elif step in [3]:
+               return [Assign(r, self.intr["g_perm"](r, r, "_MM_PERM_REG_ABCD")) for r in regs]
+            elif step == 7:
+               return []
 
     def _vect_mem(self, vrs, decls):
         """Return a list of vector variable declarations representing
@@ -356,34 +368,82 @@ class OuterProduct():
                 code.append(Decl(self.intr["decl_var"], j, load_sym))
 
         # In-register restoration of the tensor
-        # TODO: AVX only at the present moment
-        # TODO: here some __m256 vars could not be declared if rows < 4
-        perm = self.intr["g_perm"]
-        uphi = self.intr["unpck_hi"]
-        uplo = self.intr["unpck_lo"]
-        typ = self.intr["decl_var"]
-        vect_len = self.intr["dp_reg"]
+        # ANA: Attempt for PHI 
+	if self.intr["inst_set"] == "PHI":
+          blend = self.intr["blend"]
+          typ = self.intr["decl_var"]
+          vect_len = self.intr["dp_reg"]
         # Do as many times as the unroll factor
-        spins = int(ceil(n_regs / float(vect_len)))
-        for i in range(spins):
-            # In-register permutations
-            tmp = [Symbol(regs.get_reg(), ()) for r in range(vect_len)]
-            code.append(Decl(typ, tmp[0], uphi(t_regs[1], t_regs[0])))
-            code.append(Decl(typ, tmp[1], uplo(t_regs[0], t_regs[1])))
-            code.append(Decl(typ, tmp[2], uphi(t_regs[2], t_regs[3])))
-            code.append(Decl(typ, tmp[3], uplo(t_regs[3], t_regs[2])))
-            code.append(Assign(t_regs[0], perm(tmp[1], tmp[3], 32)))
-            code.append(Assign(t_regs[1], perm(tmp[0], tmp[2], 32)))
-            code.append(Assign(t_regs[2], perm(tmp[3], tmp[1], 49)))
-            code.append(Assign(t_regs[3], perm(tmp[2], tmp[0], 49)))
-            regs.free_regs([s.symbol for s in tmp])
+          spins = int(ceil(n_regs / float(vect_len)))
+          for i in range(spins):
+              # In-register permutations
+              tmp = [Symbol(regs.get_reg(), ()) for r in range(vect_len)]
+              code.append(Decl(typ, tmp[0], blend(t_regs[0], t_regs[1], 0xAA)))
+	      code.append(Decl(typ, tmp[1], blend(t_regs[1], t_regs[0], 0xAA)))		
+              code.append(Decl(typ, tmp[2], blend(t_regs[2], t_regs[3], 0xAA)))
+              code.append(Decl(typ, tmp[3], blend(t_regs[3], t_regs[2], 0xAA)))                 
+              code.append(Decl(typ, tmp[4], blend(t_regs[5], t_regs[4], 0xAA)))
+              code.append(Decl(typ, tmp[5], blend(t_regs[4], t_regs[5], 0xAA)))                 
+              code.append(Decl(typ, tmp[6], blend(t_regs[7], t_regs[6], 0xAA)))
+              code.append(Decl(typ, tmp[7], blend(t_regs[6], t_regs[7], 0xAA)))                 
+
+              code.append(Assign(t_regs[0], blend(tmp[2], tmp[0], 0x33)))
+              code.append(Assign(t_regs[2], blend(tmp[0], tmp[2], 0x33)))
+              code.append(Assign(t_regs[1], blend(tmp[3], tmp[1], 0x33)))
+              code.append(Assign(t_regs[3], blend(tmp[1], tmp[3], 0x33)))
+              code.append(Assign(t_regs[4], blend(tmp[6], tmp[4], 0x33)))
+              code.append(Assign(t_regs[6], blend(tmp[4], tmp[6], 0x33)))
+              code.append(Assign(t_regs[5], blend(tmp[7], tmp[5], 0x33)))
+              code.append(Assign(t_regs[7], blend(tmp[5], tmp[7], 0x33)))
+
+              code.append(Assign(tmp[0], blend(t_regs[0], t_regs[4], 0xF0)))
+              code.append(Assign(tmp[1], blend(t_regs[1], t_regs[5], 0xF0)))
+              code.append(Assign(tmp[2], blend(t_regs[2], t_regs[6], 0xF0)))
+              code.append(Assign(tmp[3], blend(t_regs[3], t_regs[7], 0xF0)))
+              code.append(Assign(tmp[4], blend(t_regs[4], t_regs[0], 0xF0)))
+              code.append(Assign(tmp[5], blend(t_regs[5], t_regs[1], 0xF0)))
+              code.append(Assign(tmp[6], blend(t_regs[6], t_regs[2], 0xF0)))
+              code.append(Assign(tmp[7], blend(t_regs[7], t_regs[3], 0xF0)))
+	      	
+              #regs.free_regs([s.symbol for s in tmp])
 
             # Store LHS values in memory
-            for j in range(min(vect_len, n_regs - i * vect_len)):
+              for j in range(min(vect_len, n_regs - i * vect_len)):
+                ofs = i * vect_len + j
+                code.append(self.intr["store"](tensor_syms[ofs], tmp[ofs]))
+	      
+	      regs.free_regs([s.symbol for s in tmp])
+	  return code
+
+        # TODO: AVX only at the present moment
+        # TODO: here some __m256 vars could not be declared if rows < 4
+	elif self.intr["inst_set"] == "AVX":
+          perm = self.intr["g_perm"]
+          uphi = self.intr["unpck_hi"]
+          uplo = self.intr["unpck_lo"]
+          typ = self.intr["decl_var"]
+          vect_len = self.intr["dp_reg"]
+        # Do as many times as the unroll factor
+          spins = int(ceil(n_regs / float(vect_len)))
+          for i in range(spins):
+              # In-register permutations
+              tmp = [Symbol(regs.get_reg(), ()) for r in range(vect_len)]
+              code.append(Decl(typ, tmp[0], uphi(t_regs[1], t_regs[0])))
+              code.append(Decl(typ, tmp[1], uplo(t_regs[0], t_regs[1])))
+              code.append(Decl(typ, tmp[2], uphi(t_regs[2], t_regs[3])))
+              code.append(Decl(typ, tmp[3], uplo(t_regs[3], t_regs[2])))
+              code.append(Assign(t_regs[0], perm(tmp[1], tmp[3], 32)))
+              code.append(Assign(t_regs[1], perm(tmp[0], tmp[2], 32)))
+              code.append(Assign(t_regs[2], perm(tmp[3], tmp[1], 49)))
+              code.append(Assign(t_regs[3], perm(tmp[2], tmp[0], 49)))
+              regs.free_regs([s.symbol for s in tmp])
+
+            # Store LHS values in memory
+              for j in range(min(vect_len, n_regs - i * vect_len)):
                 ofs = i * vect_len + j
                 code.append(self.intr["store"](tensor_syms[ofs], t_regs[ofs]))
 
-        return code
+          return code
 
     def generate(self, rows):
         """Generate the outer-product intrinsics-based vectorisation code. """
@@ -434,9 +494,12 @@ class OuterProduct():
                 stmt.extend(self._vect_mem(vrs, decls))
                 incr = self._incr_tensor(tensor, i + ofs, regs, v_expr, mode)
                 stmt.append(incr)
+	   
+#ANA: here it's going bananas :(
             # Register shuffles
             if rows_per_col + (rows_to_peel - peeling) > 0:
-                stmt.extend(self._swap_reg(i, vrs))
+	    # from IPython import embed; embed()         
+	       stmt.extend(self._swap_reg(i, vrs))
 
         # Set initialising and tensor layout code
         layout = self._restore_layout(regs, tensor, mode)
@@ -508,6 +571,31 @@ def _init_isa(isa):
             'unpck_lo': lambda r1, r2: AVXUnpackLo(r1, r2)
         }
 
+    if isa == 'phi':
+        return {
+            'inst_set': 'PHI',
+            'avail_reg': 32,
+            'alignment': 64,
+            'dp_reg': 8,  # Number of double values per register
+            'reg': lambda n: 'zmm%s' % n,
+            'zeroall': '_mm512_zeroall ()',
+            'setzero': PHISetZero(),
+            'decl_var': '__m512d',
+            'align_array': lambda p: '__attribute__((aligned(%s)))' % p,
+            'symbol_load': lambda s, r, o=None: PHILoad(s, r, o),
+            'symbol_set': lambda s, r, o=None: PHISet(s, r, o),
+            'store': lambda m, r: PHIStore(m, r),
+            'mul': lambda r1, r2: PHIProd(r1, r2),
+            'div': lambda r1, r2: PHIDiv(r1, r2),
+            'add': lambda r1, r2: PHISum(r1, r2),
+            'sub': lambda r1, r2: PHISub(r1, r2),
+            'l_perm': lambda r, f: PHILocalPermute(r, f),
+            'g_perm': lambda r1, r2, f: PHIGlobalPermute(r1, r2, f),
+	    'blend': lambda r1, r2, f: PHIBlend(r1, r2, f),
+            'unpck_hi': lambda r1, r2: PHIUnpackHi(r1, r2),
+            'unpck_lo': lambda r1, r2: PHIUnpackLo(r1, r2)
+        }
+
 
 def _init_compiler(compiler):
     """Set compiler-specific keywords. """
@@ -517,6 +605,7 @@ def _init_compiler(compiler):
             'align': lambda o: '__attribute__((aligned(%s)))' % o,
             'decl_aligned_for': '#pragma vector aligned',
             'AVX': '-xAVX',
+#	    'PHI': '-mmic', 
             'SSE': '-xSSE',
             'vect_header': '#include <immintrin.h>'
         }
@@ -527,6 +616,7 @@ def _init_compiler(compiler):
             'decl_aligned_for': '#pragma vector aligned',
             'AVX': '-mavx',
             'SSE': '-msse',
+#	    'PHI': '-mmic',
             'vect_header': '#include <immintrin.h>'
         }
 

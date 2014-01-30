@@ -186,6 +186,67 @@ class Symbol(Expr):
                 points += point_ofs(p, ofs) if ofs != (1, 0) else point(p)
         return str(self.symbol) + points
 
+# Vector expression classes for Phi ###
+
+class PHISum(Sum): 
+    """Sum of two vector registers using PHI intrinsics."""
+
+    def gencode(self, scope=False):
+        op1, op2 = self.children
+        return "_mm512_add_pd (%s, %s)" % (op1.gencode(), op2.gencode())
+
+class PHISub(Sub):
+
+    """Subtraction of two vector registers using PHI intrinsics."""
+
+    def gencode(self):
+        op1, op2 = self.children
+        return "_mm512_add_pd (%s, %s)" % (op1.gencode(), op2.gencode())
+
+
+class PHIProd(Prod):
+
+    """Product of two vector registers using PHI intrinsics."""
+
+    def gencode(self):
+        op1, op2 = self.children
+        return "_mm512_mul_pd (%s, %s)" % (op1.gencode(), op2.gencode())
+
+class PHIDiv(Div):
+
+    """Division of two vector registers using PHI intrinsics."""
+
+    def gencode(self):
+        op1, op2 = self.children
+        return "_mm512_div_pd (%s, %s)" % (op1.gencode(), op2.gencode())
+
+
+class PHILoad(Symbol):
+
+    """Load of values in a vector register using PHI intrinsics."""
+
+    def gencode(self):
+        points = ""
+        if not self.offset:
+            for p in self.rank:
+                points += point(p)
+        else:
+            for p, ofs in zip(self.rank, self.offset):
+                points += point_ofs(p, ofs) if ofs != (1, 0) else point(p)
+        symbol = str(self.symbol) + points
+        return "_mm512_load_pd (&%s)" % symbol
+
+class PHISet(Symbol):
+
+    """Replicate the symbol's value in all slots of a vector register
+    using PHI intrinsics."""
+
+    def gencode(self):
+        points = ""
+        for p in self.rank:
+            points += point(p)
+        symbol = str(self.symbol) + points
+        return "_mm512_set1_pd (%s)" % symbol
 
 # Vector expression classes ###
 
@@ -420,8 +481,104 @@ class FunDecl(Statement):
             "\n{\n%s\n}" % indent(self.children[0].gencode())
 
 
-# Vector statements classes
+# Vector statements classes PHI
 
+class PHIStore(Assign):
+
+    """Store of values in a vector register using PHI intrinsics."""
+
+    def gencode(self, scope=False):
+        op1 = self.children[0].gencode()
+        op2 = self.children[1].gencode()
+        return "_mm512_store_pd (&%s, %s)" % (op1, op2) + semicolon(scope)
+
+class PHILocalPermute(Statement):
+
+    """Permutation of values in a vector register using PHI intrinsics.
+    The intrinsic function used is _mm512_permute_pd"""
+
+    def __init__(self, r, mask):
+        self.r = r
+        self.mask = mask
+
+    def gencode(self, scope=True):
+        op = self.r.gencode()
+        return "_mm512_swizzle_pd (%s, %s)" \
+            % (op, self.mask) + semicolon(scope)
+
+
+class PHIGlobalPermute(Statement):
+
+    """Permutation of values in two vector registers using PHI intrinsics.
+    The intrinsic function used is _mm512_permute4f128_epi32"""
+
+    def __init__(self, r1, r2, mask):
+        self.r1 = r1
+        self.r2 = r2
+        self.mask = mask
+
+    def gencode(self, scope=True):
+        op1 = self.r1.gencode()
+        op2 = self.r2.gencode()
+        return "(__m512d)_mm512_permute4f128_epi32 (%s, %s, %s)" \
+            % (op1, op2, self.mask) + semicolon(scope)
+
+class PHIBlend(Statement):
+
+    """Permutation of values in two vector registers using PHI intrinsics.
+    The intrinsic function used is _mm512_mask_blend_pd"""
+
+    def __init__(self, r1, r2, mask):
+        self.r1 = r1
+        self.r2 = r2
+        self.mask = mask
+
+    def gencode(self, scope=True):
+        op1 = self.r1.gencode()
+        op2 = self.r2.gencode()
+        return "_mm512_mask_blend_pd(%s, %s, %s)" \
+            % (self.mask, op1, op2) + semicolon(scope)
+
+
+class PHIUnpackHi(Statement):
+
+    """Unpack of values in a vector register using PHI intrinsics.
+    The intrinsic function used is _mm512_unpackhi_pd"""
+
+    def __init__(self, r1, r2):
+        self.r1 = r1
+        self.r2 = r2
+
+    def gencode(self, scope=True):
+        op1 = self.r1.gencode()
+        op2 = self.r2.gencode()
+        return "_mm512_unpackhi_pd (%s, %s)" % (op1, op2) + semicolon(scope)
+
+
+class PHIUnpackLo(Statement):
+
+    """Unpack of values in a vector register using PHI intrinsics.
+    The intrinsic function used is _mm512_unpacklo_pd"""
+
+    def __init__(self, r1, r2):
+        self.r1 = r1
+        self.r2 = r2
+
+    def gencode(self, scope=True):
+        op1 = self.r1.gencode()
+        op2 = self.r2.gencode()
+        return "_mm512_unpacklo_pd (%s, %s)" % (op1, op2) + semicolon(scope)
+
+
+class PHISetZero(Statement):
+
+    """Set to 0 the entries of a vector register using PHI intrinsics."""
+
+    def gencode(self, scope=True):
+        return "_mm512_setzero_pd ()" + semicolon(scope)
+
+
+# Vectir statements classes AVX 
 
 class AVXStore(Assign):
 

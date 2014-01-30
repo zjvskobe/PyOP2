@@ -574,6 +574,18 @@ class JITModule(base.JITModule):
             %(code)s
             """ % {'code': self._kernel.code,
                    'header': compiler.get('vect_header') if vect_flag else ""}
+
+#        prob_name = os.environ['PYOP2_PROBLEM_NAME']
+#        if prob_name != 'TEST_RUN':
+#            pyop2_opts = [(k, v) for k, v in os.environ.items() if k.startswith('PYOP2')]
+#            pyop2_opts = "\n".join(["%s: %s" % (s1, s2) for s1, s2 in pyop2_opts])
+#            filename = "%s_%s" % vect_flag, prob_name
+#	     code = open(file_name, 'a')
+#            from IPython import embed; embed()
+#            code.write("*****************************************\n\n")
+#            code.write(pyop2_opts + "\n" + self._kernel.code)
+#            code.close()
+
         code_to_compile = strip(dedent(self._wrapper) % self.generate_code())
         if configuration["debug"]:
             self._wrapper_code = code_to_compile
@@ -607,6 +619,7 @@ class JITModule(base.JITModule):
             os.environ['CC'] = cc
         else:
             os.environ.pop('CC')
+
         return self._fun
 
     def generate_code(self):

@@ -35,7 +35,10 @@
 
 from ast_base import *
 from ast_optimizer import LoopOptimiser
-from ast_vectorizer import init_vectorizer, LoopVectoriser, vectorizer_init
+from ast_vectorizer import init_vectorizer, LoopVectoriser
+import ast_vectorizer
+
+import os
 
 # Possibile optimizations
 AUTOVECT = 1        # Auto-vectorization
@@ -72,6 +75,14 @@ class ASTKernel(object):
             decls[node.sym.symbol] = (node, LOCAL_VAR)
             return (decls, fors)
         elif isinstance(node, For):
+#ANA: hack for the TEST_RUN
+#	    from IPython import embed; embed() 
+ 	    if node.it_var() == 'ip':
+		if node.children[0].children[0].cond.children[0].gencode() == 'j':
+   	           if os.environ.get('PYOP2_PROBLEM_NAME') == 'TEST_RUN':
+		      print "here: %s" % node.children[0].children[0].cond.children[1].gencode()
+	              os.environ['PYOP2_PROBLEM_SIZE'] = node.children[0].children[0].cond.children[1].gencode()
+		      raise NameError('Just finding out size of iteration space....')
             fors.append((node, parent))
             return (decls, fors)
         elif isinstance(node, FunDecl):
@@ -153,7 +164,10 @@ class ASTKernel(object):
         vect = opts.get('vect')
         ap = opts.get('ap')
 
+	#from IPython import embed; embed()
+
         v_type, v_param = vect if vect else (None, None)
+	# embed()
         tile_opt, tile_sz = tile if tile else (False, -1)
 
         lo = [LoopOptimiser(l, pre_l, self.decls) for l, pre_l in self.fors]
@@ -169,13 +183,14 @@ class ASTKernel(object):
                 nest.op_tiling(tile_sz)
 
             # 3) Vectorization
-            if vectorizer_init:
+            if ast_vectorizer.vectorizer_init:
                 vect = LoopVectoriser(nest)
                 if ap:
                     vect.align_and_pad(self.decls)
-                if v_type != AUTOVECT:
-                    vect.outer_product(v_type, v_param)
-
+#ANA : changed here - unclear why this inclusive ... 
+#                if v_type != AUTOVECT:
+                if v_type > AUTOVECT:
+	            vect.outer_product(v_type, v_param)
 
 def init_ir(isa, compiler):
     """Initialize the Intermediate Representation engine."""

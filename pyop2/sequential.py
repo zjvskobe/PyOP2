@@ -38,6 +38,7 @@ from utils import as_tuple
 from petsc_base import *
 import host
 from host import Kernel, Arg  # noqa: needed by BackendSelector
+import os
 
 # Parallel loop API
 
@@ -77,6 +78,47 @@ void wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
 }
 """
 
+    _wrapper_kernel_timer = """
+void wrap_%(kernel_name)s__(PyObject *_start, PyObject *_end,
+                            %(ssinds_arg)s
+                            %(wrapper_args)s %(const_args)s %(off_args)s %(layer_arg)s) {
+  int start = (int)PyInt_AsLong(_start);
+  int end = (int)PyInt_AsLong(_end);
+  %(ssinds_dec)s
+  %(wrapper_decs)s;
+  %(const_inits)s;
+  %(off_inits)s;
+  %(layer_arg_init)s;
+  %(map_decl)s
+  long timer_start, timer_end, timer_total = 0;
+  for ( int n = start; n < end; n++ ) {
+    int i = %(index_expr)s;
+    %(vec_inits)s;
+    %(map_init)s;
+    %(extr_loop)s
+    %(map_bcs_m)s;
+    %(buffer_decl)s;
+    %(buffer_gather)s
+    timer_start = stamp();
+    %(kernel_name)s(%(kernel_args)s);
+    timer_end = stamp();
+    timer_total += (timer_end - timer_start);
+    %(layout_decl)s;
+    %(layout_loop)s
+        %(layout_assign)s;
+    %(layout_loop_close)s
+    %(itset_loop_body)s
+    %(map_bcs_p)s;
+    %(apply_offset)s;
+    %(extr_loop_close)s
+  }
+  if (!strcmp("%(kernel_name)s", "form_cell_integral_0_otherwise")) {
+    FILE* results = fopen ("%(time_file_name)s", "a+");
+    fprintf (results, "%(problem_name)s: %%f\\n", timer_total/(1000.0*1000.0*1000.0));
+    fclose (results);
+  }
+}
+"""
 
 class ParLoop(host.ParLoop):
 

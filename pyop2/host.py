@@ -557,19 +557,45 @@ class JITModule(base.JITModule):
         strip = lambda code: '\n'.join([l for l in code.splitlines()
                                         if l.strip() and l.strip() != ';'])
 
+        timer_function = """
+        #include <stdint.h>
+        #include <sys/time.h>
+        #include <time.h>
+        #include <unistd.h>
+        long stamp()
+        {
+          struct timespec tv;
+          long _stamp;
+          clock_gettime(CLOCK_REALTIME, &tv);
+          _stamp = tv.tv_sec * 1000 * 1000 * 1000+ tv.tv_nsec;
+          return _stamp;
+        }
+        """
+
         if any(arg._is_soa for arg in self._args):
             kernel_code = """
             #define OP2_STRIDE(a, idx) a[idx]
             #include <immintrin.h>
+            #include <string.h>
+            %(timer)s
             %(code)s
             #undef OP2_STRIDE
-            """ % {'code': self._kernel.code}
+            """ % {'code': self._kernel.code,
+                   'timer': timer_function}
         else:
             kernel_code = """
             #include <immintrin.h>
+            #include <string.h>
+            %(timer)s
             %(code)s
-            """ % {'code': self._kernel.code}
-        code_to_compile = strip(dedent(self._wrapper) % self.generate_code())
+            """ % {'code': self._kernel.code,
+                   'timer': timer_function}
+
+        timer_kernel = os.environ.get('PYOP2_TIME_KERNEL')
+        if timer_kernel:
+            code_to_compile = strip(dedent(self._wrapper_kernel_timer) % self.generate_code())
+        else:
+            code_to_compile = strip(dedent(self._wrapper) % self.generate_code())
         if configuration["debug"]:
             self._wrapper_code = code_to_compile
 
@@ -599,7 +625,7 @@ class JITModule(base.JITModule):
             wrap_headers=["mat_utils.h"],
             system_headers=self._system_headers,
             library_dirs=[d + '/lib' for d in get_petsc_dir()],
-            libraries=['petsc'] + self._libraries,
+            libraries=['petsc', 'rt'] + self._libraries,
             sources=["mat_utils.cxx"],
             modulename=self._kernel.name if configuration["debug"] else None)
         if cc:
@@ -827,6 +853,8 @@ class JITModule(base.JITModule):
             }
 
         return {'kernel_name': self._kernel.name,
+                'time_file_name': os.environ.get('PYOP2_TIME_KERNEL'),
+                'problem_name': os.environ.get('PYOP2_PROBLEM_NAME'),
                 'ssinds_arg': _ssinds_arg,
                 'ssinds_dec': _ssinds_dec,
                 'index_expr': _index_expr,

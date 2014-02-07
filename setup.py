@@ -78,6 +78,7 @@ try:
     plan_sources = ['pyop2/plan.pyx']
     sparsity_sources = ['pyop2/sparsity.pyx']
     computeind_sources = ['pyop2/computeind.pyx']
+    likwid_sources = ['pyop2/likwid.pyx']
 
 # Else we require the Cython-compiled .c file to be present and use that
 # Note: file is not in revision control but needs to be included in distributions
@@ -85,7 +86,8 @@ except ImportError:
     plan_sources = ['pyop2/plan.c']
     sparsity_sources = ['pyop2/sparsity.cpp']
     computeind_sources = ['pyop2/computeind.c']
-    sources = plan_sources + sparsity_sources + computeind_sources
+    likwid_sources = ['pyop2/likwid.c']
+    sources = plan_sources + sparsity_sources + computeind_sources + likwid_sources
     from os.path import exists
     if not all([exists(f) for f in sources]):
         raise ImportError("Installing from source requires Cython")
@@ -125,8 +127,18 @@ class sdist(_sdist):
         cythonize(plan_sources)
         cythonize(sparsity_sources, language="c++", include_path=includes)
         cythonize(computeind_sources)
+        cythonize(likwid_sources)
         _sdist.run(self)
 cmdclass['sdist'] = sdist
+
+# Test for availability of likwid
+# FIXME: Better not use a hard-coded path, maybe read $LIKWID_DIR
+#if exists('/usr/local/include/likwid.h'):
+#    ext_modules.append(Extension('pyop2.likwid', likwid_sources,
+#                                 include_dirs=['/usr/local/include'],
+#                                 library_dirs=['/usr/local/lib'],
+#                                 libraries=['likwid'],
+#                                 runtime_library_dirs=['/usr/local/lib']))
 
 setup(name='PyOP2',
       version=versioneer.get_version(),

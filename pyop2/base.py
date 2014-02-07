@@ -53,6 +53,7 @@ from mpi import MPI, _MPI, _check_comm, collective
 from profiling import profile, timed_region, timed_function
 from sparsity import build_sparsity
 from version import __version__ as version
+from profiling import profiling, add_data_volume, add_c_time
 
 from coffee.base import Node
 from coffee import base as ast
@@ -3615,6 +3616,10 @@ class Kernel(Cached):
             return ast.gencode()
         return ast
 
+    @property
+    def _md5(self):
+        return md5(self.code + self.name).hexdigest()[:6]
+
     def __init__(self, code, name, opts={}, include_dirs=[], headers=[],
                  user_code=""):
         # Protect against re-initialization when retrieved from cache
@@ -3822,14 +3827,58 @@ class ParLoop(LazyComputation):
                     raise RuntimeError("Iteration over a LocalSet does not make sense for RW args")
 
         self._it_space = self.build_itspace(iterset)
+        # Data volume computation
+        vol = 0
+        for arg in args:
+            if arg._is_dat:
+                vol += sum(s.size * s.cdim for s in arg.data.dataset) * arg.dtype.itemsize
+                self._is_rhs = True
+            if arg._is_mat:
+                self._is_lhs = True
+                vol += (arg.data.sparsity.onz + arg.data.sparsity.nz) * arg.dtype.itemsize
+        self._data_volume = vol
 
     def _run(self):
-        return self.compute()
+        if configuration['only_rhs'] and self._is_rhs and not self._is_lhs:
+            if self._kernel.name == "form00_cell_integral_0_otherwise":
+                if configuration['spike_kernel'] is not "" or configuration['spike_wrapper'] is not "":
+                        configuration['spike'] = True
+                return self.compute()
+        if configuration['only_lhs'] and self._is_lhs:
+            if configuration['spike_kernel'] is not "":
+                    configuration['spike'] = True
+            return self.compute()
+        if configuration["profiling"] and not configuration['only_lhs'] and not configuration['only_rhs']:
+            return self.compute() 
+        return self.compute_no_profiling()
 
     @collective
     @timed_function('ParLoop compute')
     @profile
     def compute(self):
+        """Executes the kernel over all members of the iteration space."""
+        region_name = configuration['region_name'] if configuration['region_name'] is not "default" else self._kernel.name
+        with profiling('base', '%s-%s' % (region_name, self.kernel._md5)):
+            self.halo_exchange_begin()
+            self.maybe_set_dat_dirty()
+            t1 = self._compute(self.it_space.iterset.core_part)
+            self.halo_exchange_end()
+            t2 = self._compute(self.it_space.iterset.owned_part)
+            self.reduction_begin()
+            t3 = 0
+            if self.needs_exec_halo:
+                t3 = self._compute(self.it_space.iterset.exec_part)
+            self.reduction_end()
+            self.maybe_set_halo_update_needed()
+            #self.assemble()
+        add_data_volume('base', '%s-%s' % (region_name, self.kernel._md5),
+                        self._data_volume)
+        add_c_time('base', '%s-%s' % (region_name, self.kernel._md5),
+                        t1 + t2 + t3)
+    @collective
+    @timed_function('ParLoop compute')
+    @profile
+    def compute_no_profiling(self):
         """Executes the kernel over all members of the iteration space."""
         self.halo_exchange_begin()
         self.maybe_set_dat_dirty()
@@ -4040,6 +4089,10 @@ class ParLoop(LazyComputation):
         a certain part of an extruded mesh, for example on top cells, bottom cells or
         interior facets."""
         return self._iteration_region
+
+    def likwid(self):
+        """Specifies if likwid should be used or not."""
+        return self._use_likwid
 
 DEFAULT_SOLVER_PARAMETERS = {'ksp_type': 'cg',
                              'pc_type': 'jacobi',

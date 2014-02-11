@@ -46,6 +46,7 @@ from ir.ast_base import Node
 from ir.ast_plan import ASTKernel
 import ir.ast_vectorizer
 from ir.ast_vectorizer import vect_roundup
+from pyop2 import op2
 
 
 class Kernel(base.Kernel):
@@ -592,6 +593,8 @@ class JITModule(base.JITModule):
             extra_cppargs = [vect_flag]
         else:
             extra_cppargs = []
+        print code_to_compile
+        print self._kernel.code
         with progress(INFO, 'Compiling kernel %s', self._kernel.name):
             self._fun = inline_with_numpy(
                 code_to_compile, additional_declarations=kernel_code,

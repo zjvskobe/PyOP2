@@ -63,13 +63,13 @@ partition_size = int(opt['partsize'])
 # Generate code for kernel
 
 mass = op2.Kernel("""
-void comp_vol(double A[1], double *x[], double *y[])
+static inline void comp_vol(double A[1], double *x[])
 {
   double area = x[0][0]*(x[2][1]-x[4][1]) + x[2][0]*(x[4][1]-x[0][1])
                + x[4][0]*(x[0][1]-x[2][1]);
   if (area < 0)
     area = area * (-1.0);
-  A[0]+=0.5*area*0.1 * y[0][0];
+  A[0]+=0.5*area*0.1;
 }""", "comp_vol")
 
 
@@ -267,14 +267,17 @@ elements.partition_size = partition_size
 
 # CALL PAR LOOP
 # Compute volume
+op2.par_loop(mass, elements,
+                 g(op2.INC),
+                 coords(op2.READ, elem_dofs))
+
 tloop = 0
 t0loop = time.clock()
 t0loop2 = time.time()
 for i in range(0, 100):
     op2.par_loop(mass, elements,
                  g(op2.INC),
-                 coords(op2.READ, elem_dofs),
-                 field(op2.READ, elem_elem))
+                 coords(op2.READ, elem_dofs))
 tloop += time.clock() - t0loop  # t is CPU seconds elapsed (floating point)
 tloop2 = time.time() - t0loop2
 

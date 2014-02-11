@@ -53,7 +53,7 @@ def read_triangle(f, layers=1):
     """
     # Read nodes
     with open(f + '.node') as h:
-        num_nodes = int(h.readline().split(' ')[0])
+        num_nodes = int(h.readline().split()[0])
         node_values = np.zeros((num_nodes, 2), dtype=np.float64)
         for line in h:
             if line[0] == '#':

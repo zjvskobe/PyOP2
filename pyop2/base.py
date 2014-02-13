@@ -77,7 +77,7 @@ class ExecutionTrace(object):
         self._trace = list()
 
     def append(self, computation):
-        if not configuration['lazy_evaluation']:
+        if configuration['lazy_evaluation']:
             assert not self._trace
             computation._run()
         elif configuration['lazy_max_trace_length'] > 0 and \

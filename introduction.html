@@ -1,0 +1,384 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>An introduction to PyOP2 &mdash; PyOP2 0.9.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
+    <link rel="next" title="pyop2 user documentation" href="user.html" />
+    <link rel="prev" title="PyOP2 Concepts" href="concepts.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="PyOP2 Concepts"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="an-introduction-to-pyop2">
+<h1>An introduction to PyOP2<a class="headerlink" href="#an-introduction-to-pyop2" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-pyop2">
+<h2>What is PyOP2?<a class="headerlink" href="#what-is-pyop2" title="Permalink to this headline">¶</a></h2>
+<p>In a nutshell, PyOP2 is a is a runtime framework that is designed to make it
+easy to implement performance-portable finite element solvers.</p>
+<p>The central philosophy of the PyOP2 design is that parallel
+programming can be made easy when:</p>
+<ul class="simple">
+<li>We express algorithms as independent operations on independent items of data,</li>
+<li>where each item of data is a member of a collection,</li>
+<li>and the same operation is performed for every member of the collection.</li>
+</ul>
+<p>An implementation of finite element assembly in this way would take the form of
+the following pseudocode:</p>
+<div class="highlight-python"><pre>forall elements:
+  forall dof in element.dofs:
+    forall quadpt in element.quadraturepoints:
+      ele.localtensor[dof] += assemble(ele,dof,quadpt)</pre>
+</div>
+<p>This is, in essence, the representation that the user specifies when writing
+PyOP2 code. in the subsequent tutorial introduction, we will examine how this
+representation is used in practice.</p>
+</div>
+<div class="section" id="what-does-pyop2-do">
+<h2>What does PyOP2 do?<a class="headerlink" href="#what-does-pyop2-do" title="Permalink to this headline">¶</a></h2>
+<p>PyOP2 takes algorithms written in the representation shown above and generates
+efficient parallel implementations for different targets. Targets that are
+presently supported include:</p>
+<ul class="simple">
+<li>Sequential C</li>
+<li>C with OpenMP</li>
+<li>OpenCL</li>
+<li>CUDA</li>
+</ul>
+<p>In addition, the backends that execute code on the CPU (Sequential C and
+OpenMP) can also use MPI for distributed-memory parallel execution.</p>
+<p>The public interface of PyOP2 is provided entirely in Python.</p>
+</div>
+<div class="section" id="the-pyop2-representation">
+<h2>The PyOP2 representation<a class="headerlink" href="#the-pyop2-representation" title="Permalink to this headline">¶</a></h2>
+<p>The PyOP2 representation consists of three different components:</p>
+<ul class="simple">
+<li>Kernels, which represent operations that are applied to every member of a
+given set of mesh entities.</li>
+<li>Data structures, which are used to represent the mesh topology and data
+defined on it.</li>
+<li>Access descriptors, which tell PyOP2 how to schedule kernels in parallel and
+how to get data to kernel invocations.</li>
+</ul>
+<p>We will look at how to define these in PyOP2 in the next few sections. But
+first, to get started, we must import and initialise PyOP2:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pyop2</span> <span class="kn">import</span> <span class="n">op2</span>
+<span class="n">op2</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="kernels">
+<h2>Kernels<a class="headerlink" href="#kernels" title="Permalink to this headline">¶</a></h2>
+<p>PyOP2 kernels are functions written in C, with the following special properties:</p>
+<ul class="simple">
+<li>Kernels define the computation that is performed for a single member of a set
+of mesh entities. This means that the user does not control the scheduling and
+invocation of a kernel; this is the responsibility of PyOP2.</li>
+<li>Pointers to each item of data that the kernel reads and/or writes are passed
+into kernels. This means that PyOP2 has to arrange for pointers to the correct
+data to be passed to the kernel.</li>
+<li>No pointer arithmetic in kernels is allowed.</li>
+</ul>
+<p>To provide a concrete example, consider the following C function:</p>
+<div class="highlight-python"><pre>void mass_centre(double *x[2], double *centre, double *mass)
+{
+  centre[0] = (x[0][0] + x[1][0] + x[2][0]) / 3.0;
+  centre[1] = (x[0][1] + x[1][1] + x[2][1]) / 3.0;
+
+  *mass = abs(x[0][0]*(x[1][1] - x[2][1])
+            + x[1][0]*(x[2][1] - x[0][1])
+            + x[2][0]*(x[0][1] - x[1][1]) ) / 2.0;
+}</pre>
+</div>
+<p>This kernel computes the mass and centre of a triangular cell. The parameters
+are as follows:</p>
+<ul class="simple">
+<li><cite>x</cite> holds the coordinates of the vertices. There are three vertices, each of
+which has two coordinate values. This is passed in as a list of pointers to an
+array of the coordinate values for each vertex. These values are read-only.</li>
+<li><cite>centre</cite> holds the centre coordinate for the cell. Since
+there is only one centre, a single pointer to the centre values is passed. The
+centre values are write-only.</li>
+<li><cite>mass</cite> holds the mass value for the cell, which is also passed in as a pointer
+and is also write-only.</li>
+</ul>
+<p>Because <cite>mass_centre</cite> is a C function, we need to wrap it in a string to embed it
+in our Python code. We then construct a Kernel object from this string:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mass_centre_code</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;void mass_centre(double *x[2], *double centre, double *mass)</span>
+<span class="s">{</span>
+<span class="s">  centre[0] = (x[0][0] + x[1][0] + x[2][0]) / 3.0;</span>
+<span class="s">  centre[1] = (x[0][1] + x[1][1] + x[2][1]) / 3.0;</span>
+
+<span class="s">  *mass = abs(x[0][0]*(x[1][1] - x[2][1])</span>
+<span class="s">            + x[1][0]*(x[2][1] - x[0][1])</span>
+<span class="s">            + x[2][0]*(x[0][1] - x[1][1]) ) / 2.0;</span>
+<span class="s">}&quot;&quot;&quot;</span>
+<span class="n">mass_centre</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Kernel</span><span class="p">(</span><span class="n">mass_centre_code</span><span class="p">,</span> <span class="s">&quot;mass_centre&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The kernel declaration also requires the name of the kernel function to be
+passed. This is for PyOP2 to be able to invoke the function correctly, since
+during compilation other functions will be included (such as math library
+functions).</p>
+<p>When the time comes to execute the kernel, PyOP2 needs to know how
+to schedule the kernel for parallel execution and how to get the correct data to
+each invocation of the kernel. The information that PyOP2 requires to do this is
+outlined in the following two sections.</p>
+</div>
+<div class="section" id="data-structures">
+<h2>Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h2>
+<p>Data structures are used to define a representation of the mesh topology and the
+data associated with the mesh. There are two parts to the mesh topology:</p>
+<ul class="simple">
+<li>Sets are used to represent collections of mesh entities, such as cells,
+vertices, edges, etc.</li>
+<li>Maps are used to represent the connectivity between different sets, which
+provides a representation of the mesh topology. A Map from one Set to another
+holds a list of integers that represent the values of the mapping.</li>
+</ul>
+<p>Once mesh data structures are created, the data on the mesh can then be defined.
+Data is defined using Dats, which are associated with a set and hold an item of
+data for every member of the set it is associated with. Multiple Dats can be
+associated with a single Set - this enables many field variables to be defined.</p>
+<p>In order to exemplify the mesh data structures, we consider a two-element mesh
+with four nodes:</p>
+<blockquote>
+<div><img alt="_images/mesh.png" src="_images/mesh.png" />
+</div></blockquote>
+<p>The sets and maps representing the mesh are defined as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Two cells and four vertices</span>
+<span class="n">cells</span>       <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">vertices</span>    <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="c"># Three vertices per cell</span>
+<span class="n">cell_vertex</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Map</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">[</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="p">]</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>The Sets are declared by passing in their sizes. Maps are declared by specifying
+the Sets that they map from and to; these are referred to as the Iteration Set
+and the Data Set respectively (the reason for these names will become clear in
+the following section). Next, the arity of the map is required, which specifies
+how many values in the data set a member of the iteration set maps to. Finally,
+a list of the map values is required. In our example, we map from from cells to
+vertices, because this particular mapping will be required later in the
+tutorial.</p>
+<p>Note that we do not create any explicit representation of edges of the mesh here
+- they are not required for our example.</p>
+<p>Now that we have created the mesh topology, we can define data on our sets. For
+the purpose of this example, we define data for the vertex coordinates, and also
+for storing the centre and mass of the cells:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vertex_coords</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">[</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="p">]</span> <span class="p">)</span>
+<span class="n">cell_centre</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">cell_mass</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The values of the vertex coordinates are provided in this case. The centre and
+mass values are not provided. Their data is undefined, but will be written to
+later on.</p>
+</div>
+<div class="section" id="access-descriptors">
+<h2>Access descriptors<a class="headerlink" href="#access-descriptors" title="Permalink to this headline">¶</a></h2>
+<p>Access descriptors tell PyOP2 how to get the right data to each invocation of a
+kernel, and are passed when a parallel loop is invoked.</p>
+<p>We will consider an example of a parallel loop invocation in order to explore
+access descriptors:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">mass_centre</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span>
+             <span class="n">vertex_coords</span><span class="p">(</span><span class="n">cell_vertex</span><span class="p">,</span> <span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">),</span>
+             <span class="n">cell_centre</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">IdentityMap</span><span class="p">,</span> <span class="n">op2</span><span class="o">.</span><span class="n">WRITE</span><span class="p">),</span>
+             <span class="n">cell_mass</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">IdentityMap</span><span class="p">,</span> <span class="n">op2</span><span class="o">.</span><span class="n">WRITE</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This is an invocation of the <cite>mass_centre</cite> kernel that we defined earlier. The
+first parameter tells PyOP2 which kernel to invoke; the second parameter is the
+set that it should iterate over.</p>
+<p>Subsequently, an access descriptor must be passed for each argument that the
+kernel takes. Access descriptors tell PyOP2:</p>
+<ul class="simple">
+<li>Which Dat the data for the argument should come from.</li>
+<li>Which Map the data should be accessed through.</li>
+<li>The access mode, which tells PyOP2 how the data is used by the kernel.</li>
+</ul>
+<p>Access descriptors are created by calling Dat objects. The arguments to the call
+are the Map for the descriptor, and the access mode. There are two different
+cases for the Map that is passed:</p>
+<ul class="simple">
+<li>If the Dat is defined on the same set as the iteration set, then the identity
+map can be used. In this case, data items can be located for the current Set
+element.</li>
+<li>If the Dat is defined on a different Set to the one that is being iterated
+over, then an appropriate Map must be passed. An appropriate Map is one which
+maps from the Set that is being iterated over (the Iteration Set) to the Set
+that the Dat is defined on (the Data Set).</li>
+</ul>
+<p>In the example above, the Identity Map is used for <cite>cell_centre</cite> and
+<cite>cell_mass</cite>, since they are both defined on the set of cells. <cite>vertex_coords</cite> is
+defined on the set of vertices, so the mapping from cells to vertices is used.</p>
+<p>The access mode is:</p>
+<ul class="simple">
+<li><cite>op2.READ</cite> when the data is only read,</li>
+<li><cite>op2.WRITE</cite> when the data is only written to, and</li>
+<li><cite>op2.RW</cite> when the data is read from and written to.</li>
+</ul>
+<p>There are other access modes (<cite>op2.INC</cite>, <cite>op2.MAX</cite>, and <cite>op2.MIN</cite>), which are
+not covered in this introduction.</p>
+<p>When using the <cite>op2.READ</cite> and <cite>op2.RW</cite> access modes, PyOP2 does nothing to avoid
+write conflicts. In the <cite>op2.READ</cite> case, it is not necessary. In the case of
+<cite>op2.RW</cite>, it is only safe to read from and write to data that no other iteration
+will touch.</p>
+</div>
+<div class="section" id="what-happened">
+<h2>What happened?<a class="headerlink" href="#what-happened" title="Permalink to this headline">¶</a></h2>
+<p>When <cite>op2.par_loop</cite> was called, PyOP2 called the currently-selected backend
+(which is the sequential backend by default), which generated code that iterates
+over the set of colles and invokes the user&#8217;s kernel for every iteration of the
+loop. Code that constructs the arguments to the kernel was also generated from
+the access descriptors.</p>
+<p>The backend then launched the target compiler to compile the generated code, and
+linked it back into the running Python interpreter. Finally, the backend calls
+the compiled code.</p>
+<p>If you pasted all the Python code above into the interpreter, then the effect
+of the kernel should now be visible. In order to see this, the data accessors
+can be used to read the values of the Dats. We will use the read-only accessors
+to inspect the values of the <cite>cell_centre</cite> and <cite>cell_mass</cite> Dats:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cell_centre</span><span class="o">.</span><span class="n">data_ro</span>
+<span class="n">cell_mass</span><span class="o">.</span><span class="n">data_ro</span>
+</pre></div>
+</div>
+<p>You should see the output:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">array</span><span class="p">([[</span> <span class="mf">0.66666667</span><span class="p">,</span>  <span class="mf">0.33333333</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">0.33333333</span><span class="p">,</span>  <span class="mf">0.66666667</span><span class="p">]])</span>
+<span class="n">array</span><span class="p">([[</span><span class="mf">0.5</span><span class="p">],</span>
+       <span class="p">[</span><span class="mf">0.5</span><span class="p">]])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-structures-for-finite-element-assembly">
+<h2>Data structures for finite element assembly<a class="headerlink" href="#data-structures-for-finite-element-assembly" title="Permalink to this headline">¶</a></h2>
+<p>Whilst we have already implemented a minimal PyOP2 program, we have yet to
+implement a finite element method using PyOP2. There are several extra
+components to this process, but we will begin by looking at how to construct the
+data structures for finite element assembly.</p>
+<p>Matrices in PyOP2 consists of Sparsities, which represent the non-zero
+structure of a matrix, and Matrices, which define data on Sparsities. Because it
+is assumed that matrices are only constructed through global assembly, there is
+no way to specify the structure of a Sparsity manually.</p>
+<p>Instead, the Sparsity structure of matrices is composed from pairs of Maps.
+The product of these Maps, the Row Map and the Col Map, is used to generate the
+Sparsity pattern. This produces an appropriate pattern for</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">An introduction to PyOP2</a><ul>
+<li><a class="reference internal" href="#what-is-pyop2">What is PyOP2?</a></li>
+<li><a class="reference internal" href="#what-does-pyop2-do">What does PyOP2 do?</a></li>
+<li><a class="reference internal" href="#the-pyop2-representation">The PyOP2 representation</a></li>
+<li><a class="reference internal" href="#kernels">Kernels</a></li>
+<li><a class="reference internal" href="#data-structures">Data structures</a></li>
+<li><a class="reference internal" href="#access-descriptors">Access descriptors</a></li>
+<li><a class="reference internal" href="#what-happened">What happened?</a></li>
+<li><a class="reference internal" href="#data-structures-for-finite-element-assembly">Data structures for finite element assembly</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="concepts.html"
+                        title="previous chapter">PyOP2 Concepts</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="user.html"
+                        title="next chapter">pyop2 user documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/introduction.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="PyOP2 Concepts"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

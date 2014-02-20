@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>PyOP2 Concepts &mdash; PyOP2 0.9.0 documentation</title>
+    <title>PyOP2 Concepts &mdash; PyOP2 0.9.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.0',
+        VERSION:     '0.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.9.0 documentation" href="index.html" />
-    <link rel="next" title="pyop2 user documentation" href="user.html" />
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
+    <link rel="next" title="PyOP2 Backends" href="backends.html" />
     <link rel="prev" title="Installing PyOP2" href="installation.html" /> 
   </head>
   <body>
@@ -38,12 +38,12 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="user.html" title="pyop2 user documentation"
+          <a href="backends.html" title="PyOP2 Backends"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Installing PyOP2"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -185,6 +185,8 @@ memory. Computations in a parallel loop must be independent of the order in
 which they are executed over the set to allow PyOP2 maximum flexibility to
 schedule the computation in the most efficient way. Kernels are described in
 more detail in <tt class="xref doc docutils literal"><span class="pre">pyop2_ir_user</span></tt>.</p>
+<div class="section" id="loop-invocations">
+<span id="id2"></span><h3>Loop invocations<a class="headerlink" href="#loop-invocations" title="Permalink to this headline">¶</a></h3>
 <p>A parallel loop invocation requires as arguments, other than the iteration set
 and the kernel to operate on, the data the kernel reads and/or writes. A
 parallel loop argument is constructed by calling the underlying data object
@@ -209,6 +211,9 @@ the argument <tt class="docutils literal"><span class="pre">coordinates</span></
 <span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">translate</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">RW</span><span class="p">))</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="access-descriptors">
+<span id="id3"></span><h3>Access descriptors<a class="headerlink" href="#access-descriptors" title="Permalink to this headline">¶</a></h3>
 <p>Access descriptors define how the data is accessed by the kernel and give
 PyOP2 crucial information as to how the data needs to be treated during
 staging in before and staging out after kernel execution. They must be one of
@@ -222,6 +227,9 @@ reduction).</p>
 valid modes are <a class="reference internal" href="user.html#pyop2.READ" title="pyop2.READ"><tt class="xref py py-data docutils literal"><span class="pre">READ</span></tt></a>, <a class="reference internal" href="user.html#pyop2.INC" title="pyop2.INC"><tt class="xref py py-data docutils literal"><span class="pre">INC</span></tt></a>, <a class="reference internal" href="user.html#pyop2.MIN" title="pyop2.MIN"><tt class="xref py py-data docutils literal"><span class="pre">MIN</span></tt></a> and
 <a class="reference internal" href="user.html#pyop2.MAX" title="pyop2.MAX"><tt class="xref py py-data docutils literal"><span class="pre">MAX</span></tt></a> and for a <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> only <a class="reference internal" href="user.html#pyop2.WRITE" title="pyop2.WRITE"><tt class="xref py py-data docutils literal"><span class="pre">WRITE</span></tt></a> and
 <a class="reference internal" href="user.html#pyop2.INC" title="pyop2.INC"><tt class="xref py py-data docutils literal"><span class="pre">INC</span></tt></a> are allowed.</p>
+</div>
+<div class="section" id="loops-assembling-matrices">
+<span id="matrix-loops"></span><h3>Loops assembling matrices<a class="headerlink" href="#loops-assembling-matrices" title="Permalink to this headline">¶</a></h3>
 <p>We declare a parallel loop assembling the <tt class="docutils literal"><span class="pre">matrix</span></tt> via a given <tt class="docutils literal"><span class="pre">kernel</span></tt>
 which we&#8217;ll assume has been defined before over the <tt class="docutils literal"><span class="pre">edges</span></tt> and with
 <tt class="docutils literal"><span class="pre">coordinates</span></tt> as input data. The <tt class="docutils literal"><span class="pre">matrix</span></tt> is the output argument of this
@@ -243,6 +251,9 @@ descriptor <a class="reference internal" href="user.html#pyop2.READ" title="pyop
              <span class="n">coordinates</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">edges2vertices</span><span class="p">))</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="loops-with-global-reductions">
+<span id="reduction-loops"></span><h3>Loops with global reductions<a class="headerlink" href="#loops-with-global-reductions" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="user.html#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Globals</span></tt></a> are used primarily for reductions where a
 given quantity on a field is reduced to a single number by summation or
 finding the minimum or maximum. Consider a kernel computing the <a class="reference external" href="https://en.wikipedia.org/wiki/L2_norm#Euclidean_norm">L2 norm</a> of
@@ -265,6 +276,7 @@ computation and only give the declaration for context.</p>
 </div>
 </div>
 </div>
+</div>
 
 
           </div>
@@ -283,7 +295,13 @@ computation and only give the declaration for context.</p>
 <li><a class="reference internal" href="#mat">Mat</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#parallel-loops">Parallel loops</a></li>
+<li><a class="reference internal" href="#parallel-loops">Parallel loops</a><ul>
+<li><a class="reference internal" href="#loop-invocations">Loop invocations</a></li>
+<li><a class="reference internal" href="#access-descriptors">Access descriptors</a></li>
+<li><a class="reference internal" href="#loops-assembling-matrices">Loops assembling matrices</a></li>
+<li><a class="reference internal" href="#loops-with-global-reductions">Loops with global reductions</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -292,8 +310,8 @@ computation and only give the declaration for context.</p>
   <p class="topless"><a href="installation.html"
                         title="previous chapter">Installing PyOP2</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="user.html"
-                        title="next chapter">pyop2 user documentation</a></p>
+  <p class="topless"><a href="backends.html"
+                        title="next chapter">PyOP2 Backends</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/concepts.txt"
@@ -326,12 +344,12 @@ computation and only give the declaration for context.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="user.html" title="pyop2 user documentation"
+          <a href="backends.html" title="PyOP2 Backends"
              >next</a> |</li>
         <li class="right" >
           <a href="installation.html" title="Installing PyOP2"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

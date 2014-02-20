@@ -1,0 +1,17 @@
+Mixed types
+===========
+
+PyOP2 supports combining objects of type :class:`~pyop2.Set`,
+:class:`~pyop2.DataSet`, :class:`~pyop2.Dat` and :class:`~pyop2.Map` to form
+*coupled* or *mixed* types as they are required e.g. in finite-element methods
+to solve coupled system of equations. This is the basis for the support of
+*mixed spaces* in `Firedrake`_.
+
+Mixed objects are created by passing an *iterable* (a :class:`list`,
+:class:`tuple` or a finite generator) of the objects to combine into a mixed
+object into the corresponding mixed type constructor. All mixed objects are
+iterable, yielding their constituent objects, and support indexing in the
+usual Python syntax, with the exception of :class:`~pyop2.Map`, where indexing
+creates an indexed :class:`~pyop2.Map`.
+
+.. _Firedrake: http://firedrakeproject.org

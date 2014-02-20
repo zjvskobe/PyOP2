@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Mixed types &mdash; PyOP2 0.9.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mixed-types">
+<h1>Mixed types<a class="headerlink" href="#mixed-types" title="Permalink to this headline">¶</a></h1>
+<p>PyOP2 supports combining objects of type <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>,
+<a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>, <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> and <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> to form
+<em>coupled</em> or <em>mixed</em> types as they are required e.g. in finite-element methods
+to solve coupled system of equations. This is the basis for the support of
+<em>mixed spaces</em> in <a class="reference external" href="http://firedrakeproject.org">Firedrake</a>.</p>
+<p>Mixed objects are created by passing an <em>iterable</em> (a <tt class="xref py py-class docutils literal"><span class="pre">list</span></tt>,
+<tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt> or a finite generator) of the objects to combine into a mixed
+object into the corresponding mixed type constructor. All mixed objects are
+iterable, yielding their constituent objects, and support indexing in the
+usual Python syntax, with the exception of <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>, where indexing
+creates an indexed <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mixed.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

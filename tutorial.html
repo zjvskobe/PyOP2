@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PyOP2 Tutorial &mdash; PyOP2 0.9.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
+    <link rel="next" title="Installing PyOP2" href="installation.html" />
+    <link rel="prev" title="Welcome to PyOP2’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installing PyOP2"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyOP2’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyop2-tutorial">
+<h1>PyOP2 Tutorial<a class="headerlink" href="#pyop2-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial we will define a two-element mesh and execute a kernel that
+computes the mass and centre of each of the cells in the mesh. Our mesh looks
+like:</p>
+<blockquote>
+<div><img alt="_images/mesh.png" src="_images/mesh.png" />
+</div></blockquote>
+<p>First, we need to initialise PyOP2 by selecting a backend:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pyop2</span> <span class="kn">import</span> <span class="n">op2</span>
+<span class="n">op2</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s">&#39;sequential&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We&#8217;re using the sequential backend in this tutorial as it should work
+everywhere, but you can also use <cite>cuda</cite>, <cite>openmp</cite>, or <cite>opencl</cite> if your setup
+supports them.</p>
+<p>Now we can define the data structures representing the mesh:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Two cells and four vertices</span>
+<span class="n">cells</span>       <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">vertices</span>    <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="c"># Three vertices per cell</span>
+<span class="n">cell_vertex</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Map</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="p">[</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="p">]</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Sets are declared by passing their sizes. Mappings are specified by declaring an
+<cite>iteration set</cite> and a <cite>data set</cite>. The iteration set is the set of entities that
+the map entries are from, and the data set is the set of entities that the
+entries are mapped to. The arity of the map is also required, as is a list
+containing the map values. Our example mapping is from cells to vertices.</p>
+<p>We also need to define some data on our sets:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vertex_coords</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">[</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="p">]</span> <span class="p">)</span>
+<span class="n">cell_centre</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">[</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span> <span class="p">]</span> <span class="p">)</span>
+<span class="n">cell_mass</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span> <span class="p">]</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Data (<cite>Dat</cite> s) is declared</p>
+<p>A kernel that computes the centre and mass of the cells is defined by embedding
+a C function in a string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mass_centre</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Kernel</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">void mass_centre(double *x[2], double centre[2], double mass[1])</span>
+<span class="s">{</span>
+<span class="s">  centre[0] = (x[0][0] + x[1][0] + x[2][0]) / 3.0;</span>
+<span class="s">  centre[1] = (x[0][1] + x[1][1] + x[2][1]) / 3.0;</span>
+<span class="s">  mass[0] = abs(x[0][0]*(x[1][1]-x[2][1]) + x[1][0]*(x[2][1]-x[0][1]) + x[2][0]*(x[0][1]-x[1][1]) ) / 2.0;</span>
+<span class="s">}&quot;&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;mass_centre&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The kernel defines the computation for a single set element, in this case a
+single cell. This kernel is invoked with the parallel loop syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">mass_centre</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span>
+             <span class="n">vertex_coords</span><span class="p">(</span><span class="n">cell_vertex</span><span class="p">,</span> <span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">),</span>
+             <span class="n">cell_centre</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">IdentityMap</span><span class="p">,</span> <span class="n">op2</span><span class="o">.</span><span class="n">WRITE</span><span class="p">),</span>
+             <span class="n">cell_mass</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">IdentityMap</span><span class="p">,</span> <span class="n">op2</span><span class="o">.</span><span class="n">WRITE</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The parallel loop invocation causes PyOP2 to execute the <cite>mass_centre</cite> kernel for every
+element of the iteration set, <cite>cells</cite>. The subsequent arguments to the parallel
+loop are the data sets that are to be passed to the kernel, and the order of
+these aligns with the order that they are declared in the kernel. The first
+argument to each <cite>Dat</cite> is the map through which the data is accessed. If the
+data set is defined on the iteration set of the parallel loop, then the
+identity map is used. In the case where the <cite>Dat</cite> is defined on another set, a
+map from the iteration set to the data set must be passed. The second argument
+is the access descriptor, which expresses how the argument is used in the
+kernel. Possible values are <cite>READ</cite>, <cite>WRITE</cite>, <cite>RW</cite>, <cite>INC</cite>, <cite>MAX</cite>, and <cite>MIN</cite>. The
+latter three will be explained later. The <cite>READ</cite>, <cite>WRITE</cite> and <cite>RW</cite> descriptors imply
+that there will be no writes to a member of the dataset from more than one
+element of the iteration set.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to PyOP2&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="next chapter">Installing PyOP2</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/tutorial.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installing PyOP2"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to PyOP2’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

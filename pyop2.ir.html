@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ir Package &mdash; PyOP2 0.9.0 documentation</title>
+    <title>ir Package &mdash; PyOP2 0.9.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.0',
+        VERSION:     '0.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.9.0 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
     <link rel="up" title="pyop2 Package" href="pyop2.html" />
     <link rel="prev" title="pyop2 Package" href="pyop2.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="pyop2.html" title="pyop2 Package"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li>
           <li><a href="pyop2.html" accesskey="U">pyop2 Package</a> &raquo;</li> 
       </ul>
     </div>  
@@ -294,6 +294,19 @@ symbol is accessing, or the size of the tensor itself.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.ir.ast_base.AVXSet">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXSet</tt><big>(</big><em>symbol</em>, <em>rank</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Symbol" title="pyop2.ir.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Symbol</span></tt></a></p>
+<p>Replicate the symbol&#8217;s value in all slots of a vector register
+using AVX intrinsics.</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_base.AVXSet.gencode">
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXSet.gencode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.ir.ast_base.Statement">
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Statement</tt><big>(</big><em>children=None</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Statement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Node" title="pyop2.ir.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Node</span></tt></a></p>
@@ -355,11 +368,6 @@ symbol is accessing, or the size of the tensor itself.</p>
 <p>Declaration of a symbol.</p>
 <p>Syntax: [qualifiers] typ sym [attributes] [= init];
 E.g.: static const double FE0[3][3] __attribute__(align(32)) = {{...}};</p>
-<dl class="attribute">
-<dt id="pyop2.ir.ast_base.Decl.declared">
-<tt class="descname">declared</tt><em class="property"> = {}</em><a class="headerlink" href="#pyop2.ir.ast_base.Decl.declared" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="pyop2.ir.ast_base.Decl.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Decl.gencode" title="Permalink to this definition">¶</a></dt>
@@ -418,7 +426,7 @@ for (int i = 0, j = 0; ...).</p>
 
 <dl class="class">
 <dt id="pyop2.ir.ast_base.FunDecl">
-<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">FunDecl</tt><big>(</big><em>ret</em>, <em>name</em>, <em>args</em>, <em>body</em>, <em>pred=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunDecl" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">FunDecl</tt><big>(</big><em>ret</em>, <em>name</em>, <em>args</em>, <em>body</em>, <em>pred=</em><span class="optional">[</span><span class="optional">]</span>, <em>headers=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunDecl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Function declaration.</p>
 <p>Syntax: [pred] ret name ([args]) {body};
@@ -555,22 +563,54 @@ The intrinsic function used is _mm256_unpacklo_pd</p>
 <span id="ast-optimizer-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ast_optimizer</span></tt> Module<a class="headerlink" href="#module-pyop2.ir.ast_optimizer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pyop2.ir.ast_optimizer.LoopOptimiser">
-<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_optimizer.</tt><tt class="descname">LoopOptimiser</tt><big>(</big><em>loop_nest</em>, <em>pre_header</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_optimizer.LoopOptimiser" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_optimizer.</tt><tt class="descname">LoopOptimiser</tt><big>(</big><em>loop_nest</em>, <em>pre_header</em>, <em>kernel_decls</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_optimizer.LoopOptimiser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Many loop optimisations, specifically important for the class of Finite
-Element kernels, must be supported. Among them we have:
-* Loop Invariant Code Motion
-* Register Tiling
-* Loop Interchange
-Others, like loop unrolling, can be achieved by simply relying on the
-backend compiler and/or specific compiler options, and therefore not
-explicitely supported.</p>
+<p>Loops optimiser:</p>
+<ul class="simple">
+<li>Loop Invariant Code Motion (LICM)
+Backend compilers apply LICM to innermost loops only. In addition,
+hoisted expressions are usually not vectorized. Here, we apply LICM to
+terms which are known to be constant (i.e. they are declared const)
+and all of the loops in the nest are searched for sub-expressions
+involving such const terms only. Also, hoisted terms are wrapped
+within loops to exploit compiler autovectorization. This has proved to
+be beneficial for loop nests in which the bounds of all loops are
+relatively small (let&#8217;s say less than 50-60).</li>
+<li>register tiling:
+Given a rectangular iteration space, register tiling slices it into
+square tiles of user-provided size, with the aim of improving register
+pressure and register re-use.</li>
+</ul>
 <dl class="method">
 <dt id="pyop2.ir.ast_optimizer.LoopOptimiser.extract_itspace">
 <tt class="descname">extract_itspace</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_optimizer.LoopOptimiser.extract_itspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove fully-parallel loop from the iteration space. These are
 the loops that were marked by the user/higher layer with a &#8216;pragma
 pyop2 itspace&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.ir.ast_optimizer.LoopOptimiser.op_licm">
+<tt class="descname">op_licm</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_optimizer.LoopOptimiser.op_licm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform loop-invariant code motion.</p>
+<p>Invariant expressions found in the loop nest are moved &#8220;after&#8221; the
+outermost independent loop and &#8220;after&#8221; the fastest varying dimension
+loop. Here, &#8220;after&#8221; means that if the loop nest has two loops i and j,
+and j is in the body of i, then i comes after j (i.e. the loop nest
+has to be read from right to left)</p>
+<p>For example, if a sub-expression E depends on [i, j] and the loop nest
+has three loops [i, j, k], then E is hoisted out from the body of k to
+the body of i). All hoisted expressions are then wrapped within a
+suitable loop in order to exploit compiler autovectorization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.ir.ast_optimizer.LoopOptimiser.op_tiling">
+<tt class="descname">op_tiling</tt><big>(</big><em>tile_sz=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_optimizer.LoopOptimiser.op_tiling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform tiling at the register level for this nest.
+This function slices the iteration space, and relies on the backend
+compiler for unrolling and vector-promoting the tiled loops.
+By default, it slices the inner outer-product loop.</p>
 </dd></dl>
 
 </dd></dl>
@@ -614,6 +654,107 @@ for (int i = 0; i &lt; 3; i++)</p>
 <p>}</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.ir.ast_plan.ASTKernel.plan_cpu">
+<tt class="descname">plan_cpu</tt><big>(</big><em>opts</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_plan.ASTKernel.plan_cpu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform and optimize the kernel suitably for CPU execution.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_plan.init_ir">
+<tt class="descclassname">pyop2.ir.ast_plan.</tt><tt class="descname">init_ir</tt><big>(</big><em>isa</em>, <em>compiler</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_plan.init_ir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Intermediate Representation engine.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyop2.ir.ast_vectorizer">
+<span id="ast-vectorizer-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ast_vectorizer</span></tt> Module<a class="headerlink" href="#module-pyop2.ir.ast_vectorizer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyop2.ir.ast_vectorizer.LoopVectoriser">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_vectorizer.</tt><tt class="descname">LoopVectoriser</tt><big>(</big><em>loop_optimiser</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.LoopVectoriser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Loop vectorizer</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_vectorizer.LoopVectoriser.align_and_pad">
+<tt class="descname">align_and_pad</tt><big>(</big><em>decl_scope</em>, <em>only_align=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.LoopVectoriser.align_and_pad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pad all data structures accessed in the loop nest to the nearest
+multiple of the vector length. Also align them to the size of the
+vector length in order to issue aligned loads and stores. Tell about
+the alignment to the back-end compiler by adding suitable pragmas to
+loops. Finally, adjust trip count and bound of each innermost loop
+in which padded and aligned arrays are written to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.ir.ast_vectorizer.LoopVectoriser.outer_product">
+<tt class="descname">outer_product</tt><big>(</big><em>opts</em>, <em>factor=1</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.LoopVectoriser.outer_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute outer products according to opts.
+opts = V_OP_PADONLY : no peeling, just use padding
+opts = V_OP_PEEL : peeling for autovectorisation
+opts = V_OP_UAJ : set unroll_and_jam factor
+opts = V_OP_UAJ_EXTRA : as above, but extra iters avoid remainder loop
+factor is an additional parameter to specify things like unroll-and-
+jam factor. Note that factor is just a suggestion to the compiler,
+which can freely decide to use a higher or lower value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_vectorizer.</tt><tt class="descname">OuterProduct</tt><big>(</big><em>stmt</em>, <em>loops</em>, <em>intr</em>, <em>nest</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate outer product vectorisation of a statement.</p>
+<dl class="attribute">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct.OP_STORE_IN_MEM">
+<tt class="descname">OP_STORE_IN_MEM</tt><em class="property"> = 0</em><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct.OP_STORE_IN_MEM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct.OP_REGISTER_INC">
+<tt class="descname">OP_REGISTER_INC</tt><em class="property"> = 1</em><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct.OP_REGISTER_INC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct.Alloc">
+<em class="property">class </em><tt class="descname">Alloc</tt><big>(</big><em>intr</em>, <em>tensor_size</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct.Alloc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Handle allocation of register variables.</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct.Alloc.get_reg">
+<tt class="descname">get_reg</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct.Alloc.get_reg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct.Alloc.free_regs">
+<tt class="descname">free_regs</tt><big>(</big><em>regs</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct.Alloc.free_regs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct.Alloc.get_tensor">
+<tt class="descname">get_tensor</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct.Alloc.get_tensor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.ir.ast_vectorizer.OuterProduct.generate">
+<tt class="descclassname">OuterProduct.</tt><tt class="descname">generate</tt><big>(</big><em>rows</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.OuterProduct.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the outer-product intrinsics-based vectorisation code.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_vectorizer.init_vectorizer">
+<tt class="descclassname">pyop2.ir.ast_vectorizer.</tt><tt class="descname">init_vectorizer</tt><big>(</big><em>isa</em>, <em>comp</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.init_vectorizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_vectorizer.vect_roundup">
+<tt class="descclassname">pyop2.ir.ast_vectorizer.</tt><tt class="descname">vect_roundup</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_vectorizer.vect_roundup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return x rounded up to the vector length.</p>
 </dd></dl>
 
 </div>
@@ -631,6 +772,7 @@ for (int i = 0; i &lt; 3; i++)</p>
 <li><a class="reference internal" href="#module-pyop2.ir.ast_base"><tt class="docutils literal"><span class="pre">ast_base</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.ir.ast_optimizer"><tt class="docutils literal"><span class="pre">ast_optimizer</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.ir.ast_plan"><tt class="docutils literal"><span class="pre">ast_plan</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyop2.ir.ast_vectorizer"><tt class="docutils literal"><span class="pre">ast_vectorizer</span></tt> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -672,7 +814,7 @@ for (int i = 0; i &lt; 3; i++)</p>
         <li class="right" >
           <a href="pyop2.html" title="pyop2 Package"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li>
           <li><a href="pyop2.html" >pyop2 Package</a> &raquo;</li> 
       </ul>
     </div>

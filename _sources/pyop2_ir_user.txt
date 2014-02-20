@@ -1,0 +1,64 @@
+The PyOP2 Kernel Interface
+==========================
+
+The ``ParLoop`` is the main construct of PyOP2. It applies a specific
+``Kernel`` to all elements in the iteration set of the parallel loop. Here, we
+describe how to use the PyOP2 API to build a ``Kernel`` and, also, we provide
+simple guidelines on how to write efficient kernels.
+
+
+Kernal API
+----------
+
+A ``Kernel`` is composed of three objects:
+
+* The ``code`` implementing the actual computation
+* The ``name``
+* An optional set of parameters, ``opts``, to drive the optimization process
+
+For example, to build a PyOP2 ``Kernel`` that initialises to 0 a certain dataset
+associated to the edges of the mesh, one can write:
+
+.. code-block:: python
+  from op2 import Kernel
+  code = """void init(double* edge_weight) {
+    for (int i = 0; i < 3; i++)
+      edge_weight[i] = 0.0;
+  }"""
+  kernel = Kernel(code, "init")
+  
+In this example, we assume the dataset has size 3, meaning that edge_weight is
+a pointer to an array of three doubles. No optimizations were requested; this
+essentially means that PyOP2 will leave the kernel untouched, and ``code`` will
+be just compiled and run on the user-specified back-end using the default
+compiler.
+
+Using the Intermediate Representation
+-------------------------------------
+
+Passing in a string of C code is the simplest way of creating a ``Kernel``.
+An alternative is to express the semantics of the computation resorting to
+the PyOP2 internal Intermediate Representation (IR) format. At the moment, the
+PyOP2 system lacks a solid parser to transform a string of C code directly into
+an Abstract Syntax Tree (AST), so we provide users with access to PyOP2 objects
+to build directly an AST. The main reason a parser has not been developed yet is
+that PyOP2 has been primarily thought to be fed by higher layers of abstractions,
+rather than by users. The advantage of providing an AST rather than C code is
+that it enables PyOP2 manipulating the kernel, increasing the chance of obtaining
+a better performance portability among different architectures and, more in
+general, better execution times.
+
+Here, we describe how we can use PyOP2 objects to build an AST representation
+of the ``init`` kernel shown previously.
+
+The simplest opportunity
+
+.. code-block:: python
+  from op2 import Kernel
+  from ir.ast_base import *
+  code = """void init(double* edge_weight) {
+    for (int i = 0; i < 3; i++)
+      edge_weight[i] = 0.0;
+  }"""
+  kernel = Kernel(code, "init")
+

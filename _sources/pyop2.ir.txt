@@ -25,3 +25,11 @@ ir Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`ast_vectorizer` Module
+----------------------------
+
+.. automodule:: pyop2.ir.ast_vectorizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

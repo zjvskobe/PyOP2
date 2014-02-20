@@ -1,0 +1,634 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PyOP2 Backends &mdash; PyOP2 0.9.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.9.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
+    <link rel="next" title="pyop2 user documentation" href="user.html" />
+    <link rel="prev" title="PyOP2 Concepts" href="concepts.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="PyOP2 Concepts"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyop2-backends">
+<span id="backends"></span><h1>PyOP2 Backends<a class="headerlink" href="#pyop2-backends" title="Permalink to this headline">¶</a></h1>
+<p>PyOP2 supports a number of different backends to be able to run parallel
+computations on different hardware architectures. The currently supported
+backends are</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">sequential</span></tt>: runs sequentially on a single CPU core.</li>
+<li><tt class="docutils literal"><span class="pre">openmp</span></tt>: runs multiple threads on an SMP CPU using OpenMP. The number of
+threads is set with the environment variable <tt class="docutils literal"><span class="pre">OMP_NUM_THREADS</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">cuda</span></tt>: offloads computation to a NVIDA GPU (requires <a class="reference internal" href="installation.html#cuda-installation"><em>CUDA and pycuda</em></a>)</li>
+<li><tt class="docutils literal"><span class="pre">opencl</span></tt>: offloads computation to an OpenCL device, either a multi-core
+CPU or a GPU (requires <a class="reference internal" href="installation.html#opencl-installation"><em>OpenCL and pyopencl</em></a>)</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">sequential</span></tt> and <tt class="docutils literal"><span class="pre">openmp</span></tt> backends fully support distributed
+parallel computations using MPI, the <tt class="docutils literal"><span class="pre">cuda</span></tt> and <tt class="docutils literal"><span class="pre">opencl</span></tt> backends
+only support parallel loops on <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dats</span></tt></a> with MPI. For
+OpenMP this means a hybrid parallel execution with <tt class="docutils literal"><span class="pre">OMP_NUM_THREADS</span></tt>
+threads per MPI rank. Datastructures must be suitably partitioned in
+this case with overlapping regions, so called halos. These are
+described in detail in <tt class="xref doc docutils literal"><span class="pre">mpi</span></tt>.</p>
+<div class="section" id="sequential-backend">
+<h2>Sequential backend<a class="headerlink" href="#sequential-backend" title="Permalink to this headline">¶</a></h2>
+<p>Any computation in PyOP2 requires the generation of code at runtime
+specific to each individual <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>. The sequential
+backend generates code via the <a class="reference external" href="https://bitbucket.org/fenics-project/instant">Instant</a> utility from the <a class="reference external" href="http://fenicsproject.org">FEniCS
+project</a>. Since there is no parallel computation for the sequential
+backend, the generated code is a C wrapper function with a <tt class="docutils literal"><span class="pre">for</span></tt>
+loop calling the kernel for the respective <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>.
+This wrapper also takes care of staging in and out the data as
+requested by the access descriptors requested in the parallel loop.
+Both the kernel and the wrapper function are just-in-time compiled in
+a single compilation unit such that the kernel call can be inlined and
+does not incur any function call overhead.</p>
+<p>Recall the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> calling the <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel from
+<tt class="xref doc docutils literal"><span class="pre">kernels</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span>
+             <span class="n">midpoints</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">WRITE</span><span class="p">),</span>
+             <span class="n">coordinates</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">cell2vertex</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The JIT compiled code for this loop is the kernel followed by the generated
+wrapper code:</p>
+<div class="highlight-c"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="highlight"><pre><span class="kr">inline</span> <span class="kt">void</span> <span class="nf">midpoint</span><span class="p">(</span><span class="kt">double</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="kt">double</span> <span class="o">*</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
+  <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">;</span>
+  <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">wrap_midpoint__</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">_start</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">_end</span><span class="p">,</span>
+                     <span class="n">PyObject</span> <span class="o">*</span><span class="n">_arg0_0</span><span class="p">,</span>
+                     <span class="n">PyObject</span> <span class="o">*</span><span class="n">_arg1_0</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">_arg1_0_map0_0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">start</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">PyInt_AsLong</span><span class="p">(</span><span class="n">_start</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">end</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">PyInt_AsLong</span><span class="p">(</span><span class="n">_end</span><span class="p">);</span>
+  <span class="kt">double</span> <span class="o">*</span><span class="n">arg0_0</span> <span class="o">=</span> <span class="p">(</span><span class="kt">double</span> <span class="o">*</span><span class="p">)(((</span><span class="n">PyArrayObject</span> <span class="o">*</span><span class="p">)</span><span class="n">_arg0_0</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+  <span class="kt">double</span> <span class="o">*</span><span class="n">arg1_0</span> <span class="o">=</span> <span class="p">(</span><span class="kt">double</span> <span class="o">*</span><span class="p">)(((</span><span class="n">PyArrayObject</span> <span class="o">*</span><span class="p">)</span><span class="n">_arg1_0</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="o">*</span><span class="n">arg1_0_map0_0</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)(((</span><span class="n">PyArrayObject</span> <span class="o">*</span><span class="p">)</span><span class="n">_arg1_0_map0_0</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+  <span class="kt">double</span> <span class="o">*</span><span class="n">arg1_0_vec</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
+    <span class="n">arg1_0_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg1_0</span> <span class="o">+</span> <span class="n">arg1_0_map0_0</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">arg1_0_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg1_0</span> <span class="o">+</span> <span class="n">arg1_0_map0_0</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">arg1_0_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg1_0</span> <span class="o">+</span> <span class="n">arg1_0_map0_0</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">midpoint</span><span class="p">(</span><span class="n">arg0_0</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">arg1_0_vec</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Note that the wrapper function is called directly from Python and therefore
+all arguments are plain Python objects, which first need to be unwrapped. The
+arguments <tt class="docutils literal"><span class="pre">_start</span></tt> and <tt class="docutils literal"><span class="pre">_end</span></tt> define the iteration set indices to iterate
+over. The remaining arguments are <tt class="xref py py-class docutils literal"><span class="pre">arrays</span></tt>
+corresponding to a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> passed to the
+<a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>. Arguments are consecutively numbered to avoid name
+clashes.</p>
+<p>The first <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> argument <tt class="docutils literal"><span class="pre">midpoints</span></tt> is direct and
+therefore no corresponding <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is passed to the
+wrapper function and the data pointer is passed straight to the kernel
+with an appropriate offset. The second argument <tt class="docutils literal"><span class="pre">coordinates</span></tt> is
+indirect and hence a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>-<a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> pair is
+passed. Pointers to the data are gathered via the <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>
+of arity 3 and staged in the array <tt class="docutils literal"><span class="pre">arg1_0_vec</span></tt>, which is passed to
+the kernel. The coordinate data can therefore be accessed in the
+kernel via double indirection with the <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> already
+applied. Note that for both arguments, the pointers are to two
+consecutive double values, since the <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> is of
+dimension two in either case.</p>
+</div>
+<div class="section" id="openmp-backend">
+<h2>OpenMP backend<a class="headerlink" href="#openmp-backend" title="Permalink to this headline">¶</a></h2>
+<p>The OpenMP uses the same infrastructure for code generation and JIT
+compilation as the sequential backend described above. In contrast however,
+the <tt class="docutils literal"><span class="pre">for</span></tt> loop is annotated with OpenMP pragmas to make it execute in
+parallel with multiple threads. To avoid race conditions on data access, the
+iteration set is coloured and a thread safe execution plan is computed as
+described in <tt class="xref doc docutils literal"><span class="pre">colouring</span></tt>.</p>
+<p>The JIT compiled code for the parallel loop from above changes as follows:</p>
+<div class="highlight-c"><pre>void wrap_midpoint__(PyObject* _boffset,
+                     PyObject* _nblocks,
+                     PyObject* _blkmap,
+                     PyObject* _offset,
+                     PyObject* _nelems,
+                     PyObject *_arg0_0,
+                     PyObject *_arg1_0, PyObject *_arg1_0_map0_0) {
+  int boffset = (int)PyInt_AsLong(_boffset);
+  int nblocks = (int)PyInt_AsLong(_nblocks);
+  int* blkmap = (int *)(((PyArrayObject *)_blkmap)-&gt;data);
+  int* offset = (int *)(((PyArrayObject *)_offset)-&gt;data);
+  int* nelems = (int *)(((PyArrayObject *)_nelems)-&gt;data);
+  double *arg0_0 = (double *)(((PyArrayObject *)_arg0_0)-&gt;data);
+  double *arg1_0 = (double *)(((PyArrayObject *)_arg1_0)-&gt;data);
+  int *arg1_0_map0_0 = (int *)(((PyArrayObject *)_arg1_0_map0_0)-&gt;data);
+  double *arg1_0_vec[32][3];
+  #ifdef _OPENMP
+  int nthread = omp_get_max_threads();
+  #else
+  int nthread = 1;
+  #endif
+  #pragma omp parallel shared(boffset, nblocks, nelems, blkmap)
+  {
+    int tid = omp_get_thread_num();
+    #pragma omp for schedule(static)
+    for (int __b = boffset; __b &lt; boffset + nblocks; __b++)
+    {
+      int bid = blkmap[__b];
+      int nelem = nelems[bid];
+      int efirst = offset[bid];
+      for (int n = efirst; n &lt; efirst+ nelem; n++ )
+      {
+        int i = n;
+        arg1_0_vec[tid][0] = arg1_0 + arg1_0_map0_0[i * 3 + 0] * 2;
+        arg1_0_vec[tid][1] = arg1_0 + arg1_0_map0_0[i * 3 + 1] * 2;
+        arg1_0_vec[tid][2] = arg1_0 + arg1_0_map0_0[i * 3 + 2] * 2;
+        midpoint(arg0_0 + i * 2, arg1_0_vec[tid]);
+      }
+    }
+  }
+}</pre>
+</div>
+<p>Computation is split in <tt class="docutils literal"><span class="pre">nblocks</span></tt> blocks which start at an initial offset
+<tt class="docutils literal"><span class="pre">boffset</span></tt> and correspond to colours that can be executed conflict free in
+parallel. This loop over colours is therefore wrapped in an OpenMP parallel
+region and is annotated with an <tt class="docutils literal"><span class="pre">omp</span> <span class="pre">for</span></tt> pragma. The block id <tt class="docutils literal"><span class="pre">bid</span></tt> for
+each of these blocks is given by the block map <tt class="docutils literal"><span class="pre">blkmap</span></tt> and is the index
+into the arrays <tt class="docutils literal"><span class="pre">nelems</span></tt> and <tt class="docutils literal"><span class="pre">offset</span></tt> provided as part of the execution
+plan. These are the number of elements that are part of the given block and
+its starting index. Note that each thread needs its own staging array
+<tt class="docutils literal"><span class="pre">arg1_0_vec</span></tt>, which is therefore scoped by the thread id.</p>
+</div>
+<div class="section" id="cuda-backend">
+<h2>CUDA backend<a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h2>
+<p>The CUDA backend makes extensive use of <a class="reference external" href="http://mathema.tician.de/software/pycuda/">PyCUDA</a> and its infrastructure for
+just-in-time compilation of CUDA kernels and interfacing them to Python.
+Linear solvers and sparse matrix data structures are implemented on top of the
+<a class="reference external" href="http://cusplibrary.github.io">CUSP library</a> and are described in greater detail in <tt class="xref doc docutils literal"><span class="pre">linear_algebra</span></tt>.
+Code generation uses a template based approach, where a <tt class="docutils literal"><span class="pre">__global__</span></tt> stub
+routine to be called from the host is generated, which takes care of data
+marshalling and calling the user kernel as an inline <tt class="docutils literal"><span class="pre">__device__</span></tt> function.</p>
+<p>When the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> is called, PyOP2 uses the
+<a class="reference internal" href="concepts.html#access-descriptors"><em>Access descriptors</em></a> to determine which data needs to be allocated or
+transferred from host to device prior to launching the kernel and which data
+needs to be brought back to the host afterwards. Data is only transferred if
+it is out of date at the target location and all data transfer is triggered
+lazily i.e. the actual copy only occurs once the data is requested. Flags
+indicate the present state of a given <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">DEVICE_UNALLOCATED</span></tt>: no data is allocated on the device</li>
+<li><tt class="docutils literal"><span class="pre">HOST_UNALLOCATED</span></tt>: no data is allocated on the host</li>
+<li><tt class="docutils literal"><span class="pre">DEVICE</span></tt>: data is up-to-date (valid) on the device, but invalid on the
+host</li>
+<li><tt class="docutils literal"><span class="pre">HOST</span></tt>: data is up-to-date (valid) on the host, but invalid on the device</li>
+<li><tt class="docutils literal"><span class="pre">BOTH</span></tt>: data is up-to-date (valid) on both the host and device</li>
+</ul>
+<p>We consider the same <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel as in the previous examples, which
+requires no CUDA-specific modifications and is automatically annotated with a
+<tt class="docutils literal"><span class="pre">__device__</span></tt> qualifier. <a class="reference external" href="http://mathema.tician.de/software/pycuda/">PyCUDA</a> automatically generates a host stub for the
+generated kernel stub <tt class="docutils literal"><span class="pre">__midpoint_stub</span></tt> given a list of parameter types. It
+takes care of translating Python objects to plain C data types and pointers,
+such that a CUDA kernel can be launched straight from Python. The entire CUDA
+code PyOP2 generates is as follows:</p>
+<div class="highlight-c"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">__device__</span> <span class="kt">void</span> <span class="nf">midpoint</span><span class="p">(</span><span class="kt">double</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="kt">double</span> <span class="o">*</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="p">{</span>
+  <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">;</span>
+  <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">__global__</span> <span class="kt">void</span> <span class="nf">__midpoint_stub</span><span class="p">(</span><span class="kt">int</span> <span class="n">set_size</span><span class="p">,</span> <span class="kt">int</span> <span class="n">set_offset</span><span class="p">,</span>
+    <span class="kt">double</span> <span class="o">*</span><span class="n">arg0</span><span class="p">,</span>
+    <span class="kt">double</span> <span class="o">*</span><span class="n">ind_arg1</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">ind_map</span><span class="p">,</span>
+    <span class="kt">short</span> <span class="o">*</span><span class="n">loc_map</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">ind_sizes</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">ind_offs</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="n">block_offset</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">blkmap</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">offset</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">nelems</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">nthrcol</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="o">*</span><span class="n">thrcol</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="n">nblocks</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">extern</span> <span class="n">__shared__</span> <span class="kt">char</span> <span class="n">shared</span><span class="p">[];</span>
+  <span class="n">__shared__</span> <span class="kt">int</span> <span class="o">*</span><span class="n">ind_arg1_map</span><span class="p">;</span>
+  <span class="n">__shared__</span> <span class="kt">int</span> <span class="n">ind_arg1_size</span><span class="p">;</span>
+  <span class="n">__shared__</span> <span class="kt">double</span> <span class="o">*</span> <span class="n">ind_arg1_shared</span><span class="p">;</span>
+  <span class="n">__shared__</span> <span class="kt">int</span> <span class="n">nelem</span><span class="p">,</span> <span class="n">offset_b</span><span class="p">,</span> <span class="n">offset_b_abs</span><span class="p">;</span>
+
+  <span class="kt">double</span> <span class="o">*</span><span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">nblocks</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">blockId</span> <span class="o">=</span> <span class="n">blkmap</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">block_offset</span><span class="p">];</span>
+    <span class="n">nelem</span> <span class="o">=</span> <span class="n">nelems</span><span class="p">[</span><span class="n">blockId</span><span class="p">];</span>
+    <span class="n">offset_b_abs</span> <span class="o">=</span> <span class="n">offset</span><span class="p">[</span><span class="n">blockId</span><span class="p">];</span>
+    <span class="n">offset_b</span> <span class="o">=</span> <span class="n">offset_b_abs</span> <span class="o">-</span> <span class="n">set_offset</span><span class="p">;</span>
+
+    <span class="n">ind_arg1_size</span> <span class="o">=</span> <span class="n">ind_sizes</span><span class="p">[</span><span class="mi">0</span> <span class="o">+</span> <span class="n">blockId</span> <span class="o">*</span> <span class="mi">1</span><span class="p">];</span>
+    <span class="n">ind_arg1_map</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ind_map</span><span class="p">[</span><span class="mi">0</span> <span class="o">*</span> <span class="n">set_size</span><span class="p">]</span> <span class="o">+</span> <span class="n">ind_offs</span><span class="p">[</span><span class="mi">0</span> <span class="o">+</span> <span class="n">blockId</span> <span class="o">*</span> <span class="mi">1</span><span class="p">];</span>
+
+    <span class="kt">int</span> <span class="n">nbytes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">ind_arg1_shared</span> <span class="o">=</span> <span class="p">(</span><span class="kt">double</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">shared</span><span class="p">[</span><span class="n">nbytes</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="n">__syncthreads</span><span class="p">();</span>
+
+  <span class="c1">// Copy into shared memory</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="kt">int</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">ind_arg1_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span> <span class="n">idx</span> <span class="o">+=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">ind_arg1_shared</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1</span><span class="p">[</span><span class="n">idx</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">ind_arg1_map</span><span class="p">[</span><span class="n">idx</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="n">__syncthreads</span><span class="p">();</span>
+
+  <span class="c1">// process set elements</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="kt">int</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">nelem</span><span class="p">;</span> <span class="n">idx</span> <span class="o">+=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1_shared</span> <span class="o">+</span> <span class="n">loc_map</span><span class="p">[</span><span class="mi">0</span><span class="o">*</span><span class="n">set_size</span> <span class="o">+</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">offset_b</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">;</span>
+    <span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1_shared</span> <span class="o">+</span> <span class="n">loc_map</span><span class="p">[</span><span class="mi">1</span><span class="o">*</span><span class="n">set_size</span> <span class="o">+</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">offset_b</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">;</span>
+    <span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1_shared</span> <span class="o">+</span> <span class="n">loc_map</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">set_size</span> <span class="o">+</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">offset_b</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">;</span>
+
+    <span class="n">midpoint</span><span class="p">(</span><span class="n">arg0</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="n">offset_b_abs</span><span class="p">),</span> <span class="n">ind_arg1_vec</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>The CUDA kernel <tt class="docutils literal"><span class="pre">__midpoint_stub</span></tt> is launched on the GPU for a specific
+number of threads in parallel. Each thread is identified inside the kernel by
+its thread id <tt class="docutils literal"><span class="pre">threadIdx</span></tt> within a block of threads identified by a two
+dimensional block id <tt class="docutils literal"><span class="pre">blockIdx</span></tt> within a grid of blocks.</p>
+<p>As for OpenMP, there is the potential for data races, which are prevented by
+colouring the iteration set and computing a parallel execution plan, where all
+elements of the same colour can be modified simultaneously. Each colour is
+computed by a block of threads in parallel. All threads of a thread block have
+access to a shared memory, which is used as a shared staging area initialised
+by thread 0 of each block, see lines 30-41 above. A call to
+<tt class="docutils literal"><span class="pre">__syncthreads()</span></tt> ensures these initial values are visible to all threads of
+the block. After this barrier, all threads cooperatively gather data from the
+indirectly accessed <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> via the <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>, followed
+by another synchronisation. Following that, each thread loops over the
+elements in the partition with an increment of the block size. In each
+iteration a thread-private array of pointers to coordinate data in shared
+memory is built which is then passed to the <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel. As for other
+backends, the first, directly accessed, argument, is passed as a pointer to
+global device memory with a suitable offset.</p>
+</div>
+<div class="section" id="opencl-backend">
+<h2>OpenCL backend<a class="headerlink" href="#opencl-backend" title="Permalink to this headline">¶</a></h2>
+<p>The other device backend OpenCL is structurally very similar to the CUDA
+backend. It uses <a class="reference external" href="http://mathema.tician.de/software/pyopencl/">PyOpenCL</a> to interface to the OpenCL drivers and runtime.
+Linear algebra operations are handled by <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-as/">PETSc</a> as described in
+<tt class="xref doc docutils literal"><span class="pre">linear_algebra</span></tt>. PyOP2 generates a kernel stub from a template similar
+to the CUDA case. The OpenCL backend shares the same semantics for data
+transfer described for CUDA above.</p>
+<p>Consider the <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel from previous examples, whose parameters in
+the kernel signature are automatically annotated with OpenCL storage
+qualifiers. <a class="reference external" href="http://mathema.tician.de/software/pyopencl/">PyOpenCL</a> provides Python wrappers for OpenCL runtime functions to
+build a kernel from a code string, set its arguments and enqueue the kernel
+for execution. It takes care of the necessary conversion from Python objects
+to plain C data types. PyOP2 generates the following code for the <tt class="docutils literal"><span class="pre">midpoint</span></tt>
+example:</p>
+<div class="highlight-c"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#define ROUND_UP(bytes) (((bytes) + 15) &amp; ~15)</span>
+
+<span class="kt">void</span> <span class="nf">midpoint</span><span class="p">(</span><span class="n">__global</span> <span class="kt">double</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">__local</span> <span class="kt">double</span> <span class="o">*</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+<span class="kt">void</span> <span class="nf">midpoint</span><span class="p">(</span><span class="n">__global</span> <span class="kt">double</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">__local</span> <span class="kt">double</span> <span class="o">*</span><span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="p">{</span>
+  <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">;</span>
+  <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">__kernel</span> <span class="nf">__attribute__</span><span class="p">((</span><span class="n">reqd_work_group_size</span><span class="p">(</span><span class="mi">668</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+<span class="kt">void</span> <span class="n">__midpoint_stub</span><span class="p">(</span>
+    <span class="n">__global</span> <span class="kt">double</span><span class="o">*</span> <span class="n">arg0</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">double</span><span class="o">*</span> <span class="n">ind_arg1</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="n">set_size</span><span class="p">,</span>
+    <span class="kt">int</span> <span class="n">set_offset</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_ind_map</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">short</span> <span class="o">*</span><span class="n">p_loc_map</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_ind_sizes</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_ind_offsets</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_blk_map</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_offset</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_nelems</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_nthrcol</span><span class="p">,</span>
+    <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">p_thrcol</span><span class="p">,</span>
+    <span class="n">__private</span> <span class="kt">int</span> <span class="n">block_offset</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">__local</span> <span class="kt">char</span> <span class="n">shared</span> <span class="p">[</span><span class="mi">64</span><span class="p">]</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">))));</span>
+  <span class="n">__local</span> <span class="kt">int</span> <span class="n">offset_b</span><span class="p">;</span>
+  <span class="n">__local</span> <span class="kt">int</span> <span class="n">offset_b_abs</span><span class="p">;</span>
+  <span class="n">__local</span> <span class="kt">int</span> <span class="n">active_threads_count</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">nbytes</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">block_id</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">i_1</span><span class="p">;</span>
+  <span class="c1">// shared indirection mappings</span>
+  <span class="n">__global</span> <span class="kt">int</span><span class="o">*</span> <span class="n">__local</span> <span class="n">ind_arg1_map</span><span class="p">;</span>
+  <span class="n">__local</span> <span class="kt">int</span> <span class="n">ind_arg1_size</span><span class="p">;</span>
+  <span class="n">__local</span> <span class="kt">double</span><span class="o">*</span> <span class="n">__local</span> <span class="n">ind_arg1_shared</span><span class="p">;</span>
+  <span class="n">__local</span> <span class="kt">double</span><span class="o">*</span> <span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">get_local_id</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">block_id</span> <span class="o">=</span> <span class="n">p_blk_map</span><span class="p">[</span><span class="n">get_group_id</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">block_offset</span><span class="p">];</span>
+    <span class="n">active_threads_count</span> <span class="o">=</span> <span class="n">p_nelems</span><span class="p">[</span><span class="n">block_id</span><span class="p">];</span>
+    <span class="n">offset_b_abs</span> <span class="o">=</span> <span class="n">p_offset</span><span class="p">[</span><span class="n">block_id</span><span class="p">];</span>
+    <span class="n">offset_b</span> <span class="o">=</span> <span class="n">offset_b_abs</span> <span class="o">-</span> <span class="n">set_offset</span><span class="p">;</span><span class="n">ind_arg1_size</span> <span class="o">=</span> <span class="n">p_ind_sizes</span><span class="p">[</span><span class="mi">0</span> <span class="o">+</span> <span class="n">block_id</span> <span class="o">*</span> <span class="mi">1</span><span class="p">];</span>
+    <span class="n">ind_arg1_map</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">p_ind_map</span><span class="p">[</span><span class="mi">0</span> <span class="o">*</span> <span class="n">set_size</span><span class="p">]</span> <span class="o">+</span> <span class="n">p_ind_offsets</span><span class="p">[</span><span class="mi">0</span> <span class="o">+</span> <span class="n">block_id</span> <span class="o">*</span> <span class="mi">1</span><span class="p">];</span>
+
+    <span class="n">nbytes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">ind_arg1_shared</span> <span class="o">=</span> <span class="p">(</span><span class="n">__local</span> <span class="kt">double</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="o">&amp;</span><span class="n">shared</span><span class="p">[</span><span class="n">nbytes</span><span class="p">]);</span>
+    <span class="n">nbytes</span> <span class="o">+=</span> <span class="n">ROUND_UP</span><span class="p">(</span><span class="n">ind_arg1_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+  <span class="p">}</span>
+  <span class="n">barrier</span><span class="p">(</span><span class="n">CLK_LOCAL_MEM_FENCE</span><span class="p">);</span>
+
+  <span class="c1">// staging in of indirect dats</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i_1</span> <span class="o">=</span> <span class="n">get_local_id</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i_1</span> <span class="o">&lt;</span> <span class="n">ind_arg1_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span> <span class="n">i_1</span> <span class="o">+=</span> <span class="n">get_local_size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">ind_arg1_shared</span><span class="p">[</span><span class="n">i_1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1</span><span class="p">[</span><span class="n">i_1</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">ind_arg1_map</span><span class="p">[</span><span class="n">i_1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="n">barrier</span><span class="p">(</span><span class="n">CLK_LOCAL_MEM_FENCE</span><span class="p">);</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="n">i_1</span> <span class="o">=</span> <span class="n">get_local_id</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i_1</span> <span class="o">&lt;</span> <span class="n">active_threads_count</span><span class="p">;</span> <span class="n">i_1</span> <span class="o">+=</span> <span class="n">get_local_size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1_shared</span> <span class="o">+</span> <span class="n">p_loc_map</span><span class="p">[</span><span class="n">i_1</span> <span class="o">+</span> <span class="mi">0</span><span class="o">*</span><span class="n">set_size</span> <span class="o">+</span> <span class="n">offset_b</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1_shared</span> <span class="o">+</span> <span class="n">p_loc_map</span><span class="p">[</span><span class="n">i_1</span> <span class="o">+</span> <span class="mi">1</span><span class="o">*</span><span class="n">set_size</span> <span class="o">+</span> <span class="n">offset_b</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">ind_arg1_vec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind_arg1_shared</span> <span class="o">+</span> <span class="n">p_loc_map</span><span class="p">[</span><span class="n">i_1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">set_size</span> <span class="o">+</span> <span class="n">offset_b</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">;</span>
+
+    <span class="n">midpoint</span><span class="p">((</span><span class="n">__global</span> <span class="kt">double</span><span class="o">*</span> <span class="n">__private</span><span class="p">)(</span><span class="n">arg0</span> <span class="o">+</span> <span class="p">(</span><span class="n">i_1</span> <span class="o">+</span> <span class="n">offset_b_abs</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="n">ind_arg1_vec</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Parallel computations in OpenCL are executed by <em>work items</em> organised
+into <em>work groups</em>. OpenCL requires annotating all pointer arguments
+with the memory region they point to: <tt class="docutils literal"><span class="pre">__global</span></tt> memory is visible
+to any work item, <tt class="docutils literal"><span class="pre">__local</span></tt> memory to any work item within the same
+work group and <tt class="docutils literal"><span class="pre">__private</span></tt> memory is private to a work item. PyOP2
+does this annotation automatically for the user kernel if the OpenCL
+backend is used. Local memory therefore corresponds to CUDA&#8217;s shared
+memory and private memory is called local memory in CUDA. The work
+item id within the work group is accessed via the OpenCL runtime call
+<tt class="docutils literal"><span class="pre">get_local_id(0)</span></tt>, the work group id via <tt class="docutils literal"><span class="pre">get_group_id(0)</span></tt>. A
+barrier synchronisation across all work items of a work group is
+enforced with a call to <tt class="docutils literal"><span class="pre">barrier(CLK_LOCAL_MEM_FENCE)</span></tt>. Bearing
+these differences in mind, the OpenCL kernel stub is structurally
+almost identical to the corresponding CUDA version above.</p>
+<p>The required local memory size per work group <tt class="docutils literal"><span class="pre">reqd_work_group_size</span></tt> is
+computed as part of the execution plan. In CUDA this value is a launch
+parameter to the kernel, whereas in OpenCL it needs to be hard coded as a
+kernel attribute.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PyOP2 Backends</a><ul>
+<li><a class="reference internal" href="#sequential-backend">Sequential backend</a></li>
+<li><a class="reference internal" href="#openmp-backend">OpenMP backend</a></li>
+<li><a class="reference internal" href="#cuda-backend">CUDA backend</a></li>
+<li><a class="reference internal" href="#opencl-backend">OpenCL backend</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="concepts.html"
+                        title="previous chapter">PyOP2 Concepts</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="user.html"
+                        title="next chapter">pyop2 user documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/backends.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="PyOP2 Concepts"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

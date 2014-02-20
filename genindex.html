@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Index &mdash; PyOP2 0.9.0 documentation</title>
+    <title>Index &mdash; PyOP2 0.9.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.0',
+        VERSION:     '0.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.9.0 documentation" href="index.html" /> 
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -97,6 +97,10 @@
 
       
   <dt><a href="pyop2.html#pyop2.utils.align">align() (in module pyop2.utils)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.LoopVectoriser.align_and_pad">align_and_pad() (pyop2.ir.ast_vectorizer.LoopVectoriser method)</a>
   </dt>
 
       
@@ -290,6 +294,10 @@
   </dt>
 
       
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.AVXSet">AVXSet (class in pyop2.ir.ast_base)</a>
+  </dt>
+
+      
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.AVXSetZero">AVXSetZero (class in pyop2.ir.ast_base)</a>
   </dt>
 
@@ -416,7 +424,11 @@
   </dt>
 
       
-  <dt><a href="pyop2.html#pyop2.host.Arg.c_buffer_scatter">c_buffer_scatter() (pyop2.host.Arg method)</a>
+  <dt><a href="pyop2.html#pyop2.host.Arg.c_buffer_scatter_mm">c_buffer_scatter_mm() (pyop2.host.Arg method)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#pyop2.host.Arg.c_buffer_scatter_vec">c_buffer_scatter_vec() (pyop2.host.Arg method)</a>
   </dt>
 
       
@@ -529,12 +541,12 @@
   <dt><a href="pyop2.html#pyop2.openmp.Arg.c_reduction_finalisation">c_reduction_finalisation() (pyop2.openmp.Arg method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.openmp.Arg.c_reduction_init">c_reduction_init() (pyop2.openmp.Arg method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.c_sym">c_sym() (in module pyop2.ir.ast_base)</a>
   </dt>
@@ -1132,10 +1144,6 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.Decl.declared">declared (pyop2.ir.ast_base.Decl attribute)</a>
-  </dt>
-
-      
   <dt><a href="pyop2.html#pyop2.base.DEFAULT_SOLVER_PARAMETERS">DEFAULT_SOLVER_PARAMETERS (in module pyop2.base)</a>
   </dt>
 
@@ -1431,10 +1439,14 @@
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.For">For (class in pyop2.ir.ast_base)</a>
   </dt>
 
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.for_loop">for_loop() (in module pyop2.ir.ast_base)</a>
+  </dt>
+
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.for_loop">for_loop() (in module pyop2.ir.ast_base)</a>
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct.Alloc.free_regs">free_regs() (pyop2.ir.ast_vectorizer.OuterProduct.Alloc method)</a>
   </dt>
 
       
@@ -1527,6 +1539,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.AVXSet.gencode">(pyop2.ir.ast_base.AVXSet method)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.AVXSetZero.gencode">(pyop2.ir.ast_base.AVXSetZero method)</a>
   </dt>
 
@@ -1612,6 +1628,10 @@
 
       </dl></dd>
       
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct.generate">generate() (pyop2.ir.ast_vectorizer.OuterProduct method)</a>
+  </dt>
+
+      
   <dt><a href="pyop2.html#pyop2.host.JITModule.generate_code">generate_code() (pyop2.host.JITModule method)</a>
   </dt>
 
@@ -1631,6 +1651,14 @@
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct.Alloc.get_reg">get_reg() (pyop2.ir.ast_vectorizer.OuterProduct.Alloc method)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct.Alloc.get_tensor">get_tensor() (pyop2.ir.ast_vectorizer.OuterProduct.Alloc method)</a>
+  </dt>
+
       
   <dt><a href="pyop2.html#pyop2.profiling.get_timers">get_timers() (in module pyop2.profiling)</a>
   </dt>
@@ -1739,6 +1767,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.base.MixedDat.halo_exchange_begin">(pyop2.base.MixedDat method)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.base.ParLoop.halo_exchange_begin">(pyop2.base.ParLoop method)</a>
   </dt>
 
@@ -1762,6 +1794,10 @@
 
         
   <dt><a href="pyop2.html#pyop2.base.Dat.halo_exchange_end">(pyop2.base.Dat method)</a>
+  </dt>
+
+        
+  <dt><a href="pyop2.html#pyop2.base.MixedDat.halo_exchange_end">(pyop2.base.MixedDat method)</a>
   </dt>
 
         
@@ -1821,6 +1857,10 @@
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="pyop2.html#pyop2.petsc_base.Mat.inc_local_diagonal_entries">inc_local_diagonal_entries() (pyop2.petsc_base.Mat method)</a>
+  </dt>
+
       
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.Incr">Incr (class in pyop2.ir.ast_base)</a>
   </dt>
@@ -1889,12 +1929,12 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.base.Arg.indirect_position">indirect_position (pyop2.base.Arg attribute)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.logger.info_blue">info_blue() (in module pyop2.logger)</a>
   </dt>
@@ -1917,6 +1957,14 @@
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_plan.init_ir">init_ir() (in module pyop2.ir.ast_plan)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.init_vectorizer">init_vectorizer() (in module pyop2.ir.ast_vectorizer)</a>
+  </dt>
+
       
   <dt><a href="pyop2.html#pyop2.op2.initialised">initialised() (in module pyop2.op2)</a>
   </dt>
@@ -2045,6 +2093,10 @@
   </dt>
 
         
+  <dt><a href="pyop2.html#pyop2.host.Kernel">(class in pyop2.host)</a>
+  </dt>
+
+        
   <dt><a href="pyop2.html#pyop2.op2.Kernel">(class in pyop2.op2)</a>
   </dt>
 
@@ -2125,12 +2177,12 @@
   <dt><a href="pyop2.html#pyop2.base.LazyComputation">LazyComputation (class in pyop2.base)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_base.Less">Less (class in pyop2.ir.ast_base)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.cuda.Plan.loc_map">loc_map (pyop2.cuda.Plan attribute)</a>
   </dt>
@@ -2147,6 +2199,10 @@
 
       
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_optimizer.LoopOptimiser">LoopOptimiser (class in pyop2.ir.ast_optimizer)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.LoopVectoriser">LoopVectoriser (class in pyop2.ir.ast_vectorizer)</a>
   </dt>
 
   </dl></td>
@@ -2651,8 +2707,6 @@
   <dt><a href="pyop2.html#pyop2.openmp.JITModule.omplib">omplib (pyop2.openmp.JITModule attribute)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.base.Sparsity.onnz">onnz (pyop2.base.Sparsity attribute)</a>
   </dt>
@@ -2673,6 +2727,36 @@
   </dt>
 
       </dl></dd>
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_optimizer.LoopOptimiser.op_licm">op_licm() (pyop2.ir.ast_optimizer.LoopOptimiser method)</a>
+  </dt>
+
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct.OP_REGISTER_INC">OP_REGISTER_INC (pyop2.ir.ast_vectorizer.OuterProduct attribute)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct.OP_STORE_IN_MEM">OP_STORE_IN_MEM (pyop2.ir.ast_vectorizer.OuterProduct attribute)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_optimizer.LoopOptimiser.op_tiling">op_tiling() (pyop2.ir.ast_optimizer.LoopOptimiser method)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.LoopVectoriser.outer_product">outer_product() (pyop2.ir.ast_vectorizer.LoopVectoriser method)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct">OuterProduct (class in pyop2.ir.ast_vectorizer)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.OuterProduct.Alloc">OuterProduct.Alloc (class in pyop2.ir.ast_vectorizer)</a>
+  </dt>
+
       
   <dt><a href="pyop2.html#pyop2.base.Set.owned_part">owned_part (pyop2.base.Set attribute)</a>
   </dt>
@@ -2806,6 +2890,10 @@
 
       </dl></dd>
       
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_plan.ASTKernel.plan_cpu">plan_cpu() (pyop2.ir.ast_plan.ASTKernel method)</a>
+  </dt>
+
+      
   <dt><a href="pyop2.ir.html#pyop2.ir.ast_plan.ASTKernel.plan_gpu">plan_gpu() (pyop2.ir.ast_plan.ASTKernel method)</a>
   </dt>
 
@@ -2835,6 +2923,10 @@
 
       
   <dt><a href="pyop2.html#pyop2.profiling.profile">profile (class in pyop2.profiling)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.html#pyop2.logger.progress">progress() (in module pyop2.logger)</a>
   </dt>
 
       
@@ -2905,6 +2997,10 @@
 
       
   <dt><a href="pyop2.ir.html#module-pyop2.ir.ast_plan">pyop2.ir.ast_plan (module)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#module-pyop2.ir.ast_vectorizer">pyop2.ir.ast_vectorizer (module)</a>
   </dt>
 
       
@@ -3715,12 +3811,12 @@
   </dt>
 
       </dl></dd>
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.petsc_base.Dat.vec_context">vec_context() (pyop2.petsc_base.Dat method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="pyop2.html#pyop2.petsc_base.Dat.vec_ro">vec_ro (pyop2.petsc_base.Dat attribute)</a>
   </dt>
@@ -3733,6 +3829,10 @@
       </dl></dd>
       
   <dt><a href="pyop2.html#pyop2.petsc_base.MixedDat.vecscatter">vecscatter() (pyop2.petsc_base.MixedDat method)</a>
+  </dt>
+
+      
+  <dt><a href="pyop2.ir.html#pyop2.ir.ast_vectorizer.vect_roundup">vect_roundup() (in module pyop2.ir.ast_vectorizer)</a>
   </dt>
 
       
@@ -3864,7 +3964,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyop2 Package &mdash; PyOP2 0.9.0 documentation</title>
+    <title>pyop2 Package &mdash; PyOP2 0.9.1 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.0',
+        VERSION:     '0.9.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.9.0 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
     <link rel="next" title="ir Package" href="pyop2.ir.html" />
     <link rel="prev" title="pyop2 user documentation" href="user.html" /> 
   </head>
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="user.html" title="pyop2 user documentation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -1168,6 +1168,20 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pyop2.base.MixedDat.halo_exchange_begin">
+<tt class="descname">halo_exchange_begin</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.MixedDat.halo_exchange_begin" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.base.MixedDat.halo_exchange_end">
+<tt class="descname">halo_exchange_end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.MixedDat.halo_exchange_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyop2.base.MixedDat.zero">
 <tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.MixedDat.zero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Zero the data associated with this <a class="reference internal" href="#pyop2.base.MixedDat" title="pyop2.base.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a>.</p>
@@ -1691,7 +1705,7 @@ matrix has more than around 10000 degrees of freedom.</p>
 
 <dl class="class">
 <dt id="pyop2.base.Kernel">
-<em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.base.Kernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.base.Kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.caching.KernelCached" title="pyop2.caching.KernelCached"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.caching.KernelCached</span></tt></a></p>
 <p>OP2 kernel type.</p>
 <dl class="attribute">
@@ -2041,7 +2055,7 @@ written to?</li>
 </table>
 <dl class="attribute">
 <dt id="pyop2.configuration.Configuration.DEFAULTS">
-<tt class="descname">DEFAULTS</tt><em class="property"> = {'log_level': ('PYOP2_LOG_LEVEL', (&lt;type 'str'&gt;, &lt;type 'int'&gt;), 'WARNING'), 'dump_gencode': ('PYOP2_DUMP_GENCODE', &lt;type 'bool'&gt;, False), 'lazy_evaluation': ('PYOP2_LAZY', &lt;type 'bool'&gt;, True), 'dump_gencode_path': ('PYOP2_DUMP_GENCODE_PATH', &lt;type 'str'&gt;, '/tmp/pyop2-gencode'), 'lazy_max_trace_length': ('PYOP2_MAX_TRACE_LENGTH', &lt;type 'int'&gt;, 0), 'debug': ('PYOP2_DEBUG', &lt;type 'int'&gt;, 0), 'backend': ('PYOP2_BACKEND', &lt;type 'str'&gt;, 'sequential')}</em><a class="headerlink" href="#pyop2.configuration.Configuration.DEFAULTS" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">DEFAULTS</tt><em class="property"> = {'lazy_evaluation': ('PYOP2_LAZY', &lt;type 'bool'&gt;, True), 'log_level': ('PYOP2_LOG_LEVEL', (&lt;type 'str'&gt;, &lt;type 'int'&gt;), 'WARNING'), 'dump_gencode_path': ('PYOP2_DUMP_GENCODE_PATH', &lt;type 'str'&gt;, '/tmp/pyop2-gencode'), 'simd_isa': ('PYOP2_SIMD_ISA', &lt;type 'str'&gt;, ''), 'lazy_max_trace_length': ('PYOP2_MAX_TRACE_LENGTH', &lt;type 'int'&gt;, 0), 'debug': ('PYOP2_DEBUG', &lt;type 'int'&gt;, 0), 'compiler': ('PYOP2_BACKEND_COMPILER', &lt;type 'str'&gt;, ''), 'dump_gencode': ('PYOP2_DUMP_GENCODE', &lt;type 'bool'&gt;, False), 'backend': ('PYOP2_BACKEND', &lt;type 'str'&gt;, 'sequential')}</em><a class="headerlink" href="#pyop2.configuration.Configuration.DEFAULTS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default values for PyOP2 configuration parameters</p>
 </dd></dl>
 
@@ -2070,7 +2084,7 @@ written to?</li>
 <span id="cuda-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">cuda</span></tt> Module<a class="headerlink" href="#module-pyop2.cuda" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pyop2.cuda.Kernel">
-<em class="property">class </em><tt class="descclassname">pyop2.cuda.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.cuda.Kernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.cuda.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.cuda.Kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.device.Kernel" title="pyop2.device.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.device.Kernel</span></tt></a></p>
 <dl class="method">
 <dt id="pyop2.cuda.Kernel.instrument">
@@ -2226,7 +2240,7 @@ strong boundary conditions.</p>
 
 <dl class="class">
 <dt id="pyop2.cuda.Map">
-<em class="property">class </em><tt class="descclassname">pyop2.cuda.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.cuda.Map" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.cuda.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em>, <em>offset=None</em>, <em>parent=None</em>, <em>bt_masks=None</em><big>)</big><a class="headerlink" href="#pyop2.cuda.Map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.device.Map" title="pyop2.device.Map"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.device.Map</span></tt></a></p>
 </dd></dl>
 
@@ -2319,7 +2333,7 @@ strong boundary conditions.</p>
 <span id="device-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">device</span></tt> Module<a class="headerlink" href="#module-pyop2.device" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pyop2.device.Kernel">
-<em class="property">class </em><tt class="descclassname">pyop2.device.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.device.Kernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.device.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.device.Kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.Kernel" title="pyop2.base.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Kernel</span></tt></a></p>
 </dd></dl>
 
@@ -2456,7 +2470,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="class">
 <dt id="pyop2.device.Map">
-<em class="property">class </em><tt class="descclassname">pyop2.device.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.device.Map" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.device.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em>, <em>offset=None</em>, <em>parent=None</em>, <em>bt_masks=None</em><big>)</big><a class="headerlink" href="#pyop2.device.Map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.Map" title="pyop2.base.Map"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Map</span></tt></a></p>
 </dd></dl>
 
@@ -2708,6 +2722,12 @@ provide useful error messages if the user invokes them after calling
 <p>Base classes extending those from the <tt class="xref py py-mod docutils literal"><span class="pre">base</span></tt> module with functionality
 common to backends executing on the host.</p>
 <dl class="class">
+<dt id="pyop2.host.Kernel">
+<em class="property">class </em><tt class="descclassname">pyop2.host.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.host.Kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.base.Kernel" title="pyop2.base.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Kernel</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.host.Arg">
 <em class="property">class </em><tt class="descclassname">pyop2.host.</tt><tt class="descname">Arg</tt><big>(</big><em>data=None</em>, <em>map=None</em>, <em>idx=None</em>, <em>access=None</em>, <em>flatten=False</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Arg</span></tt></a></p>
@@ -2811,7 +2831,7 @@ defined on.</li>
 
 <dl class="method">
 <dt id="pyop2.host.Arg.c_addto_scalar_field">
-<tt class="descname">c_addto_scalar_field</tt><big>(</big><em>i</em>, <em>j</em>, <em>offsets</em>, <em>extruded=None</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_addto_scalar_field" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">c_addto_scalar_field</tt><big>(</big><em>i</em>, <em>j</em>, <em>buf_name</em>, <em>extruded=None</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_addto_scalar_field" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -2901,17 +2921,22 @@ defined on.</li>
 
 <dl class="method">
 <dt id="pyop2.host.Arg.c_buffer_decl">
-<tt class="descname">c_buffer_decl</tt><big>(</big><em>size</em>, <em>idx</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_buffer_decl" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">c_buffer_decl</tt><big>(</big><em>size</em>, <em>idx</em>, <em>buf_name</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_buffer_decl" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.host.Arg.c_buffer_gather">
-<tt class="descname">c_buffer_gather</tt><big>(</big><em>size</em>, <em>idx</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_buffer_gather" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">c_buffer_gather</tt><big>(</big><em>size</em>, <em>idx</em>, <em>buf_name</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_buffer_gather" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pyop2.host.Arg.c_buffer_scatter">
-<tt class="descname">c_buffer_scatter</tt><big>(</big><em>count</em>, <em>extents</em>, <em>i</em>, <em>j</em>, <em>mxofs</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_buffer_scatter" title="Permalink to this definition">¶</a></dt>
+<dt id="pyop2.host.Arg.c_buffer_scatter_mm">
+<tt class="descname">c_buffer_scatter_mm</tt><big>(</big><em>i</em>, <em>j</em>, <em>mxofs</em>, <em>buf_name</em>, <em>buf_scat_name</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_buffer_scatter_mm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.host.Arg.c_buffer_scatter_vec">
+<tt class="descname">c_buffer_scatter_vec</tt><big>(</big><em>count</em>, <em>i</em>, <em>j</em>, <em>mxofs</em>, <em>buf_name</em><big>)</big><a class="headerlink" href="#pyop2.host.Arg.c_buffer_scatter_vec" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -3010,6 +3035,27 @@ defined on.</li>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="pyop2.logger.progress">
+<tt class="descclassname">pyop2.logger.</tt><tt class="descname">progress</tt><big>(</big><em>*args</em>, <em>**kwds</em><big>)</big><a class="headerlink" href="#pyop2.logger.progress" title="Permalink to this definition">¶</a></dt>
+<dd><p>A context manager to print a progress message.</p>
+<p>The block is wrapped in <tt class="docutils literal"><span class="pre">msg...</span></tt>, <tt class="docutils literal"><span class="pre">msg...done</span></tt> log messages
+with an appropriate indent (to distinguish nested message).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>level</strong> &#8211; the log level.  See <a class="reference internal" href="#pyop2.logger.log" title="pyop2.logger.log"><tt class="xref py py-func docutils literal"><span class="pre">log()</span></tt></a> for valid values</li>
+<li><strong>msg</strong> &#8211; the message.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>See <a class="reference internal" href="#pyop2.logger.log" title="pyop2.logger.log"><tt class="xref py py-func docutils literal"><span class="pre">log()</span></tt></a> for more details.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-pyop2.mpi">
 <span id="mpi-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">mpi</span></tt> Module<a class="headerlink" href="#module-pyop2.mpi" title="Permalink to this headline">¶</a></h2>
@@ -3100,7 +3146,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="class">
 <dt id="pyop2.op2.Kernel">
-<em class="property">class </em><tt class="descclassname">pyop2.op2.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.op2.Kernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.op2.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.op2.Kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.Kernel" title="pyop2.base.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Kernel</span></tt></a></p>
 <p>OP2 kernel type.</p>
 </dd></dl>
@@ -3574,7 +3620,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <p>OP2 OpenCL backend.</p>
 <dl class="class">
 <dt id="pyop2.opencl.Kernel">
-<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Kernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.opencl.Kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.device.Kernel" title="pyop2.device.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.device.Kernel</span></tt></a></p>
 <p>OP2 OpenCL kernel type.</p>
 <dl class="class">
@@ -3782,7 +3828,7 @@ used as both a row map and a column map) &#8211; <a class="reference internal" h
 
 <dl class="class">
 <dt id="pyop2.opencl.Map">
-<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Map" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.opencl.</tt><tt class="descname">Map</tt><big>(</big><em>iterset</em>, <em>dataset</em>, <em>arity</em>, <em>values=None</em>, <em>name=None</em>, <em>offset=None</em>, <em>parent=None</em>, <em>bt_masks=None</em><big>)</big><a class="headerlink" href="#pyop2.opencl.Map" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.device.Map" title="pyop2.device.Map"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.device.Map</span></tt></a></p>
 <p>OP2 OpenCL map, a relation between two Sets.</p>
 </dd></dl>
@@ -4063,6 +4109,13 @@ access requires a halo update.</td>
 </tr>
 </tbody>
 </table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <tt class="xref py py-class docutils literal"><span class="pre">Vec</span></tt> obtained from this context is in
+the correct order to be left multiplied by a compatible
+<tt class="xref py py-class docutils literal"><span class="pre">MixedMat</span></tt>.  In parallel it is <em>not</em> just a
+concatenation of the underlying <a class="reference internal" href="#pyop2.petsc_base.Dat" title="pyop2.petsc_base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s.</p>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -4137,6 +4190,30 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 </tr>
 </tbody>
 </table>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.petsc_base.Mat.inc_local_diagonal_entries">
+<tt class="descname">inc_local_diagonal_entries</tt><big>(</big><em>rows</em>, <em>diag_val=1.0</em><big>)</big><a class="headerlink" href="#pyop2.petsc_base.Mat.inc_local_diagonal_entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment the diagonal entry in <tt class="docutils literal"><span class="pre">rows</span></tt> by a particular value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rows</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Subset</span></tt> or an iterable.</li>
+<li><strong>diag_val</strong> &#8211; the value to add</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The indices in <tt class="docutils literal"><span class="pre">rows</span></tt> should index the process-local rows of
+the matrix (no mapping to global indexes is applied).</p>
+<p>The diagonal entries corresponding to the complement of rows
+are incremented by zero.</p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
@@ -4470,7 +4547,7 @@ The only recognised options are <cite>group</cite> and <cite>description</cite>.
 
 <dl class="function">
 <dt id="pyop2.utils.preprocess">
-<tt class="descclassname">pyop2.utils.</tt><tt class="descname">preprocess</tt><big>(</big><em>text</em><big>)</big><a class="headerlink" href="#pyop2.utils.preprocess" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.utils.</tt><tt class="descname">preprocess</tt><big>(</big><em>text</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.utils.preprocess" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -4578,6 +4655,7 @@ provide useful error messages if the user invokes them before calling
 <li class="toctree-l2"><a class="reference internal" href="pyop2.ir.html#module-pyop2.ir.ast_base"><tt class="docutils literal"><span class="pre">ast_base</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pyop2.ir.html#module-pyop2.ir.ast_optimizer"><tt class="docutils literal"><span class="pre">ast_optimizer</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pyop2.ir.html#module-pyop2.ir.ast_plan"><tt class="docutils literal"><span class="pre">ast_plan</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pyop2.ir.html#module-pyop2.ir.ast_vectorizer"><tt class="docutils literal"><span class="pre">ast_vectorizer</span></tt> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -4670,7 +4748,7 @@ provide useful error messages if the user invokes them before calling
         <li class="right" >
           <a href="user.html" title="pyop2 user documentation"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

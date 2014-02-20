@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The PyOP2 Kernel Interface &mdash; PyOP2 0.8.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.8.3 documentation" href="index.html" />
+    <link rel="next" title="pyop2 Package" href="pyop2.html" />
+    <link rel="prev" title="pyop2 user documentation" href="user.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyop2.html" title="pyop2 Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.8.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-pyop2-kernel-interface">
+<h1>The PyOP2 Kernel Interface<a class="headerlink" href="#the-pyop2-kernel-interface" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">ParLoop</span></tt> is the main construct of PyOP2. It applies a specific
+<tt class="docutils literal"><span class="pre">Kernel</span></tt> to all elements in the iteration set of the parallel loop. Here, we
+describe how to use the PyOP2 API to build a <tt class="docutils literal"><span class="pre">Kernel</span></tt> and, also, we provide
+simple guidelines on how to write efficient kernels.</p>
+<div class="section" id="kernal-api">
+<h2>Kernal API<a class="headerlink" href="#kernal-api" title="Permalink to this headline">¶</a></h2>
+<p>A <tt class="docutils literal"><span class="pre">Kernel</span></tt> is composed of three objects:</p>
+<ul class="simple">
+<li>The <tt class="docutils literal"><span class="pre">code</span></tt> implementing the actual computation</li>
+<li>The <tt class="docutils literal"><span class="pre">name</span></tt></li>
+<li>An optional set of parameters, <tt class="docutils literal"><span class="pre">opts</span></tt>, to drive the optimization process</li>
+</ul>
+<p>For example, to build a PyOP2 <tt class="docutils literal"><span class="pre">Kernel</span></tt> that initialises to 0 a certain dataset
+associated to the edges of the mesh, one can write:</p>
+<p>In this example, we assume the dataset has size 3, meaning that edge_weight is
+a pointer to an array of three doubles. No optimizations were requested; this
+essentially means that PyOP2 will leave the kernel untouched, and <tt class="docutils literal"><span class="pre">code</span></tt> will
+be just compiled and run on the user-specified back-end using the default
+compiler.</p>
+</div>
+<div class="section" id="using-the-intermediate-representation">
+<h2>Using the Intermediate Representation<a class="headerlink" href="#using-the-intermediate-representation" title="Permalink to this headline">¶</a></h2>
+<p>Passing in a string of C code is the simplest way of creating a <tt class="docutils literal"><span class="pre">Kernel</span></tt>.
+An alternative is to express the semantics of the computation resorting to
+the PyOP2 internal Intermediate Representation (IR) format. At the moment, the
+PyOP2 system lacks a solid parser to transform a string of C code directly into
+an Abstract Syntax Tree (AST), so we provide users with access to PyOP2 objects
+to build directly an AST. The main reason a parser has not been developed yet is
+that PyOP2 has been primarily thought to be fed by higher layers of abstractions,
+rather than by users. The advantage of providing an AST rather than C code is
+that it enables PyOP2 manipulating the kernel, increasing the chance of obtaining
+a better performance portability among different architectures and, more in
+general, better execution times.</p>
+<p>Here, we describe how we can use PyOP2 objects to build an AST representation
+of the <tt class="docutils literal"><span class="pre">init</span></tt> kernel shown previously.</p>
+<p>The simplest opportunity</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The PyOP2 Kernel Interface</a><ul>
+<li><a class="reference internal" href="#kernal-api">Kernal API</a></li>
+<li><a class="reference internal" href="#using-the-intermediate-representation">Using the Intermediate Representation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="user.html"
+                        title="previous chapter">pyop2 user documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pyop2.html"
+                        title="next chapter">pyop2 Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pyop2_ir_user.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyop2.html" title="pyop2 Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.8.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

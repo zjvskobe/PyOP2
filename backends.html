@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>PyOP2 Backends &mdash; PyOP2 0.9.1 documentation</title>
+    <title>PyOP2 Backends &mdash; PyOP2 0.10.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.1',
+        VERSION:     '0.10.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,9 +23,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
     <link rel="next" title="pyop2 user documentation" href="user.html" />
-    <link rel="prev" title="PyOP2 Concepts" href="concepts.html" /> 
+    <link rel="prev" title="PyOP2 Kernels" href="kernels.html" /> 
   </head>
   <body>
     <div class="related">
@@ -41,9 +41,9 @@
           <a href="user.html" title="pyop2 user documentation"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="concepts.html" title="PyOP2 Concepts"
+          <a href="kernels.html" title="PyOP2 Kernels"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -86,7 +86,7 @@ Both the kernel and the wrapper function are just-in-time compiled in
 a single compilation unit such that the kernel call can be inlined and
 does not incur any function call overhead.</p>
 <p>Recall the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> calling the <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel from
-<tt class="xref doc docutils literal"><span class="pre">kernels</span></tt>:</p>
+<a class="reference internal" href="kernels.html"><em>PyOP2 Kernels</em></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span>
              <span class="n">midpoints</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">WRITE</span><span class="p">),</span>
              <span class="n">coordinates</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">cell2vertex</span><span class="p">))</span>
@@ -210,7 +210,7 @@ described in <tt class="xref doc docutils literal"><span class="pre">colouring</
   }
 }</pre>
 </div>
-<p>Computation is split in <tt class="docutils literal"><span class="pre">nblocks</span></tt> blocks which start at an initial offset
+<p>Computation is split into <tt class="docutils literal"><span class="pre">nblocks</span></tt> blocks which start at an initial offset
 <tt class="docutils literal"><span class="pre">boffset</span></tt> and correspond to colours that can be executed conflict free in
 parallel. This loop over colours is therefore wrapped in an OpenMP parallel
 region and is annotated with an <tt class="docutils literal"><span class="pre">omp</span> <span class="pre">for</span></tt> pragma. The block id <tt class="docutils literal"><span class="pre">bid</span></tt> for
@@ -542,20 +542,19 @@ example:</p>
 <span class="p">}</span>
 </pre></div>
 </td></tr></table></div>
-<p>Parallel computations in OpenCL are executed by <em>work items</em> organised
-into <em>work groups</em>. OpenCL requires annotating all pointer arguments
-with the memory region they point to: <tt class="docutils literal"><span class="pre">__global</span></tt> memory is visible
-to any work item, <tt class="docutils literal"><span class="pre">__local</span></tt> memory to any work item within the same
-work group and <tt class="docutils literal"><span class="pre">__private</span></tt> memory is private to a work item. PyOP2
-does this annotation automatically for the user kernel if the OpenCL
-backend is used. Local memory therefore corresponds to CUDA&#8217;s shared
-memory and private memory is called local memory in CUDA. The work
-item id within the work group is accessed via the OpenCL runtime call
-<tt class="docutils literal"><span class="pre">get_local_id(0)</span></tt>, the work group id via <tt class="docutils literal"><span class="pre">get_group_id(0)</span></tt>. A
-barrier synchronisation across all work items of a work group is
-enforced with a call to <tt class="docutils literal"><span class="pre">barrier(CLK_LOCAL_MEM_FENCE)</span></tt>. Bearing
-these differences in mind, the OpenCL kernel stub is structurally
-almost identical to the corresponding CUDA version above.</p>
+<p>Parallel computations in OpenCL are executed by <em>work items</em> organised into
+<em>work groups</em>. OpenCL requires the annotation of all pointer arguments with
+the memory region they point to: <tt class="docutils literal"><span class="pre">__global</span></tt> memory is visible to any work
+item, <tt class="docutils literal"><span class="pre">__local</span></tt> memory to any work item within the same work group and
+<tt class="docutils literal"><span class="pre">__private</span></tt> memory is private to a work item. PyOP2 does this annotation
+automatically for the user kernel if the OpenCL backend is used. Local memory
+therefore corresponds to CUDA&#8217;s shared memory and private memory is called
+local memory in CUDA. The work item id within the work group is accessed via
+the OpenCL runtime call <tt class="docutils literal"><span class="pre">get_local_id(0)</span></tt>, the work group id via
+<tt class="docutils literal"><span class="pre">get_group_id(0)</span></tt>. A barrier synchronisation across all work items of a work
+group is enforced with a call to <tt class="docutils literal"><span class="pre">barrier(CLK_LOCAL_MEM_FENCE)</span></tt>. Bearing
+these differences in mind, the OpenCL kernel stub is structurally almost
+identical to the corresponding CUDA version above.</p>
 <p>The required local memory size per work group <tt class="docutils literal"><span class="pre">reqd_work_group_size</span></tt> is
 computed as part of the execution plan. In CUDA this value is a launch
 parameter to the kernel, whereas in OpenCL it needs to be hard coded as a
@@ -581,8 +580,8 @@ kernel attribute.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="concepts.html"
-                        title="previous chapter">PyOP2 Concepts</a></p>
+  <p class="topless"><a href="kernels.html"
+                        title="previous chapter">PyOP2 Kernels</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="user.html"
                         title="next chapter">pyop2 user documentation</a></p>
@@ -621,9 +620,9 @@ kernel attribute.</p>
           <a href="user.html" title="pyop2 user documentation"
              >next</a> |</li>
         <li class="right" >
-          <a href="concepts.html" title="PyOP2 Concepts"
+          <a href="kernels.html" title="PyOP2 Kernels"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

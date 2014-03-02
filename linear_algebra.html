@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PyOP2 Linear Algebra Interface &mdash; PyOP2 0.10.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="next" title="pyop2 user documentation" href="user.html" />
+    <link rel="prev" title="PyOP2 Backends" href="backends.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="backends.html" title="PyOP2 Backends"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyop2-linear-algebra-interface">
+<span id="linear-algebra"></span><h1>PyOP2 Linear Algebra Interface<a class="headerlink" href="#pyop2-linear-algebra-interface" title="Permalink to this headline">¶</a></h1>
+<p>PyOP2 supports linear algebra operations on sparse matrices and makes heavy
+use of the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> library, which is harnessed via its <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> interface.</p>
+<p>As described in <a class="reference internal" href="concepts.html"><em>PyOP2 Concepts</em></a>, a sparse matrix is a linear operator that
+maps a <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> representing its row space to a
+<a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> representing its column space and vice versa. These
+two spaces are commonly the same, in which case the resulting matrix is
+square. A sparse matrix is represented by a <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>, which is
+declared on a <a class="reference internal" href="user.html#pyop2.Sparsity" title="pyop2.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt></a>, representing its non-zero structure.</p>
+<div class="section" id="sparse-matrix-storage-formats">
+<span id="matrix-storage"></span><h2>Sparse Matrix Storage Formats<a class="headerlink" href="#sparse-matrix-storage-formats" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> uses the popular Compressed Sparse Row (CSR) format to only store the
+non-zero entries of sparse matrices. In CSR, a matrix is stored as three
+one-dimensional arrays of <em>row pointers</em>, <em>column indices</em> and <em>values</em>, where
+the two former are of integer type and the latter of float type, usually
+double. As the name suggests, non-zero entries are stored per row, where each
+non-zero is defined by a pair of column index and corresponding value. The
+column indices and values arrays therefore have a length equal to the total
+number of non-zero entries. Row indices are given implicitly by the row
+pointer array, which contains for each row <tt class="docutils literal"><span class="pre">i</span></tt> the starting index in the
+column index and values arrays for the non-zero entries of that particular
+row. In other words, the non-zeros for row <tt class="docutils literal"><span class="pre">i</span></tt> are at positions
+<tt class="docutils literal"><span class="pre">row_ptr[i]</span></tt> up to but not including <tt class="docutils literal"><span class="pre">row_ptr[i+1]</span></tt> in the column index
+and values arrays. For each row, entries are sorted by column index to allow
+for faster lookups using a binary search.</p>
+<p>For distributed parallel storage with MPI, the rows of the matrix are
+distribued evenly among the processors. Each row is then again divided into a
+<em>diagonal</em> and an <em>off-diagonal</em> part, where the diagonal part comprises
+columns <tt class="docutils literal"><span class="pre">i</span></tt> to <tt class="docutils literal"><span class="pre">j</span></tt> if <tt class="docutils literal"><span class="pre">i</span></tt> and <tt class="docutils literal"><span class="pre">j</span></tt> are the first and last row owned by
+a given processor, and the off-diagonal part all other rows.</p>
+</div>
+<div class="section" id="matrix-assembly">
+<span id="id1"></span><h2>Matrix assembly<a class="headerlink" href="#matrix-assembly" title="Permalink to this headline">¶</a></h2>
+<p>Sparse matrices are assembled by adding up local contributions which are
+mapped to global matrix entries via a local-to-global mapping represented by a
+pair of <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a> for the row and column space.</p>
+<p>For each <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> that assembles a matrix, PyOP2 generates a
+call to <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>&#8216;s <tt class="docutils literal"><span class="pre">MatSetValues</span></tt> function for each element of the iteration
+set, adding the local contributions computed by the user kernel to the global
+matrix using the given <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a>.</p>
+</div>
+<div class="section" id="building-a-sparsity-pattern">
+<span id="sparsity-pattern"></span><h2>Building a sparsity pattern<a class="headerlink" href="#building-a-sparsity-pattern" title="Permalink to this headline">¶</a></h2>
+<p>The sparsity pattern of a matrix is uniquely defined by the dimensions of the
+<a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSets</span></tt></a> forming its row and column space, and the
+pairs of <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a> defining the non-zero structure as
+described in <a class="reference internal" href="#matrix-assembly"><em>Matrix assembly</em></a>. This is exploited in PyOP2 by caching
+sparsity patterns with these unique attributes as the cache key to save
+expensive recomputation. Whenever a <tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt> is initialised an
+already computed pattern with the same unique key is returned if it exists.</p>
+<p>Sparsity construction proceeds by iterating each <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> pair and
+building a set of indices of the non-zero columns for each row. Each pair of
+entries in the row and column maps gives the row and column index of a
+non-zero entry in the matrix and therefore the column index is added to the
+set of non-zero entries for that particular row. The array of non-zero entries
+per row is then determined as the size of the set for each row and its
+exclusive scan yields the row pointer array. The column index array is the
+concatenation of all the sets. An algorithm for the sequential case is given
+below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">rowmap</span><span class="p">,</span> <span class="n">colmap</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
+  <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">from_size</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowdim</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">rowdim</span> <span class="o">*</span> <span class="n">rowmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+          <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">coldim</span><span class="p">):</span>
+            <span class="n">diag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">coldim</span> <span class="o">*</span> <span class="n">colmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">d</span> <span class="o">+</span> <span class="n">e</span> <span class="o">*</span> <span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the MPI parallel case a minor modification is required, since for each row
+a set of diagonal and off-diagonal column indices needs to be built as
+described in <a class="reference internal" href="#matrix-storage"><em>Sparse Matrix Storage Formats</em></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">rowmap</span><span class="p">,</span> <span class="n">colmap</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
+  <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">from_size</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowdim</span><span class="p">):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">rowdim</span> <span class="o">*</span> <span class="n">rowmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span>
+        <span class="k">if</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">nrows</span> <span class="o">*</span> <span class="n">rowdim</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">coldim</span><span class="p">):</span>
+              <span class="n">col</span> <span class="o">=</span> <span class="n">coldim</span> <span class="o">*</span> <span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">])</span> <span class="o">+</span> <span class="n">c</span>
+              <span class="k">if</span> <span class="n">col</span> <span class="o">&lt;</span> <span class="n">ncols</span> <span class="o">*</span> <span class="n">coldim</span><span class="p">:</span>
+                  <span class="n">diag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+              <span class="k">else</span><span class="p">:</span>
+                  <span class="n">odiag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PyOP2 Linear Algebra Interface</a><ul>
+<li><a class="reference internal" href="#sparse-matrix-storage-formats">Sparse Matrix Storage Formats</a></li>
+<li><a class="reference internal" href="#matrix-assembly">Matrix assembly</a></li>
+<li><a class="reference internal" href="#building-a-sparsity-pattern">Building a sparsity pattern</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="backends.html"
+                        title="previous chapter">PyOP2 Backends</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="user.html"
+                        title="next chapter">pyop2 user documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/linear_algebra.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="backends.html" title="PyOP2 Backends"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

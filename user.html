@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyop2 user documentation &mdash; PyOP2 0.9.1 documentation</title>
+    <title>pyop2 user documentation &mdash; PyOP2 0.10.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.1',
+        VERSION:     '0.10.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
     <link rel="next" title="pyop2 Package" href="pyop2.html" />
     <link rel="prev" title="PyOP2 Backends" href="backends.html" /> 
   </head>
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="backends.html" title="PyOP2 Backends"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -187,7 +187,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <h3>Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
 <dt id="pyop2.Set">
-<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Set</tt><big>(</big><em>size=None</em>, <em>name=None</em>, <em>halo=None</em>, <em>layers=None</em><big>)</big><a class="headerlink" href="#pyop2.Set" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Set</tt><big>(</big><em>size=None</em>, <em>name=None</em>, <em>halo=None</em><big>)</big><a class="headerlink" href="#pyop2.Set" title="Permalink to this definition">¶</a></dt>
 <dd><p>OP2 set.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -271,7 +271,7 @@ by executing over these set elements as well as owned ones.</p>
 <dl class="attribute">
 <dt id="pyop2.Set.layers">
 <tt class="descname">layers</tt><a class="headerlink" href="#pyop2.Set.layers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of layers in the extruded mesh</p>
+<dd><p>Return None (not an <a class="reference internal" href="#pyop2.ExtrudedSet" title="pyop2.ExtrudedSet"><tt class="xref py py-class docutils literal"><span class="pre">ExtrudedSet</span></tt></a>).</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -306,6 +306,132 @@ by executing over these set elements as well as owned ones.</p>
 <dl class="attribute">
 <dt id="pyop2.Set.total_size">
 <tt class="descname">total_size</tt><a class="headerlink" href="#pyop2.Set.total_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total set size, including halo elements.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ExtrudedSet">
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">ExtrudedSet</tt><big>(</big><em>size=None</em>, <em>name=None</em>, <em>halo=None</em><big>)</big><a class="headerlink" href="#pyop2.ExtrudedSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>OP2 set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>size</strong> (<em>integer or list of four integers.</em>) &#8211; The size of the set.</li>
+<li><strong>dim</strong> (<em>integer or tuple of integers</em>) &#8211; The shape of the data associated with each element of this <tt class="docutils literal"><span class="pre">Set</span></tt>.</li>
+<li><strong>name</strong> (<em>string</em>) &#8211; The name of the set (optional).</li>
+<li><strong>halo</strong> &#8211; An exisiting halo to use (optional).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>When the set is employed as an iteration space in a
+<a class="reference internal" href="pyop2.html#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">pyop2.op2.par_loop()</span></tt></a>, the extent of any local iteration space within
+each set entry is indicated in brackets. See the example in
+<a class="reference internal" href="pyop2.html#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">pyop2.op2.par_loop()</span></tt></a> for more details.</p>
+<p>The size of the set can either be an integer, or a list of four
+integers.  The latter case is used for running in parallel where
+we distinguish between:</p>
+<blockquote>
+<div><ul class="simple">
+<li><cite>CORE</cite> (owned and not touching halo)</li>
+<li><cite>OWNED</cite> (owned, touching halo)</li>
+<li><cite>EXECUTE HALO</cite> (not owned, but executed over redundantly)</li>
+<li><cite>NON EXECUTE HALO</cite> (not owned, read when executing in the execute halo)</li>
+</ul>
+</div></blockquote>
+<p>If a single integer is passed, we assume that we&#8217;re running in
+serial and there is no distinction.</p>
+<p>The division of set elements is:</p>
+<div class="highlight-python"><pre>[0, CORE)
+[CORE, OWNED)
+[OWNED, EXECUTE HALO)
+[EXECUTE HALO, NON EXECUTE HALO).</pre>
+</div>
+<p>Halo send/receive data is stored on sets in a <tt class="xref py py-class docutils literal"><span class="pre">Halo</span></tt>.</p>
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.all_part">
+<tt class="descname">all_part</tt><a class="headerlink" href="#pyop2.ExtrudedSet.all_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.core_part">
+<tt class="descname">core_part</tt><a class="headerlink" href="#pyop2.ExtrudedSet.core_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.core_size">
+<tt class="descname">core_size</tt><a class="headerlink" href="#pyop2.ExtrudedSet.core_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Core set size.  Owned elements not touching halo elements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.exec_part">
+<tt class="descname">exec_part</tt><a class="headerlink" href="#pyop2.ExtrudedSet.exec_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.exec_size">
+<tt class="descname">exec_size</tt><a class="headerlink" href="#pyop2.ExtrudedSet.exec_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set size including execute halo elements.</p>
+<p>If a <tt class="xref py py-class docutils literal"><span class="pre">ParLoop</span></tt> is indirect, we do redundant computation
+by executing over these set elements as well as owned ones.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pyop2.ExtrudedSet.fromhdf5">
+<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.ExtrudedSet.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> from set named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.halo">
+<tt class="descname">halo</tt><a class="headerlink" href="#pyop2.ExtrudedSet.halo" title="Permalink to this definition">¶</a></dt>
+<dd><p><tt class="xref py py-class docutils literal"><span class="pre">Halo</span></tt> associated with this Set</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.layers">
+<tt class="descname">layers</tt><a class="headerlink" href="#pyop2.ExtrudedSet.layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return None (not an <a class="reference internal" href="#pyop2.ExtrudedSet" title="pyop2.ExtrudedSet"><tt class="xref py py-class docutils literal"><span class="pre">ExtrudedSet</span></tt></a>).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pyop2.ExtrudedSet.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>User-defined label</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.owned_part">
+<tt class="descname">owned_part</tt><a class="headerlink" href="#pyop2.ExtrudedSet.owned_part" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.partition_size">
+<tt class="descname">partition_size</tt><a class="headerlink" href="#pyop2.ExtrudedSet.partition_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default partition size</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.size">
+<tt class="descname">size</tt><a class="headerlink" href="#pyop2.ExtrudedSet.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set size, owned elements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.sizes">
+<tt class="descname">sizes</tt><a class="headerlink" href="#pyop2.ExtrudedSet.sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set sizes: core, owned, execute halo, total.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.ExtrudedSet.total_size">
+<tt class="descname">total_size</tt><a class="headerlink" href="#pyop2.ExtrudedSet.total_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total set size, including halo elements.</p>
 </dd></dl>
 
@@ -378,7 +504,7 @@ by executing over these set elements as well as owned ones.</p>
 <dl class="attribute">
 <dt id="pyop2.Subset.layers">
 <tt class="descname">layers</tt><a class="headerlink" href="#pyop2.Subset.layers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of layers in the extruded mesh</p>
+<dd><p>Return None (not an <a class="reference internal" href="#pyop2.ExtrudedSet" title="pyop2.ExtrudedSet"><tt class="xref py py-class docutils literal"><span class="pre">ExtrudedSet</span></tt></a>).</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -432,7 +558,7 @@ by executing over these set elements as well as owned ones.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sets</strong> (<em>iterable</em>) &#8211; Iterable of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sets</strong> (<em>iterable</em>) &#8211; Iterable of <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>s or <a class="reference internal" href="#pyop2.ExtrudedSet" title="pyop2.ExtrudedSet"><tt class="xref py py-class docutils literal"><span class="pre">ExtrudedSet</span></tt></a>s</td>
 </tr>
 </tbody>
 </table>
@@ -478,7 +604,7 @@ by executing over these set elements as well as owned ones.</p>
 <dl class="attribute">
 <dt id="pyop2.MixedSet.layers">
 <tt class="descname">layers</tt><a class="headerlink" href="#pyop2.MixedSet.layers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Numbers of layers in the extruded mesh.</p>
+<dd><p>Numbers of layers in the extruded mesh (or None if this MixedSet is not extruded).</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -660,13 +786,13 @@ will take each value from <tt class="docutils literal"><span class="pre">0</span
 <tt class="docutils literal"><span class="pre">n</span></tt> th extent passed to the iteration space for this
 <a class="reference internal" href="pyop2.html#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">pyop2.op2.par_loop()</span></tt></a>. See also <a class="reference internal" href="#pyop2.i" title="pyop2.i"><tt class="xref py py-data docutils literal"><span class="pre">i</span></tt></a>.</li>
 </ul>
-<p>For extruded problems (where <cite>iterset.layers &gt; 1</cite>) with boundary
-conditions applied at the top and bottom of the domain, one needs
-to provide a list of which of the <cite>arity</cite> values in each map entry
-correspond to values on the bottom boundary and which correspond
-to the top.  This is done by supplying two lists of indices in
-<cite>bt_masks</cite>, the first provides indices for the bottom, the second
-for the top.</p>
+<p>For extruded problems (where <tt class="docutils literal"><span class="pre">iterset</span></tt> is an
+<a class="reference internal" href="#pyop2.ExtrudedSet" title="pyop2.ExtrudedSet"><tt class="xref py py-class docutils literal"><span class="pre">ExtrudedSet</span></tt></a>) with boundary conditions applied at the top
+and bottom of the domain, one needs to provide a list of which of
+the <cite>arity</cite> values in each map entry correspond to values on the
+bottom boundary and which correspond to the top.  This is done by
+supplying two lists of indices in <cite>bt_masks</cite>, the first provides
+indices for the bottom, the second for the top.</p>
 <dl class="attribute">
 <dt id="pyop2.Map.arange">
 <tt class="descname">arange</tt><a class="headerlink" href="#pyop2.Map.arange" title="Permalink to this definition">¶</a></dt>
@@ -1755,7 +1881,7 @@ invocations.</p>
         <li class="right" >
           <a href="backends.html" title="PyOP2 Backends"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

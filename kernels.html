@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>PyOP2 Kernels &mdash; PyOP2 0.9.1 documentation</title>
+    <title>PyOP2 Kernels &mdash; PyOP2 0.10.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.1',
+        VERSION:     '0.10.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.9.1 documentation" href="index.html" />
-    <link rel="next" title="pyop2 user documentation" href="user.html" />
+    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="next" title="PyOP2 Backends" href="backends.html" />
     <link rel="prev" title="PyOP2 Concepts" href="concepts.html" /> 
   </head>
   <body>
@@ -38,12 +38,12 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="user.html" title="pyop2 user documentation"
+          <a href="backends.html" title="PyOP2 Backends"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="concepts.html" title="PyOP2 Concepts"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -122,82 +122,122 @@ could have interchangibly used a kernel signature with plain pointers:</p>
 <div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="n">midpoint</span><span class="p">(</span><span class="kt">double</span> <span class="o">*</span> <span class="n">p</span><span class="p">,</span> <span class="kt">double</span> <span class="o">**</span> <span class="n">coords</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Argument creation supports an optional flag <tt class="docutils literal"><span class="pre">flatten</span></tt>, which is used
+for kernels which expect data to be laid out by component:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">midpoint</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Kernel</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">void midpoint(double p[2], double *coords[1]) {</span>
+<span class="s">  p[0] = (coords[0][0] + coords[1][0] + coords[2][0]) / 3.0;</span>
+<span class="s">  p[1] = (coords[3][0] + coords[4][0] + coords[5][0]) / 3.0;</span>
+<span class="s">}&quot;&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;midpoint&quot;</span><span class="p">)</span>
+
+<span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span>
+             <span class="n">midpoints</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">WRITE</span><span class="p">),</span>
+             <span class="n">coordinates</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">cell2vertex</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-layout">
+<span id="id2"></span><h2>Data layout<a class="headerlink" href="#data-layout" title="Permalink to this headline">¶</a></h2>
+<p>Data for a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> declared on a <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> is
+stored contiguously for all elements of the set. For each element,
+this is a contiguous chunk of data of a shape given by the
+<a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> <tt class="docutils literal"><span class="pre">dim</span></tt> and the datatype of the
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>.  The size of this chunk is the product of the
+extents of the <tt class="docutils literal"><span class="pre">dim</span></tt> tuple times the size of the datatype.</p>
+<p>During execution of the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>, the kernel is called
+for each element of the iteration set and passed data for each of its
+arguments corresponding to the current set element <tt class="docutils literal"><span class="pre">i</span></tt> only.</p>
+<p>For a directly accessed argument such as <tt class="docutils literal"><span class="pre">midpoints</span></tt> above, the
+kernel is passed a pointer to the beginning of the chunk of data for
+the element <tt class="docutils literal"><span class="pre">i</span></tt> the kernel is currently called for. In CUDA/OpenCL
+<tt class="docutils literal"><span class="pre">i</span></tt> is the global thread id since the kernel is launched in parallel
+for all elements.</p>
+<blockquote>
+<div><img src="_images/direct_arg.svg" /></div></blockquote>
+<p>For an indirectly accessed argument such as <tt class="docutils literal"><span class="pre">coordinates</span></tt> above,
+PyOP2 gathers pointers to the data via the <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>
+<tt class="docutils literal"><span class="pre">cell2vertex</span></tt> used for the indirection. The kernel is passed a list
+of pointers of length corresponding to the <em>arity</em> of the
+<a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>, in the example above 3. Each of these points to
+the data chunk for the element in the target <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> given
+by <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> entries <tt class="docutils literal"><span class="pre">(i,</span> <span class="pre">0)</span></tt>, <tt class="docutils literal"><span class="pre">(i,</span> <span class="pre">1)</span></tt> and <tt class="docutils literal"><span class="pre">(i,</span> <span class="pre">2)</span></tt>.</p>
+<blockquote>
+<div><img src="_images/indirect_arg.svg" /></div></blockquote>
+<p>If the argument is created with the keyword argument <tt class="docutils literal"><span class="pre">flatten</span></tt> set
+to <tt class="docutils literal"><span class="pre">True</span></tt>, a flattened vector of pointers is passed to the kernel.
+This vector is of length <tt class="docutils literal"><span class="pre">dim</span> <span class="pre">*</span> <span class="pre">arity</span></tt> (where <tt class="docutils literal"><span class="pre">dim</span></tt> is the product
+of the extents of the <tt class="docutils literal"><span class="pre">dim</span></tt> tuple), which is 6 in the example above.
+Each entry points to a single data value of the <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>.
+The ordering is by component of <tt class="docutils literal"><span class="pre">dim</span></tt> i.e. the first component of
+each data item for each element in the target set pointed to by the
+map followed by the second component etc.</p>
+<blockquote>
+<div><img src="_images/indirect_arg_flattened.svg" /></div></blockquote>
 </div>
 <div class="section" id="local-iteration-spaces">
-<span id="id2"></span><h2>Local iteration spaces<a class="headerlink" href="#local-iteration-spaces" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>Local iteration spaces<a class="headerlink" href="#local-iteration-spaces" title="Permalink to this headline">¶</a></h2>
 <p>PyOP2 supports complex kernels with large local working set sizes, which may
 not run very efficiently on architectures with a limited amount of registers
 and on-chip resources. In many cases the resource usage is proportional to the
 size of the <em>local iteration space</em> the kernel operates on.</p>
-<p>Consider a finite-element local assembly kernel for a mass matrix from linear
-basis functions on triangles. For each element in the iteration set, the
-kernel computes a 3x3 local tensor:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">mass</span><span class="p">(</span><span class="kt">double</span> <span class="n">A</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="kt">double</span> <span class="o">**</span><span class="n">vertex_coordinates</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">double</span> <span class="n">J</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="kt">double</span> <span class="n">detJ</span><span class="p">;</span>
-  <span class="n">detJ</span> <span class="o">=</span> <span class="n">J</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">J</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">J</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">J</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-  <span class="k">const</span> <span class="kt">double</span> <span class="n">det</span> <span class="o">=</span> <span class="n">fabs</span><span class="p">(</span><span class="n">detJ</span><span class="p">);</span>
-
-  <span class="kt">double</span> <span class="n">W3</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">};</span>
-  <span class="kt">double</span> <span class="n">FE0</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{{</span><span class="mf">0.666666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">},</span>
-                      <span class="p">{</span><span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.666666666666667</span><span class="p">},</span>
-                      <span class="p">{</span><span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.666666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">}};</span>
-
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">ip</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">ip</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">ip</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">A</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">det</span><span class="o">*</span><span class="n">W3</span><span class="p">[</span><span class="n">ip</span><span class="p">]</span><span class="o">*</span><span class="n">FE0</span><span class="p">[</span><span class="n">ip</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">FE0</span><span class="p">[</span><span class="n">ip</span><span class="p">][</span><span class="n">j</span><span class="p">]);</span>
-      <span class="p">}</span>
+<p>Consider a finite-element local assembly kernel for vector-valued basis
+functions of second order on triangles.  There are kernels more complex and
+computing considerably larger local tensors commonly found in finite-element
+computations, in particular for higher-order basis functions, and this kernel
+only serves to illustrate the concept. For each element in the iteration set,
+this kernel computes a 12x12 local tensor:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">kernel</span><span class="p">(</span><span class="kt">double</span> <span class="n">A</span><span class="p">[</span><span class="mi">12</span><span class="p">][</span><span class="mi">12</span><span class="p">],</span> <span class="p">...)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// loops over the local iteration space</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">;</span> <span class="n">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">A</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="p">...</span>
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This kernel is the simplest commonly found in finite-element computations and
-only serves to illustrate the concept. To improve the efficiency of executing
-complex kernels on manycore platforms, their operation can be distributed
-among several threads which each compute a single point in this local
-iteration space to increase the level of parallelism and to lower the amount
-of resources required per thread. In the case of the <tt class="docutils literal"><span class="pre">mass</span></tt> kernel from
-above we obtain:</p>
-<div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">mass</span><span class="p">(</span><span class="kt">double</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="kt">double</span> <span class="o">**</span><span class="n">vertex_coordinates</span><span class="p">,</span> <span class="kt">int</span> <span class="n">j</span><span class="p">,</span> <span class="kt">int</span> <span class="n">k</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">double</span> <span class="n">J</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="n">J</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
-  <span class="kt">double</span> <span class="n">detJ</span><span class="p">;</span>
-  <span class="n">detJ</span> <span class="o">=</span> <span class="n">J</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">J</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">J</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">J</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-  <span class="k">const</span> <span class="kt">double</span> <span class="n">det</span> <span class="o">=</span> <span class="n">fabs</span><span class="p">(</span><span class="n">detJ</span><span class="p">);</span>
-
-  <span class="kt">double</span> <span class="n">W3</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">};</span>
-  <span class="kt">double</span> <span class="n">FE0</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{{</span><span class="mf">0.666666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">},</span>
-                      <span class="p">{</span><span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.666666666666667</span><span class="p">},</span>
-                      <span class="p">{</span><span class="mf">0.166666666666667</span><span class="p">,</span> <span class="mf">0.666666666666667</span><span class="p">,</span> <span class="mf">0.166666666666667</span><span class="p">}};</span>
-
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">ip</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">ip</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">;</span> <span class="n">ip</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">det</span><span class="o">*</span><span class="n">W3</span><span class="p">[</span><span class="n">ip</span><span class="p">]</span><span class="o">*</span><span class="n">FE0</span><span class="p">[</span><span class="n">ip</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">FE0</span><span class="p">[</span><span class="n">ip</span><span class="p">][</span><span class="n">j</span><span class="p">]);</span>
-  <span class="p">}</span>
+<p>PyOP2 invokes this kernel for each element in the iteration set:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">ele</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">ele</span> <span class="o">&lt;</span> <span class="n">nele</span><span class="p">;</span> <span class="o">++</span><span class="n">ele</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">double</span> <span class="n">A</span><span class="p">[</span><span class="mi">12</span><span class="p">][</span><span class="mi">12</span><span class="p">];</span>
+  <span class="p">...</span>
+  <span class="n">kernel</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="p">...);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To improve the efficiency of executing complex kernels on manycore
+platforms, their operation can be distributed among several threads
+which each compute a single point in this local iteration space to
+increase the level of parallelism and to lower the amount of resources
+required per thread. In the case of the kernel above we obtain:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">mass</span><span class="p">(</span><span class="kt">double</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">...,</span> <span class="kt">int</span> <span class="n">j</span><span class="p">,</span> <span class="kt">int</span> <span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Note how the doubly nested loop over basis function is hoisted out of the
 kernel, which receives its position in the local iteration space to compute as
-additional arguments j and k. PyOP2 needs to be told to loop over this local
-iteration space by indexing the corresponding maps with an
-<a class="reference internal" href="pyop2.html#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt></a> <a class="reference internal" href="user.html#pyop2.i" title="pyop2.i"><tt class="xref py py-data docutils literal"><span class="pre">i</span></tt></a>. The
-<a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> over <tt class="docutils literal"><span class="pre">elements</span></tt> to assemble the matrix <tt class="docutils literal"><span class="pre">mat</span></tt> with
-<tt class="docutils literal"><span class="pre">coordinates</span></tt> as read-only coefficient both indirectly accessed via
-<tt class="docutils literal"><span class="pre">ele2nodes</span></tt> is defined as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span>
-             <span class="n">mat</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">INC</span><span class="p">,</span> <span class="p">(</span><span class="n">ele2nodes</span><span class="p">[</span><span class="n">op2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">ele2nodes</span><span class="p">[</span><span class="n">op2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]])),</span>
-             <span class="n">coordinates</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">ele2nodes</span><span class="p">))</span>
+additional arguments <tt class="docutils literal"><span class="pre">j</span></tt> and <tt class="docutils literal"><span class="pre">k</span></tt>. PyOP2 then calls the kernel for
+each element of the local iteration space for each set element:</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">ele</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">ele</span> <span class="o">&lt;</span> <span class="n">nele</span><span class="p">;</span> <span class="o">++</span><span class="n">ele</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">double</span> <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+  <span class="p">...</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">;</span> <span class="n">k</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">kernel</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="p">...,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
+<p>On manycore platforms, the local iteration space does not translate into a
+loop nest, but rather into a larger number of threads being launched to
+compute each of its elements:</p>
+<img src="_images/iteration_spaces.svg" /><p>PyOP2 needs to be told to loop over this local iteration space by
+indexing the corresponding maps with an
+<a class="reference internal" href="pyop2.html#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt></a> <a class="reference internal" href="user.html#pyop2.i" title="pyop2.i"><tt class="xref py py-data docutils literal"><span class="pre">i</span></tt></a> in the
+<a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> call.</p>
 </div>
 </div>
 
@@ -211,6 +251,7 @@ iteration space by indexing the corresponding maps with an
   <ul>
 <li><a class="reference internal" href="#">PyOP2 Kernels</a><ul>
 <li><a class="reference internal" href="#kernel-api">Kernel API</a></li>
+<li><a class="reference internal" href="#data-layout">Data layout</a></li>
 <li><a class="reference internal" href="#local-iteration-spaces">Local iteration spaces</a></li>
 </ul>
 </li>
@@ -220,8 +261,8 @@ iteration space by indexing the corresponding maps with an
   <p class="topless"><a href="concepts.html"
                         title="previous chapter">PyOP2 Concepts</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="user.html"
-                        title="next chapter">pyop2 user documentation</a></p>
+  <p class="topless"><a href="backends.html"
+                        title="next chapter">PyOP2 Backends</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/kernels.txt"
@@ -254,12 +295,12 @@ iteration space by indexing the corresponding maps with an
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="user.html" title="pyop2 user documentation"
+          <a href="backends.html" title="PyOP2 Backends"
              >next</a> |</li>
         <li class="right" >
           <a href="concepts.html" title="PyOP2 Concepts"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

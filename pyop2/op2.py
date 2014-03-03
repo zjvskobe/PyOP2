@@ -43,13 +43,14 @@ from logger import debug, info, warning, error, critical, set_log_level
 from mpi import MPI, collective
 from utils import validate_type
 from exceptions import MatTypeError, DatTypeError
+from ir.ast_plan import init_ir
 
 __all__ = ['configuration', 'READ', 'WRITE', 'RW', 'INC', 'MIN', 'MAX',
            'i', 'debug', 'info', 'warning', 'error', 'critical', 'initialised',
-           'set_log_level', 'MPI', 'init', 'exit', 'Kernel', 'Set', 'MixedSet',
-           'Subset', 'DataSet', 'MixedDataSet', 'Halo', 'Dat', 'MixedDat',
-           'Mat', 'Const', 'Global', 'Map', 'MixedMap', 'Sparsity', 'Solver',
-           'par_loop', 'solve']
+           'set_log_level', 'MPI', 'init', 'exit', 'Kernel', 'Set', 'ExtrudedSet',
+           'MixedSet', 'Subset', 'DataSet', 'MixedDataSet', 'Halo', 'Dat',
+           'MixedDat', 'Mat', 'Const', 'Global', 'Map', 'MixedMap', 'Sparsity',
+           'Solver', 'par_loop', 'solve']
 
 
 def initialised():
@@ -107,6 +108,8 @@ def init(**kwargs):
         global MPI
         MPI = backends._BackendSelector._backend.MPI  # noqa: backend override
 
+    init_ir(configuration['simd_isa'], configuration['compiler'])
+
 
 @atexit.register
 @collective
@@ -123,6 +126,10 @@ class Kernel(base.Kernel):
 
 
 class Set(base.Set):
+    __metaclass__ = backends._BackendSelector
+
+
+class ExtrudedSet(base.Set):
     __metaclass__ = backends._BackendSelector
 
 
@@ -239,8 +246,14 @@ def par_loop(kernel, iterset, *args):
 
 
 @collective
-@validate_type(('M', base.Mat, MatTypeError),
+@validate_type(('A', base.Mat, MatTypeError),
                ('x', base.Dat, DatTypeError),
                ('b', base.Dat, DatTypeError))
-def solve(M, x, b):
-    Solver().solve(M, x, b)
+def solve(A, x, b):
+    """Solve a matrix equation using the default :class:`Solver`
+
+    :arg A: The :class:`Mat` containing the matrix.
+    :arg x: The :class:`Dat` to receive the solution.
+    :arg b: The :class:`Dat` containing the RHS.
+    """
+    Solver().solve(A, x, b)

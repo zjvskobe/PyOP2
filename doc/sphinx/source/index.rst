@@ -12,6 +12,9 @@ Contents:
    :maxdepth: 2
 
    installation
+   concepts
+   kernels
+   backends
    user
    pyop2
 

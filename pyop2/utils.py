@@ -54,7 +54,7 @@ def as_tuple(item, type=None, length=None):
         try:
             t = tuple(item)
         # ... or create a list of a single item
-        except TypeError:
+        except (TypeError, NotImplementedError):
             t = (item,) * (length or 1)
     if length and not len(t) == length:
         raise ValueError("Tuple needs to be of length %d" % length)
@@ -272,11 +272,12 @@ def parse_args(*args, **kwargs):
     return vars(parser(*args, **kwargs).parse_args())
 
 
-def preprocess(text):
-    p = Popen(['cpp', '-E', '-I' + os.path.dirname(__file__)], stdin=PIPE,
-              stdout=PIPE, universal_newlines=True)
-    processed = '\n'.join(l for l in p.communicate(
-        text)[0].split('\n') if not l.startswith('#'))
+def preprocess(text, include_dirs=[]):
+    cmd = ['cpp', '-E', '-I' + os.path.dirname(__file__)] + ['-I' + d for d in include_dirs]
+    p = Popen(cmd, stdin=PIPE, stdout=PIPE, universal_newlines=True)
+    # Strip empty lines and any preprocessor instructions other than pragmas
+    processed = '\n'.join(l for l in p.communicate(text)[0].split('\n')
+                          if l.strip() and (not l.startswith('#') or l.startswith('#pragma')))
     return processed
 
 

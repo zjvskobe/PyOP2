@@ -84,13 +84,13 @@ class FFCKernel(DiskCached, KernelCached):
                              'pyop2-ffc-kernel-cache-uid%d' % os.getuid())
 
     @classmethod
-    def _cache_key(cls, form, name):
+    def _cache_key(cls, form, name, options=None):
         form_data = form.compute_form_data()
         return md5(form_data.signature + name + Kernel._backend.__name__ +
                    _pyop2_geometry_md5 + constants.FFC_VERSION +
-                   constants.PYOP2_VERSION).hexdigest()
+                   constants.PYOP2_VERSION + str(options)).hexdigest()
 
-    def __init__(self, form, name):
+    def __init__(self, form, name, options=None):
         if self._initialized:
             return
 
@@ -107,6 +107,8 @@ class FFCKernel(DiskCached, KernelCached):
                     'tile': None,
                     'vect': None,
                     'ap': False}
+            if options:
+                opts.update(options)
             kernels.append(Kernel(Root([incl, kernel]), '%s_%s_integral_0_%s' %
                           (name, ida.domain_type, ida.domain_id), opts))
         self.kernels = tuple(kernels)
@@ -114,14 +116,19 @@ class FFCKernel(DiskCached, KernelCached):
         self._initialized = True
 
 
-def compile_form(form, name):
-    """Compile a form using FFC and return a :class:`pyop2.op2.Kernel`."""
+def compile_form(form, name, options=None):
+    """Compile a form using FFC and return a :class:`pyop2.op2.Kernel`.
+
+    :param form: a UFL form
+    :param name: name of the kernel function in the FFC generated code
+    :param options: optional dictionary of AST optimisation options
+    """
 
     # Check that we get a Form
     if not isinstance(form, Form):
         form = as_form(form)
 
-    return FFCKernel(form, name).kernels
+    return FFCKernel(form, name, options).kernels
 
 
 def clear_cache():

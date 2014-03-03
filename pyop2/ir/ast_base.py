@@ -62,6 +62,9 @@ class Node(object):
             code += n.gencode() + "\n"
         return code
 
+    def __str__(self):
+        return self.gencode()
+
 
 class Root(Node):
 

@@ -145,6 +145,27 @@ class LoopOptimiser(object):
 
         return (itspace_vrs, accessed_vrs)
 
+    def extract_diagonal(self):
+        """Extract the diagonal from a fully-parallel loop nest of an iteration
+        space. These are the loops that were marked by the user/higher layer
+        with a 'pragma pyop2 itspace'."""
+
+        node, parent = self.itspace[1]
+        inner_node_var = self.itspace[0][0].it_var()
+        parent.children.extend(node.children[0].children)
+        # Strip the inner loop
+        parent.children.remove(node)
+        tensor = None
+        # Replace all instances of inner with outer loop iteration variable
+        for s in self.sym:
+            if s.rank and s.rank[-1] == node.it_var():
+                # Tensor is the only symbol indexed by both iteration variables
+                if s.rank[0] == inner_node_var:
+                    tensor = s
+                s.rank = s.rank[:-1] + (inner_node_var,)
+
+        return tensor
+
     def op_licm(self):
         """Perform loop-invariant code motion.
 

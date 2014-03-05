@@ -3,75 +3,172 @@
 from llvm.core import *
 from llvm.ee import *
 from llvm_cbuilder import *
+from petsc_base import *
+import host
+import ctypes
 import numpy as np
 import llvm_cbuilder.shortnames as C
 
 # Parallel loop API
 
 
-class JITModule(base.JITModule):
+class JITModule(host.JITModule):
     def __init__(self, kernel, itspace, *args, **kwargs):
         self._kernel = kernel
         self._itspace = itspace
         self._args = args
         self._direct = kwargs.get('direct', False)
-        self._translated = False
 
     def __call__(self, *args):
         return self.execute(*args)
 
-    def execute(*args):
-        if not self._translated:
+    def execute(self, *args):
+        if not hasattr(self, '_func'):
             self.translate()
 
-        mod = self._llvm_module
+        ctypes_args = [ctypes.c_int32(args[0]), ctypes.c_int32(args[1])]
 
-        # TODO Invoke execution engine using this LLVM module. Or maybe
-        # CExecutor?
+        # TODO consider when args may not be an int32 array...
+        # Probably need some switch/case based on type of numpy array
+        ctypes_args += [arg.ctypes.data_as(ctypes.POINTER(ctypes.c_int32))
+                        for arg in args[2:]]
 
+        self._func(*ctypes_args)
 
     # Taking an LLVM IR kernel, create the loop wrapper
     def translate(self):
-        # Create LLVM module
-        llvm_module = self._llvm_module = Module.new('mod_' +
-                self._kernel.name)
+        if any(arg._is_soa for arg in self._args):
+            raise NotImplementedError('SoA arguments not yet supported in\
+                                        sequential_llvm')
 
-        kernel_code = self._kernel.code # TODO handle soa
-        code_to_compile = self.generate_wrapper(llvm_module)
+        # Create module for kernel code, verify, and link to main wrapper
+        # module.
+        kernel_module = Module.from_assembly(self._kernel.code)
+        kernel_module.verify()
+        llvm_module = Module.new('mod_' + self._kernel.name)
+        llvm_module.link_in(kernel_module)
+
+        self.generate_wrapper(llvm_module)
+
+        if configuration["debug"]:
+            self._wrapper_code = str(llvm_module)
+
+        self._dump_generated_code(str(llvm_module))
+
+        # TODO - Handle optimisation flags depending on debug level etc
 
     def generate_wrapper(self, llvm_module):
-        _ssinds_arg = ""
-        _ssinds_dec = ""
         _index_expr = "n"
 
+        # Variables dictionary to map argument names to their corresponding
+        # node in the LLVM AST.
+        vars = {}
+
         # Create wrapper function and add it to the LLVM module.
-        argtypes = [type for type in C.pointer(arg.llvm_arg_type())
-                    for arg in self._args]
+        # For argument types, explicitly say arg0/arg1 are of type int
+        # (for _start and _end of iteration space).
+        argtypes = [C.int32, C.int32]
+        argtypes += [arg.llvm_arg_type() for arg in self._args]
         functype = Type.function(C.void, argtypes)
-        func = llvm_module.add_function(functype, self._kernel.name +
-                                        '_wrapper')
+        func = llvm_module.add_function(functype, 'wrap_' + self._kernel.name +
+                                        '__')
+        _start = func.args[0]
+        _end = func.args[1]
 
-        _wrapper_decs = [arg.llvm_wrapper_dec(cb, i)
-                         for arg, i in enumerate(self._args, 0)]
+        # Name our arguments.
+        _start.name = '_start'
+        _end.name = '_end'
+        for i, arg in enumerate(self._args):
+            func.args[i + 2].name = '_' + arg.llvm_arg_name()
+
+        cb = CBuilder(func)
+
+        # Wrapper declarations
+        for i, arg in enumerate(self._args, 2):
+            arg.llvm_wrapper_dec(cb, vars, i)
+
+        if len(Const._defs) > 0:
+            raise NotImplementedError('Constant definitions not yet supported\
+                                        in sequential_llvm.')
+
+        if any(arg._is_global_reduction for arg in self._args):
+            raise NotImplementedError('Global reductions not yet supported\
+                                        in sequential_llvm.')
+
+        if any(arg._is_mat or arg._is_vec_map for arg in self._args):
+            raise NotImplementedError('Matrices and maps not yet supported\
+                                        in sequential_llvm.')
+
+        if self._itspace.layers > 1:
+            raise NotImplementedError('Layers/extruded meshes not yet\
+                                        supported in sequential_llvm.')
+
+        if any(arg._uses_itspace for arg in self._args):
+            raise NotImplementedError('Arguments that use the iteration space\
+                                        (?) not yet supported in\
+                                        sequential_llvm')
+
+        # Get a handle on our kernel function
+        kernel_handle = cb.get_function_named(self._kernel.name)
+
+        # Loop!
+        one = cb.constant(C.int32, 1)
+        loop_idx = cb.var_copy(_start, name=_index_expr)
+        end = cb.var_copy(_end, name='end')
+        with cb.loop() as loop:
+            with loop.condition() as loop_cond:
+                loop_cond(loop_idx < end)
+
+            with loop.body():
+                i = cb.var_copy(loop_idx, name='i')
+                vars['i'] = i
+
+                _kernel_args = [arg.llvm_kernel_arg(cb, vars, count)
+                                for count, arg in enumerate(self._args)]
+
+                kernel_handle(*_kernel_args)
+
+                loop_idx += one
+
+        cb.ret()
+        cb.close()
+        llvm_module.verify()
+
+        # Create CExecutor and set up params. This all needs to go in self, as
+        # otherwise garbage collection may occur leading to PETSc segfaults
+        self._llvm_module = llvm_module
+        self._exe = CExecutor(self._llvm_module)
+        self._ctype_args = [arg.ctype_arg_type() for arg in self._args]
+        self._func = self._exe.get_ctype_function(func, None, ctypes.c_int32,
+                                                  ctypes.c_int32,
+                                                  *self._ctype_args)
 
 
-
-
-
-
-class Arg(base.Arg):
+class Arg(host.Arg):
     _dtype_llvm_map = {np.int16: C.int16,
                        np.int32: C.int32}
 
+    _dtype_ctype_map = {np.int16: ctypes.c_int16,
+                        np.int32: ctypes.c_int32}
+
     def dtype_to_llvm(self, dtype):
-        type = _ctype_llvm_map.get(dtype)
+        type = self._dtype_llvm_map.get(dtype.type)
         if type is None:
-            raise NotImplementedError("Numpy type '%s' not yet supported in\
-                                        sequential_llvm." % dtype)
+            raise NotImplementedError("Numpy type '%s' not yet supported in sequential_llvm." % dtype)
+        return type
+
+    def dtype_to_ctype(self, dtype):
+        type = self._dtype_ctype_map.get(dtype.type)
+        if type is None:
+            raise NotImplementedError("Numpy type '%s' not yet supported in sequential_llvm." % dtype)
         return type
 
     def llvm_arg_type(self):
-        return self.dtype_to_llvm(self.dtype)
+        # TODO - these may not necessarily always be pointers!
+        return C.pointer(self.dtype_to_llvm(self.dtype))
+
+    def ctype_arg_type(self):
+        return ctypes.POINTER(self.dtype_to_ctype(self.dtype))
 
     def llvm_all_arg_types(self):
         data_type = self.llvm_arg_type()
@@ -84,22 +181,36 @@ class Arg(base.Arg):
     def llvm_arg_name(self, i=0, j=None):
         return self.c_arg_name(i, j)
 
-    def llvm_wrapper_dec(self, cb, argnum):
-        if self._is_mixed_mat or self._is_mat or self._is_indrect or\
+    def llvm_wrapper_dec(self, cb, vars, argnum):
+        if self._is_mixed_mat or self._is_mat or self._is_indirect or\
                 self._is_vec_map:
             raise NotImplementedError("Matrices, indirection and maps not yet\
                                         supported in sequential_llvm.")
-        else:  # TODO consider multiple args in the arg?
-            return [cb.var(self.llvm_arg_type(), cb.args[argnum],
-                    name=self.llvm_arg_name(i))]
-                    #for i, _ in enumerate(self.data)]
+        else:
+            # TODO handle multiple Dat's in self.data (mixed mats)
+            llvm_var = cb.var_copy(cb.args[argnum], name=self.llvm_arg_name())
+            vars[self.llvm_arg_name()] = llvm_var
+            return llvm_var
 
+    def llvm_kernel_arg(self, cb, vars, i=0, j=0, shape=(0,)):
+        if self._uses_itspace or self._is_indirect\
+                or self._is_global_reduction:
+            raise NotImplementedError("Unsupported kernel arg")
 
+        if isinstance(self.data, Global):
+            return vars['i']
+        else:
+            # <argname> + i * <argdim>
+            dim = cb.constant(C.int32, self.data.cdim)
+            i = vars['i']
+            return vars[self.llvm_arg_name()][i * dim].ref
 
 # Based on ParLoop in sequential.py
-class ParLoop(base.ParLoop):
+
+
+class ParLoop(host.ParLoop):
     def __init__(self, *args, **kwargs):
-        base.ParLoop.__init__(self, *args, **kwargs)
+        host.ParLoop.__init__(self, *args, **kwargs)
 
     def _compute(self, part):
         fun = JITModule(self.kernel, self.it_space, *self.args,
@@ -108,7 +219,7 @@ class ParLoop(base.ParLoop):
             self._jit_args = [0, 0]
             if isinstance(self._it_space._iterset, Subset):
                 pass  # TODO
-            else:
+            for arg in self.args:
                 for d in arg.data:
                     self._jit_args.append(d._data)
 

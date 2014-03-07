@@ -892,38 +892,59 @@ extruded iteration space)</p>
 <dl class="class">
 <dt id="pyop2.base.DataCarrier">
 <em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">DataCarrier</tt><a class="headerlink" href="#pyop2.base.DataCarrier" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.versioning.Versioned" title="pyop2.versioning.Versioned"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.versioning.Versioned</span></tt></a></p>
 <p>Abstract base class for OP2 data.</p>
 <p>Actual objects will be <a class="reference internal" href="#pyop2.base.DataCarrier" title="pyop2.base.DataCarrier"><tt class="xref py py-class docutils literal"><span class="pre">DataCarrier</span></tt></a> objects of rank 0
 (<a class="reference internal" href="#pyop2.base.Const" title="pyop2.base.Const"><tt class="xref py py-class docutils literal"><span class="pre">Const</span></tt></a> and <a class="reference internal" href="#pyop2.base.Global" title="pyop2.base.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>), rank 1 (<a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>), or rank 2
 (<a class="reference internal" href="#pyop2.base.Mat" title="pyop2.base.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>)</p>
+<dl class="class">
+<dt id="pyop2.base.DataCarrier.Snapshot">
+<em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.base.DataCarrier.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A snapshot of the current state of the DataCarrier object. If
+is_valid() returns True, then the object hasn&#8217;t changed since this
+snapshot was taken (and still exists).</p>
+<dl class="method">
+<dt id="pyop2.base.DataCarrier.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.DataCarrier.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.base.DataCarrier.create_snapshot">
+<tt class="descclassname">DataCarrier.</tt><tt class="descname">create_snapshot</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.DataCarrier.create_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a snapshot of the current object. If not overriden, this
+method will return a full duplicate object.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.base.DataCarrier.dtype">
-<tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.base.DataCarrier.dtype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">DataCarrier.</tt><tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.base.DataCarrier.dtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The Python type of the data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.base.DataCarrier.ctype">
-<tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.base.DataCarrier.ctype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">DataCarrier.</tt><tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.base.DataCarrier.ctype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The c type of the data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.base.DataCarrier.name">
-<tt class="descname">name</tt><a class="headerlink" href="#pyop2.base.DataCarrier.name" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">DataCarrier.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.base.DataCarrier.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.base.DataCarrier.dim">
-<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.base.DataCarrier.dim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">DataCarrier.</tt><tt class="descname">dim</tt><a class="headerlink" href="#pyop2.base.DataCarrier.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The shape tuple of the values for each element of the object.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.base.DataCarrier.cdim">
-<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.base.DataCarrier.cdim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">DataCarrier.</tt><tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.base.DataCarrier.cdim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The scalar number of values for each member of the object. This is
 the product of the dim tuple.</p>
 </dd></dl>
@@ -931,9 +952,30 @@ the product of the dim tuple.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.base.SetAssociated">
+<em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">SetAssociated</tt><a class="headerlink" href="#pyop2.base.SetAssociated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.base.DataCarrier" title="pyop2.base.DataCarrier"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.DataCarrier</span></tt></a></p>
+<p>Intermediate class between DataCarrier and subtypes associated with a
+Set (vectors and matrices).</p>
+<dl class="class">
+<dt id="pyop2.base.SetAssociated.Snapshot">
+<em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.base.SetAssociated.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A snapshot for SetAssociated objects is valid if the snapshot
+version is the same as the current version of the object</p>
+<dl class="method">
+<dt id="pyop2.base.SetAssociated.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.SetAssociated.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.base.Dat">
 <em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Dat</tt><big>(</big><em>dataset</em>, <em>data=None</em>, <em>dtype=None</em>, <em>name=None</em>, <em>soa=None</em>, <em>uid=None</em><big>)</big><a class="headerlink" href="#pyop2.base.Dat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.base.DataCarrier" title="pyop2.base.DataCarrier"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.DataCarrier</span></tt></a>, <tt class="xref py py-class docutils literal"><span class="pre">pyop2.base._EmptyDataMixin</span></tt></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.base.SetAssociated" title="pyop2.base.SetAssociated"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.SetAssociated</span></tt></a>, <tt class="xref py py-class docutils literal"><span class="pre">pyop2.base._EmptyDataMixin</span></tt>, <a class="reference internal" href="#pyop2.versioning.CopyOnWrite" title="pyop2.versioning.CopyOnWrite"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.versioning.CopyOnWrite</span></tt></a></p>
 <p>OP2 vector data. A <a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> holds values on every element of a
 <a class="reference internal" href="#pyop2.base.DataSet" title="pyop2.base.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>.</p>
 <p>If a <a class="reference internal" href="#pyop2.base.Set" title="pyop2.base.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> is passed as the <tt class="docutils literal"><span class="pre">dataset</span></tt> argument, rather
@@ -998,15 +1040,7 @@ the product of the dim tuple.</p>
 <dl class="attribute">
 <dt id="pyop2.base.Dat.data">
 <tt class="descname">data</tt><a class="headerlink" href="#pyop2.base.Dat.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Numpy array containing the data values.</p>
-<p>With this accessor you are claiming that you will modify
-the values you get back.  If you only need to look at the
-values, use <a class="reference internal" href="#pyop2.base.Dat.data_ro" title="pyop2.base.Dat.data_ro"><tt class="xref py py-meth docutils literal"><span class="pre">data_ro()</span></tt></a> instead.</p>
-<p>This only shows local values, to see the halo values too use
-<a class="reference internal" href="#pyop2.base.Dat.data_with_halos" title="pyop2.base.Dat.data_with_halos"><tt class="xref py py-meth docutils literal"><span class="pre">data_with_halos()</span></tt></a>.</p>
-<p>This function is logically collective over MPI ranks, it is an
-error to call it on fewer than all the ranks in MPI communicator.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.base.Dat.data_with_halos">
@@ -1228,12 +1262,32 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Const</tt><big>(</big><em>dim</em>, <em>data=None</em>, <em>name=None</em>, <em>dtype=None</em><big>)</big><a class="headerlink" href="#pyop2.base.Const" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.base.DataCarrier" title="pyop2.base.DataCarrier"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.DataCarrier</span></tt></a></p>
 <p>Data that is constant for any element of any set.</p>
+<dl class="class">
+<dt id="pyop2.base.Const.Snapshot">
+<em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.base.Const.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Overridden from DataCarrier; a snapshot is always valid as long as
+the Const object still exists</p>
+<dl class="method">
+<dt id="pyop2.base.Const.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.Const.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="exception">
 <dt id="pyop2.base.Const.NonUniqueNameError">
-<em class="property">exception </em><tt class="descname">NonUniqueNameError</tt><a class="headerlink" href="#pyop2.base.Const.NonUniqueNameError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">Const.</tt><tt class="descname">NonUniqueNameError</tt><a class="headerlink" href="#pyop2.base.Const.NonUniqueNameError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></tt></p>
 <p>The Names of const variables are required to be globally unique.
 This exception is raised if the name is already in use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.base.Const.duplicate">
+<tt class="descclassname">Const.</tt><tt class="descname">duplicate</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.base.Const.duplicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Const duplicate can always refer to the same data vector, since
+it&#8217;s read-only</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1688,7 +1742,7 @@ PETSc&#8217;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/p
 <dl class="class">
 <dt id="pyop2.base.Mat">
 <em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Mat</tt><big>(</big><em>sparsity</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.base.Mat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.base.DataCarrier" title="pyop2.base.DataCarrier"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.DataCarrier</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.base.SetAssociated" title="pyop2.base.SetAssociated"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.SetAssociated</span></tt></a></p>
 <p>OP2 matrix data. A <tt class="docutils literal"><span class="pre">Mat</span></tt> is defined on a sparsity pattern and holds a value
 for each element in the <a class="reference internal" href="#pyop2.base.Sparsity" title="pyop2.base.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt></a>.</p>
 <p>When a <tt class="docutils literal"><span class="pre">Mat</span></tt> is passed to <a class="reference internal" href="#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">pyop2.op2.par_loop()</span></tt></a>, the maps via which
@@ -1740,7 +1794,7 @@ matrix has more than around 10000 degrees of freedom.</p>
 <dl class="class">
 <dt id="pyop2.base.Kernel">
 <em class="property">class </em><tt class="descclassname">pyop2.base.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.base.Kernel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.caching.KernelCached" title="pyop2.caching.KernelCached"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.caching.KernelCached</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.caching.Cached" title="pyop2.caching.Cached"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.caching.Cached</span></tt></a></p>
 <p>OP2 kernel type.</p>
 <dl class="attribute">
 <dt id="pyop2.base.Kernel.name">
@@ -1930,22 +1984,22 @@ as individual keyword arguments (combining both will cause an exception).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>linear_solver</strong> &#8211; the solver type (&#8216;cg&#8217;)</li>
-<li><strong>preconditioner</strong> &#8211; the preconditioner type (&#8216;jacobi&#8217;)</li>
-<li><strong>relative_tolerance</strong> &#8211; relative solver tolerance (1e-7)</li>
-<li><strong>absolute_tolerance</strong> &#8211; absolute solver tolerance (1e-50)</li>
-<li><strong>divergence_tolerance</strong> &#8211; factor by which the residual norm may exceed
-the right-hand-side norm before the solve is considered to have
-diverged: <tt class="docutils literal"><span class="pre">norm(r)</span> <span class="pre">&gt;=</span> <span class="pre">dtol*norm(b)</span></tt> (1e4)</li>
-<li><strong>maximum_iterations</strong> &#8211; maximum number of solver iterations (1000)</li>
+<li><strong>ksp_type</strong> &#8211; the solver type (&#8216;cg&#8217;)</li>
+<li><strong>pc_type</strong> &#8211; the preconditioner type (&#8216;jacobi&#8217;)</li>
+<li><strong>ksp_rtol</strong> &#8211; relative solver tolerance (1e-7)</li>
+<li><strong>ksp_atol</strong> &#8211; absolute solver tolerance (1e-50)</li>
+<li><strong>ksp_divtol</strong> &#8211; factor by which the residual norm may exceed the
+right-hand-side norm before the solve is considered to have diverged:
+<tt class="docutils literal"><span class="pre">norm(r)</span> <span class="pre">&gt;=</span> <span class="pre">dtol*norm(b)</span></tt> (1e4)</li>
+<li><strong>ksp_max_it</strong> &#8211; maximum number of solver iterations (10000)</li>
 <li><strong>error_on_nonconvergence</strong> &#8211; abort if the solve does not converge in the
 maximum number of iterations (True, if False only a warning is printed)</li>
-<li><strong>monitor_convergence</strong> &#8211; print the residual norm after each iteration
+<li><strong>ksp_monitor</strong> &#8211; print the residual norm after each iteration
 (False)</li>
 <li><strong>plot_convergence</strong> &#8211; plot a graph of the convergence history after the
-solve has finished and save it to file (False, implies monitor_convergence)</li>
+solve has finished and save it to file (False, implies <em>ksp_monitor</em>)</li>
 <li><strong>plot_prefix</strong> &#8211; filename prefix for plot files (&#8216;&#8217;)</li>
-<li><strong>gmres_restart</strong> &#8211; restart period when using GMRES</li>
+<li><strong>ksp_gmres_restart</strong> &#8211; restart period when using GMRES</li>
 </ul>
 </td>
 </tr>
@@ -2022,13 +2076,6 @@ the object will be re-initialized even if it was returned from cache!</p>
 <dd><p>Cache key.</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="class">
-<dt id="pyop2.caching.KernelCached">
-<em class="property">class </em><tt class="descclassname">pyop2.caching.</tt><tt class="descname">KernelCached</tt><a class="headerlink" href="#pyop2.caching.KernelCached" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.caching.Cached" title="pyop2.caching.Cached"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.caching.Cached</span></tt></a></p>
-<p>Base class providing functionalities for cachable kernel objects.</p>
 </dd></dl>
 
 <dl class="class">
@@ -2234,19 +2281,8 @@ used as both a row map and a column map) &#8211; <a class="reference internal" h
 
 <dl class="method">
 <dt id="pyop2.cuda.Mat.zero_rows">
-<tt class="descname">zero_rows</tt><big>(</big><em>rows</em>, <em>diag_val=1.0</em><big>)</big><a class="headerlink" href="#pyop2.cuda.Mat.zero_rows" title="Permalink to this definition">¶</a></dt>
-<dd><p>Zeroes the specified rows of the matrix, with the exception of the
-diagonal entry, which is set to diag_val. May be used for applying
-strong boundary conditions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rows</strong> &#8211; a <a class="reference internal" href="#pyop2.cuda.Subset" title="pyop2.cuda.Subset"><tt class="xref py py-class docutils literal"><span class="pre">Subset</span></tt></a> or an iterable</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<tt class="descname">zero_rows</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.cuda.Mat.zero_rows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.cuda.Mat.zero">
@@ -2672,7 +2708,7 @@ generated code in order to make it suitable for passing to the backends.</p>
 <dl class="class">
 <dt id="pyop2.ffc_interface.FFCKernel">
 <em class="property">class </em><tt class="descclassname">pyop2.ffc_interface.</tt><tt class="descname">FFCKernel</tt><big>(</big><em>form</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.ffc_interface.FFCKernel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.caching.DiskCached" title="pyop2.caching.DiskCached"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.caching.DiskCached</span></tt></a>, <a class="reference internal" href="#pyop2.caching.KernelCached" title="pyop2.caching.KernelCached"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.caching.KernelCached</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.caching.DiskCached" title="pyop2.caching.DiskCached"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.caching.DiskCached</span></tt></a></p>
 </dd></dl>
 
 <dl class="function">
@@ -3586,22 +3622,22 @@ as individual keyword arguments (combining both will cause an exception).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>linear_solver</strong> &#8211; the solver type (&#8216;cg&#8217;)</li>
-<li><strong>preconditioner</strong> &#8211; the preconditioner type (&#8216;jacobi&#8217;)</li>
-<li><strong>relative_tolerance</strong> &#8211; relative solver tolerance (1e-7)</li>
-<li><strong>absolute_tolerance</strong> &#8211; absolute solver tolerance (1e-50)</li>
-<li><strong>divergence_tolerance</strong> &#8211; factor by which the residual norm may exceed
-the right-hand-side norm before the solve is considered to have
-diverged: <tt class="docutils literal"><span class="pre">norm(r)</span> <span class="pre">&gt;=</span> <span class="pre">dtol*norm(b)</span></tt> (1e4)</li>
-<li><strong>maximum_iterations</strong> &#8211; maximum number of solver iterations (1000)</li>
+<li><strong>ksp_type</strong> &#8211; the solver type (&#8216;cg&#8217;)</li>
+<li><strong>pc_type</strong> &#8211; the preconditioner type (&#8216;jacobi&#8217;)</li>
+<li><strong>ksp_rtol</strong> &#8211; relative solver tolerance (1e-7)</li>
+<li><strong>ksp_atol</strong> &#8211; absolute solver tolerance (1e-50)</li>
+<li><strong>ksp_divtol</strong> &#8211; factor by which the residual norm may exceed the
+right-hand-side norm before the solve is considered to have diverged:
+<tt class="docutils literal"><span class="pre">norm(r)</span> <span class="pre">&gt;=</span> <span class="pre">dtol*norm(b)</span></tt> (1e4)</li>
+<li><strong>ksp_max_it</strong> &#8211; maximum number of solver iterations (10000)</li>
 <li><strong>error_on_nonconvergence</strong> &#8211; abort if the solve does not converge in the
 maximum number of iterations (True, if False only a warning is printed)</li>
-<li><strong>monitor_convergence</strong> &#8211; print the residual norm after each iteration
+<li><strong>ksp_monitor</strong> &#8211; print the residual norm after each iteration
 (False)</li>
 <li><strong>plot_convergence</strong> &#8211; plot a graph of the convergence history after the
-solve has finished and save it to file (False, implies monitor_convergence)</li>
+solve has finished and save it to file (False, implies <em>ksp_monitor</em>)</li>
 <li><strong>plot_prefix</strong> &#8211; filename prefix for plot files (&#8216;&#8217;)</li>
-<li><strong>gmres_restart</strong> &#8211; restart period when using GMRES</li>
+<li><strong>ksp_gmres_restart</strong> &#8211; restart period when using GMRES</li>
 </ul>
 </td>
 </tr>
@@ -3611,71 +3647,27 @@ solve has finished and save it to file (False, implies monitor_convergence)</li>
 
 <dl class="function">
 <dt id="pyop2.op2.par_loop">
-<tt class="descclassname">pyop2.op2.</tt><tt class="descname">par_loop</tt><big>(</big><em>kernel</em>, <em>iterset</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.op2.par_loop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invocation of an OP2 kernel</p>
+<tt class="descclassname">pyop2.op2.</tt><tt class="descname">par_loop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.op2.par_loop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.op2.solve">
+<tt class="descclassname">pyop2.op2.</tt><tt class="descname">solve</tt><big>(</big><em>A</em>, <em>x</em>, <em>b</em><big>)</big><a class="headerlink" href="#pyop2.op2.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a matrix equation using the default <a class="reference internal" href="#pyop2.op2.Solver" title="pyop2.op2.Solver"><tt class="xref py py-class docutils literal"><span class="pre">Solver</span></tt></a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>kernel</strong> &#8211; The <a class="reference internal" href="#pyop2.op2.Kernel" title="pyop2.op2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> to be executed.</li>
-<li><strong>iterset</strong> &#8211; The iteration <a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> over which the kernel should be
-executed.</li>
-<li><strong>*args</strong> &#8211; One or more <tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt>s constructed from a
-<a class="reference internal" href="#pyop2.op2.Global" title="pyop2.op2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.op2.Dat" title="pyop2.op2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or <a class="reference internal" href="#pyop2.op2.Mat" title="pyop2.op2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> using the call
-syntax and passing in an optionally indexed <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>
-through which this <tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt> is accessed and the
-<tt class="xref py py-class docutils literal"><span class="pre">base.Access</span></tt> descriptor indicating how the
-<a class="reference internal" href="#pyop2.op2.Kernel" title="pyop2.op2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> is going to access this data (see the example
-below). These are the global data structures from and to
-which the kernel will read and write.</li>
+<li><strong>A</strong> &#8211; The <a class="reference internal" href="#pyop2.op2.Mat" title="pyop2.op2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> containing the matrix.</li>
+<li><strong>x</strong> &#8211; The <a class="reference internal" href="#pyop2.op2.Dat" title="pyop2.op2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> to receive the solution.</li>
+<li><strong>b</strong> &#8211; The <a class="reference internal" href="#pyop2.op2.Dat" title="pyop2.op2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> containing the RHS.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is the caller&#8217;s responsibility that the number and type of all
-<tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt>s passed to the <a class="reference internal" href="#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> match those expected
-by the <a class="reference internal" href="#pyop2.op2.Kernel" title="pyop2.op2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a>. No runtime check is performed to ensure this!</p>
-</div>
-<p>If a <a class="reference internal" href="#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> argument indexes into a <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> using an
-<tt class="xref py py-class docutils literal"><span class="pre">base.IterationIndex</span></tt>, this implies the use of a local
-<tt class="xref py py-class docutils literal"><span class="pre">base.IterationSpace</span></tt> of a size given by the arity of the
-<a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>. It is an error to have several arguments using local
-iteration spaces of different size.</p>
-<p><a class="reference internal" href="#pyop2.op2.par_loop" title="pyop2.op2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> invocation is illustrated by the following example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">pyop2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span>
-               <span class="n">mat</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">INC</span><span class="p">,</span> <span class="p">(</span><span class="n">elem_node</span><span class="p">[</span><span class="n">pyop2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span> <span class="n">elem_node</span><span class="p">[</span><span class="n">pyop2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span>
-               <span class="n">coords</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">elem_node</span><span class="p">))</span>
-</pre></div>
-</div>
-<p>This example will execute the <a class="reference internal" href="#pyop2.op2.Kernel" title="pyop2.op2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> <tt class="docutils literal"><span class="pre">mass</span></tt> over the
-<a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> <tt class="docutils literal"><span class="pre">elements</span></tt> executing 3x3 times for each
-<a class="reference internal" href="#pyop2.op2.Set" title="pyop2.op2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> member, assuming the <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> <tt class="docutils literal"><span class="pre">elem_node</span></tt> is of arity 3.
-The <a class="reference internal" href="#pyop2.op2.Kernel" title="pyop2.op2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> takes four arguments, the first is a <a class="reference internal" href="#pyop2.op2.Mat" title="pyop2.op2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> named
-<tt class="docutils literal"><span class="pre">mat</span></tt>, the second is a field named <tt class="docutils literal"><span class="pre">coords</span></tt>. The remaining two arguments
-indicate which local iteration space point the kernel is to execute.</p>
-<p>A <a class="reference internal" href="#pyop2.op2.Mat" title="pyop2.op2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> requires a pair of <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> objects, one each
-for the row and column spaces. In this case both are the same
-<tt class="docutils literal"><span class="pre">elem_node</span></tt> map. The row <a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is indexed by the first
-index in the local iteration space, indicated by the <tt class="docutils literal"><span class="pre">0</span></tt> index
-to <a class="reference internal" href="user.html#pyop2.i" title="pyop2.i"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.i</span></tt></a>, while the column space is indexed by
-the second local index.  The matrix is accessed to increment
-values using the <tt class="docutils literal"><span class="pre">pyop2.INC</span></tt> access descriptor.</p>
-<p>The <tt class="docutils literal"><span class="pre">coords</span></tt> <a class="reference internal" href="#pyop2.op2.Dat" title="pyop2.op2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is also accessed via the <tt class="docutils literal"><span class="pre">elem_node</span></tt>
-<a class="reference internal" href="#pyop2.op2.Map" title="pyop2.op2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>, however no indices are passed so all entries of
-<tt class="docutils literal"><span class="pre">elem_node</span></tt> for the relevant member of <tt class="docutils literal"><span class="pre">elements</span></tt> will be
-passed to the kernel as a vector.</p>
 <p>This function is logically collective over MPI ranks, it is an
-error to call it on fewer than all the ranks in MPI communicator.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyop2.op2.solve">
-<tt class="descclassname">pyop2.op2.</tt><tt class="descname">solve</tt><big>(</big><em>M</em>, <em>x</em>, <em>b</em><big>)</big><a class="headerlink" href="#pyop2.op2.solve" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
@@ -3925,7 +3917,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <dl class="class">
 <dt id="pyop2.petsc_base.Mat">
 <em class="property">class </em><tt class="descclassname">pyop2.petsc_base.</tt><tt class="descname">Mat</tt><big>(</big><em>sparsity</em>, <em>dtype=None</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#pyop2.petsc_base.Mat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.base.Mat" title="pyop2.base.Mat"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Mat</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.base.Mat" title="pyop2.base.Mat"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.base.Mat</span></tt></a>, <a class="reference internal" href="#pyop2.versioning.CopyOnWrite" title="pyop2.versioning.CopyOnWrite"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.versioning.CopyOnWrite</span></tt></a></p>
 <p>OP2 matrix data. A Mat is defined on a sparsity pattern and holds a value
 for each element in the <tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt>.</p>
 <dl class="method">
@@ -3946,21 +3938,8 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="method">
 <dt id="pyop2.petsc_base.Mat.zero_rows">
-<tt class="descname">zero_rows</tt><big>(</big><em>rows</em>, <em>diag_val=1.0</em><big>)</big><a class="headerlink" href="#pyop2.petsc_base.Mat.zero_rows" title="Permalink to this definition">¶</a></dt>
-<dd><p>Zeroes the specified rows of the matrix, with the exception of the
-diagonal entry, which is set to diag_val. May be used for applying
-strong boundary conditions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rows</strong> &#8211; a <tt class="xref py py-class docutils literal"><span class="pre">Subset</span></tt> or an iterable</td>
-</tr>
-</tbody>
-</table>
-<p>This function is logically collective over MPI ranks, it is an
-error to call it on fewer than all the ranks in MPI communicator.</p>
-</dd></dl>
+<tt class="descname">zero_rows</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.petsc_base.Mat.zero_rows" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.petsc_base.Mat.set_diagonal">
@@ -4349,6 +4328,74 @@ The only recognised options are <cite>group</cite> and <cite>description</cite>.
 <div class="section" id="module-pyop2.version">
 <span id="version-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">version</span></tt> Module<a class="headerlink" href="#module-pyop2.version" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-pyop2.versioning">
+<span id="versioning-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">versioning</span></tt> Module<a class="headerlink" href="#module-pyop2.versioning" title="Permalink to this headline">¶</a></h2>
+<p>This module implements the infrastructure required for versioning
+of data carrying objects (chiefly <a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>). Core
+functionality provided includes object version numbers and copy on
+write duplicates.</p>
+<p>Each data carrying object is equipped with a version number. This is
+incremented every time the value of the object is changed, whether
+this is by a <a class="reference internal" href="#pyop2.base.par_loop" title="pyop2.base.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> or through direct user access to a
+<tt class="xref py py-attr docutils literal"><span class="pre">data</span></tt> attribute. Access to the <tt class="xref py py-attr docutils literal"><span class="pre">data_ro</span></tt> read only data attribute does
+not increase the version number.</p>
+<p>Data carrying objects are also equipped with a <tt class="xref py py-meth docutils literal"><span class="pre">duplicate()</span></tt>
+method. From a user perspective, this is a deep copy of the original
+object. In the case of <a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> objects, this is implemented
+as a shallow copy along with a copy on write mechanism which causes
+the actual copy to occur if either the original or the copy is
+modified.  The delayed copy is implemented by immediately creating a
+copy <a class="reference internal" href="#pyop2.base.par_loop" title="pyop2.base.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> and, if lazy evaluation is enabled,
+enqueing it. This ensures that the dependency trace will cause all
+operations on which the copy depends to occur before the
+copy. Conversely, the dependency of the copy <a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> on the
+copying loop is artificially removed. This prevents the execution of
+the copy being triggered when the copy <a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is
+read. Instead, writes to the original and copy <a class="reference internal" href="#pyop2.base.Dat" title="pyop2.base.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> are
+intercepted and execution of the copy <a class="reference internal" href="#pyop2.base.par_loop" title="pyop2.base.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> is forced
+at that point.</p>
+<dl class="class">
+<dt id="pyop2.versioning.Versioned">
+<em class="property">class </em><tt class="descclassname">pyop2.versioning.</tt><tt class="descname">Versioned</tt><a class="headerlink" href="#pyop2.versioning.Versioned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Versioning class for objects with mutable data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop2.versioning.modifies">
+<tt class="descclassname">pyop2.versioning.</tt><tt class="descname">modifies</tt><big>(</big><em>method</em><big>)</big><a class="headerlink" href="#pyop2.versioning.modifies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for methods that modify their instance&#8217;s data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop2.versioning.modifies_arguments">
+<tt class="descclassname">pyop2.versioning.</tt><tt class="descname">modifies_arguments</tt><big>(</big><em>func</em><big>)</big><a class="headerlink" href="#pyop2.versioning.modifies_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for functions that modify their arguments&#8217; data</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.versioning.CopyOnWrite">
+<em class="property">class </em><tt class="descclassname">pyop2.versioning.</tt><tt class="descname">CopyOnWrite</tt><a class="headerlink" href="#pyop2.versioning.CopyOnWrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Class that overrides the duplicate method and performs the actual copy
+operation when either the original or the copy has been written.  Classes
+that inherit from CopyOnWrite need to provide the methods:</p>
+<dl class="docutils">
+<dt>_cow_actual_copy(self, src):</dt>
+<dd>Performs an actual copy of src&#8217;s data to self</dd>
+<dt>_cow_shallow_copy(self):</dt>
+<dd>Returns a shallow copy of the current object, e.g. the data handle
+should be the same.
+(optionally, otherwise the standard copy.copy() is used)</dd>
+</dl>
+<dl class="method">
+<dt id="pyop2.versioning.CopyOnWrite.duplicate">
+<tt class="descname">duplicate</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.versioning.CopyOnWrite.duplicate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-pyop2.void">
 <span id="void-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">void</span></tt> Module<a class="headerlink" href="#module-pyop2.void" title="Permalink to this headline">¶</a></h2>
 <p>This module contains stub implementations of core classes which are used to
@@ -4481,6 +4528,7 @@ provide useful error messages if the user invokes them before calling
 <li><a class="reference internal" href="#module-pyop2.sparsity"><tt class="docutils literal"><span class="pre">sparsity</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.utils"><tt class="docutils literal"><span class="pre">utils</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.version"><tt class="docutils literal"><span class="pre">version</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyop2.versioning"><tt class="docutils literal"><span class="pre">versioning</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.void"><tt class="docutils literal"><span class="pre">void</span></tt> Module</a></li>
 <li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 </ul>

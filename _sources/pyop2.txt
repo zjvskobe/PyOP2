@@ -201,6 +201,14 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`versioning` Module
+------------------------
+
+.. automodule:: pyop2.versioning
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`void` Module
 ------------------
 

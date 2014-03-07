@@ -110,79 +110,6 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="parallel-loops-and-linear-solves">
-<h3>Parallel loops and linear solves<a class="headerlink" href="#parallel-loops-and-linear-solves" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
-<dt id="pyop2.par_loop">
-<tt class="descclassname">pyop2.</tt><tt class="descname">par_loop</tt><big>(</big><em>kernel</em>, <em>iterset</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.par_loop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Invocation of an OP2 kernel</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>kernel</strong> &#8211; The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> to be executed.</li>
-<li><strong>iterset</strong> &#8211; The iteration <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> over which the kernel should be
-executed.</li>
-<li><strong>*args</strong> &#8211; One or more <a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a>s constructed from a
-<a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> using the call
-syntax and passing in an optionally indexed <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>
-through which this <a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a> is accessed and the
-<a class="reference internal" href="pyop2.html#pyop2.base.Access" title="pyop2.base.Access"><tt class="xref py py-class docutils literal"><span class="pre">base.Access</span></tt></a> descriptor indicating how the
-<a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> is going to access this data (see the example
-below). These are the global data structures from and to
-which the kernel will read and write.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">It is the caller&#8217;s responsibility that the number and type of all
-<a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a>s passed to the <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> match those expected
-by the <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a>. No runtime check is performed to ensure this!</p>
-</div>
-<p>If a <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> argument indexes into a <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> using an
-<a class="reference internal" href="pyop2.html#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">base.IterationIndex</span></tt></a>, this implies the use of a local
-<a class="reference internal" href="pyop2.html#pyop2.base.IterationSpace" title="pyop2.base.IterationSpace"><tt class="xref py py-class docutils literal"><span class="pre">base.IterationSpace</span></tt></a> of a size given by the arity of the
-<a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>. It is an error to have several arguments using local
-iteration spaces of different size.</p>
-<p><a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> invocation is illustrated by the following example</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">pyop2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span>
-               <span class="n">mat</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">INC</span><span class="p">,</span> <span class="p">(</span><span class="n">elem_node</span><span class="p">[</span><span class="n">pyop2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span> <span class="n">elem_node</span><span class="p">[</span><span class="n">pyop2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span>
-               <span class="n">coords</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">elem_node</span><span class="p">))</span>
-</pre></div>
-</div>
-<p>This example will execute the <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> <tt class="docutils literal"><span class="pre">mass</span></tt> over the
-<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> <tt class="docutils literal"><span class="pre">elements</span></tt> executing 3x3 times for each
-<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> member, assuming the <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> <tt class="docutils literal"><span class="pre">elem_node</span></tt> is of arity 3.
-The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> takes four arguments, the first is a <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> named
-<tt class="docutils literal"><span class="pre">mat</span></tt>, the second is a field named <tt class="docutils literal"><span class="pre">coords</span></tt>. The remaining two arguments
-indicate which local iteration space point the kernel is to execute.</p>
-<p>A <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> requires a pair of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> objects, one each
-for the row and column spaces. In this case both are the same
-<tt class="docutils literal"><span class="pre">elem_node</span></tt> map. The row <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is indexed by the first
-index in the local iteration space, indicated by the <tt class="docutils literal"><span class="pre">0</span></tt> index
-to <a class="reference internal" href="#pyop2.i" title="pyop2.i"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.i</span></tt></a>, while the column space is indexed by
-the second local index.  The matrix is accessed to increment
-values using the <tt class="docutils literal"><span class="pre">pyop2.INC</span></tt> access descriptor.</p>
-<p>The <tt class="docutils literal"><span class="pre">coords</span></tt> <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is also accessed via the <tt class="docutils literal"><span class="pre">elem_node</span></tt>
-<a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>, however no indices are passed so all entries of
-<tt class="docutils literal"><span class="pre">elem_node</span></tt> for the relevant member of <tt class="docutils literal"><span class="pre">elements</span></tt> will be
-passed to the kernel as a vector.</p>
-<p>This function is logically collective over MPI ranks, it is an
-error to call it on fewer than all the ranks in MPI communicator.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pyop2.solve">
-<tt class="descclassname">pyop2.</tt><tt class="descname">solve</tt><big>(</big><em>M</em>, <em>x</em>, <em>b</em><big>)</big><a class="headerlink" href="#pyop2.solve" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is logically collective over MPI ranks, it is an
-error to call it on fewer than all the ranks in MPI communicator.</p>
-</dd></dl>
-
-</div>
 <div class="section" id="data-structures">
 <h3>Data structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h3>
 <dl class="class">
@@ -1164,11 +1091,30 @@ This exception is raised if the name is already in use.</p>
 
 </dd></dl>
 
+<dl class="class">
+<dt id="pyop2.Const.Snapshot">
+<em class="property">class </em><tt class="descclassname">Const.</tt><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.Const.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overridden from DataCarrier; a snapshot is always valid as long as
+the Const object still exists</p>
+<dl class="method">
+<dt id="pyop2.Const.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Const.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Const.cdim">
 <tt class="descclassname">Const.</tt><tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Const.cdim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The scalar number of values for each member of the object. This is
 the product of the dim tuple.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.Const.create_snapshot">
+<tt class="descclassname">Const.</tt><tt class="descname">create_snapshot</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Const.create_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a snapshot of the current object. If not overriden, this
+method will return a full duplicate object.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1193,6 +1139,13 @@ the product of the dim tuple.</p>
 <dt id="pyop2.Const.dtype">
 <tt class="descclassname">Const.</tt><tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Const.dtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The Python type of the data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.Const.duplicate">
+<tt class="descclassname">Const.</tt><tt class="descname">duplicate</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Const.duplicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Const duplicate can always refer to the same data vector, since
+it&#8217;s read-only</p>
 </dd></dl>
 
 <dl class="classmethod">
@@ -1235,56 +1188,76 @@ accessed.</p>
 <p class="last">If the data buffer is not passed in, it is implicitly
 initialised to be zero.</p>
 </div>
+<dl class="class">
+<dt id="pyop2.Global.Snapshot">
+<em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.Global.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>A snapshot of the current state of the DataCarrier object. If
+is_valid() returns True, then the object hasn&#8217;t changed since this
+snapshot was taken (and still exists).</p>
+<dl class="method">
+<dt id="pyop2.Global.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Global.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Global.cdim">
-<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Global.cdim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Global.cdim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The scalar number of values for each member of the object. This is
 the product of the dim tuple.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.Global.create_snapshot">
+<tt class="descclassname">Global.</tt><tt class="descname">create_snapshot</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Global.create_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a snapshot of the current object. If not overriden, this
+method will return a full duplicate object.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Global.ctype">
-<tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.Global.ctype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.Global.ctype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The c type of the data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.data">
-<tt class="descname">data</tt><a class="headerlink" href="#pyop2.Global.data" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">data</tt><a class="headerlink" href="#pyop2.Global.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data array.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.data_ro">
-<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.Global.data_ro" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.Global.data_ro" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data array.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.dim">
-<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Global.dim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Global.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The shape tuple of the values for each element of the object.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.dtype">
-<tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Global.dtype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Global.dtype" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.name">
-<tt class="descname">name</tt><a class="headerlink" href="#pyop2.Global.name" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.Global.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.shape">
-<tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Global.shape" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Global.shape" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Global.soa">
-<tt class="descname">soa</tt><a class="headerlink" href="#pyop2.Global.soa" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Global.</tt><tt class="descname">soa</tt><a class="headerlink" href="#pyop2.Global.soa" title="Permalink to this definition">¶</a></dt>
 <dd><p>Are the data in SoA format? This is always false for <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>
 objects.</p>
 </dd></dl>
@@ -1324,16 +1297,28 @@ omitting the path argument.</p>
 <p><a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> objects support the pointwise linear algebra operations
 <tt class="docutils literal"><span class="pre">+=</span></tt>, <tt class="docutils literal"><span class="pre">*=</span></tt>, <tt class="docutils literal"><span class="pre">-=</span></tt>, <tt class="docutils literal"><span class="pre">/=</span></tt>, where <tt class="docutils literal"><span class="pre">*=</span></tt> and <tt class="docutils literal"><span class="pre">/=</span></tt> also support
 multiplication / division by a scalar.</p>
+<dl class="class">
+<dt id="pyop2.Dat.Snapshot">
+<em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.Dat.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>A snapshot for SetAssociated objects is valid if the snapshot
+version is the same as the current version of the object</p>
+<dl class="method">
+<dt id="pyop2.Dat.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Dat.cdim">
-<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Dat.cdim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Dat.cdim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The scalar number of values for each member of the object. This is
 the product of the dim tuple.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.Dat.copy">
-<tt class="descname">copy</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.Dat.copy" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">copy</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.Dat.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy the data in this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> into another.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1347,28 +1332,27 @@ the product of the dim tuple.</p>
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.Dat.create_snapshot">
+<tt class="descclassname">Dat.</tt><tt class="descname">create_snapshot</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.create_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a snapshot of the current object. If not overriden, this
+method will return a full duplicate object.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Dat.ctype">
-<tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.Dat.ctype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.Dat.ctype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The c type of the data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.data">
-<tt class="descname">data</tt><a class="headerlink" href="#pyop2.Dat.data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Numpy array containing the data values.</p>
-<p>With this accessor you are claiming that you will modify
-the values you get back.  If you only need to look at the
-values, use <a class="reference internal" href="#pyop2.Dat.data_ro" title="pyop2.Dat.data_ro"><tt class="xref py py-meth docutils literal"><span class="pre">data_ro()</span></tt></a> instead.</p>
-<p>This only shows local values, to see the halo values too use
-<a class="reference internal" href="#pyop2.Dat.data_with_halos" title="pyop2.Dat.data_with_halos"><tt class="xref py py-meth docutils literal"><span class="pre">data_with_halos()</span></tt></a>.</p>
-<p>This function is logically collective over MPI ranks, it is an
-error to call it on fewer than all the ranks in MPI communicator.</p>
-</dd></dl>
+<tt class="descclassname">Dat.</tt><tt class="descname">data</tt><a class="headerlink" href="#pyop2.Dat.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.data_ro">
-<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.Dat.data_ro" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.Dat.data_ro" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy array containing the data values.  Read-only.</p>
 <p>With this accessor you are not allowed to modify the values
 you get back.  If you need to do so, use <a class="reference internal" href="#pyop2.Dat.data" title="pyop2.Dat.data"><tt class="xref py py-meth docutils literal"><span class="pre">data()</span></tt></a> instead.</p>
@@ -1380,7 +1364,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.data_ro_with_halos">
-<tt class="descname">data_ro_with_halos</tt><a class="headerlink" href="#pyop2.Dat.data_ro_with_halos" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">data_ro_with_halos</tt><a class="headerlink" href="#pyop2.Dat.data_ro_with_halos" title="Permalink to this definition">¶</a></dt>
 <dd><p>A view of this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s data.</p>
 <p>This accessor does not mark the <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> as dirty, and is
 a read only view, see <a class="reference internal" href="#pyop2.Dat.data_ro" title="pyop2.Dat.data_ro"><tt class="xref py py-meth docutils literal"><span class="pre">data_ro()</span></tt></a> for more details on the
@@ -1394,7 +1378,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.data_with_halos">
-<tt class="descname">data_with_halos</tt><a class="headerlink" href="#pyop2.Dat.data_with_halos" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">data_with_halos</tt><a class="headerlink" href="#pyop2.Dat.data_with_halos" title="Permalink to this definition">¶</a></dt>
 <dd><p>A view of this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s data.</p>
 <p>This accessor marks the <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> as dirty, see
 <a class="reference internal" href="#pyop2.Dat.data" title="pyop2.Dat.data"><tt class="xref py py-meth docutils literal"><span class="pre">data()</span></tt></a> for more details on the semantics.</p>
@@ -1407,30 +1391,35 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.dataset">
-<tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.Dat.dataset" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.Dat.dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> on which the Dat is defined.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.dim">
-<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Dat.dim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Dat.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The shape of the values for each element of the object.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.dtype">
-<tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Dat.dtype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Dat.dtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.Dat.duplicate">
+<tt class="descclassname">Dat.</tt><tt class="descname">duplicate</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.duplicate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="classmethod">
 <dt id="pyop2.Dat.fromhdf5">
-<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>dataset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.Dat.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descclassname">Dat.</tt><tt class="descname">fromhdf5</tt><big>(</big><em>dataset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.Dat.fromhdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> from a Dat named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.Dat.halo_exchange_begin">
-<tt class="descname">halo_exchange_begin</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.halo_exchange_begin" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">halo_exchange_begin</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.halo_exchange_begin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Begin halo exchange.</p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
@@ -1438,7 +1427,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="method">
 <dt id="pyop2.Dat.halo_exchange_end">
-<tt class="descname">halo_exchange_end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.halo_exchange_end" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">halo_exchange_end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.halo_exchange_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>End halo exchange. Waits on MPI recv.</p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
@@ -1446,48 +1435,48 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.name">
-<tt class="descname">name</tt><a class="headerlink" href="#pyop2.Dat.name" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.Dat.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.needs_halo_update">
-<tt class="descname">needs_halo_update</tt><a class="headerlink" href="#pyop2.Dat.needs_halo_update" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">needs_halo_update</tt><a class="headerlink" href="#pyop2.Dat.needs_halo_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Has this Dat been written to since the last halo exchange?</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.norm">
-<tt class="descname">norm</tt><a class="headerlink" href="#pyop2.Dat.norm" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">norm</tt><a class="headerlink" href="#pyop2.Dat.norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>The L2-norm on the flattened vector.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.Dat.save">
-<tt class="descname">save</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyop2.Dat.save" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">save</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyop2.Dat.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the data array to file <tt class="docutils literal"><span class="pre">filename</span></tt> in NumPy format.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.shape">
-<tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Dat.shape" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Dat.shape" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.soa">
-<tt class="descname">soa</tt><a class="headerlink" href="#pyop2.Dat.soa" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">soa</tt><a class="headerlink" href="#pyop2.Dat.soa" title="Permalink to this definition">¶</a></dt>
 <dd><p>Are the data in SoA format?</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.split">
-<tt class="descname">split</tt><a class="headerlink" href="#pyop2.Dat.split" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">split</tt><a class="headerlink" href="#pyop2.Dat.split" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tuple containing only this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.Dat.zero">
-<tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.zero" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Dat.zero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Zero the data associated with this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
@@ -1510,16 +1499,28 @@ an iterable of <a class="reference internal" href="#pyop2.DataSet" title="pyop2.
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mdat</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">MixedDat</span><span class="p">([</span><span class="n">dat1</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">datN</span><span class="p">])</span>
 </pre></div>
 </div>
+<dl class="class">
+<dt id="pyop2.MixedDat.Snapshot">
+<em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>A snapshot for SetAssociated objects is valid if the snapshot
+version is the same as the current version of the object</p>
+<dl class="method">
+<dt id="pyop2.MixedDat.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.MixedDat.cdim">
-<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.MixedDat.cdim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.MixedDat.cdim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The scalar number of values for each member of the object. This is
 the product of the dim tuple.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.MixedDat.copy">
-<tt class="descname">copy</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.copy" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">copy</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy the data in this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> into another.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1533,15 +1534,22 @@ the product of the dim tuple.</p>
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.MixedDat.create_snapshot">
+<tt class="descclassname">MixedDat.</tt><tt class="descname">create_snapshot</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.create_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a snapshot of the current object. If not overriden, this
+method will return a full duplicate object.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.MixedDat.ctype">
-<tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.MixedDat.ctype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.MixedDat.ctype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The c type of the data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.data">
-<tt class="descname">data</tt><a class="headerlink" href="#pyop2.MixedDat.data" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">data</tt><a class="headerlink" href="#pyop2.MixedDat.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy arrays containing the data excluding halos.</p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
@@ -1549,7 +1557,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.data_ro">
-<tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.MixedDat.data_ro" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">data_ro</tt><a class="headerlink" href="#pyop2.MixedDat.data_ro" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy arrays with read-only data excluding halos.</p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
@@ -1557,7 +1565,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.data_ro_with_halos">
-<tt class="descname">data_ro_with_halos</tt><a class="headerlink" href="#pyop2.MixedDat.data_ro_with_halos" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">data_ro_with_halos</tt><a class="headerlink" href="#pyop2.MixedDat.data_ro_with_halos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy arrays with read-only data including halos.</p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
@@ -1565,7 +1573,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.data_with_halos">
-<tt class="descname">data_with_halos</tt><a class="headerlink" href="#pyop2.MixedDat.data_with_halos" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">data_with_halos</tt><a class="headerlink" href="#pyop2.MixedDat.data_with_halos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numpy arrays containing the data including halos.</p>
 <p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
@@ -1573,86 +1581,91 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.dataset">
-<tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.MixedDat.dataset" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">dataset</tt><a class="headerlink" href="#pyop2.MixedDat.dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#pyop2.MixedDataSet" title="pyop2.MixedDataSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedDataSet</span></tt></a>s this <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a> is defined on.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.dim">
-<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.MixedDat.dim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">dim</tt><a class="headerlink" href="#pyop2.MixedDat.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The shape of the values for each element of the object.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.dtype">
-<tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.MixedDat.dtype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.MixedDat.dtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The NumPy dtype of the data.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.MixedDat.duplicate">
+<tt class="descclassname">MixedDat.</tt><tt class="descname">duplicate</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.duplicate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="classmethod">
 <dt id="pyop2.MixedDat.fromhdf5">
-<em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>dataset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.fromhdf5" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descclassname">MixedDat.</tt><tt class="descname">fromhdf5</tt><big>(</big><em>dataset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.fromhdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> from a Dat named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.MixedDat.halo_exchange_begin">
-<tt class="descname">halo_exchange_begin</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.halo_exchange_begin" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">halo_exchange_begin</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.halo_exchange_begin" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.MixedDat.halo_exchange_end">
-<tt class="descname">halo_exchange_end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.halo_exchange_end" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">halo_exchange_end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.halo_exchange_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is logically collective over MPI ranks, it is an
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.name">
-<tt class="descname">name</tt><a class="headerlink" href="#pyop2.MixedDat.name" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.MixedDat.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.needs_halo_update">
-<tt class="descname">needs_halo_update</tt><a class="headerlink" href="#pyop2.MixedDat.needs_halo_update" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">needs_halo_update</tt><a class="headerlink" href="#pyop2.MixedDat.needs_halo_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Has this Dat been written to since the last halo exchange?</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.norm">
-<tt class="descname">norm</tt><a class="headerlink" href="#pyop2.MixedDat.norm" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">norm</tt><a class="headerlink" href="#pyop2.MixedDat.norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>The L2-norm on the flattened vector.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.MixedDat.save">
-<tt class="descname">save</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.save" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">save</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the data array to file <tt class="docutils literal"><span class="pre">filename</span></tt> in NumPy format.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.shape">
-<tt class="descname">shape</tt><a class="headerlink" href="#pyop2.MixedDat.shape" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">shape</tt><a class="headerlink" href="#pyop2.MixedDat.shape" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.soa">
-<tt class="descname">soa</tt><a class="headerlink" href="#pyop2.MixedDat.soa" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">soa</tt><a class="headerlink" href="#pyop2.MixedDat.soa" title="Permalink to this definition">¶</a></dt>
 <dd><p>Are the data in SoA format?</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.MixedDat.split">
-<tt class="descname">split</tt><a class="headerlink" href="#pyop2.MixedDat.split" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">split</tt><a class="headerlink" href="#pyop2.MixedDat.split" title="Permalink to this definition">¶</a></dt>
 <dd><p>The underlying tuple of <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.MixedDat.zero">
-<tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.zero" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.zero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Zero the data associated with this <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a>.</p>
 </dd></dl>
 
@@ -1674,28 +1687,47 @@ named <tt class="docutils literal"><span class="pre">R</span></tt> and a column 
 <p>Notice that it is <cite>always</cite> necessary to index the indirection maps
 for a <tt class="docutils literal"><span class="pre">Mat</span></tt>. See the <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> documentation for more
 details.</p>
+<dl class="class">
+<dt id="pyop2.Mat.Snapshot">
+<em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.Mat.Snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>A snapshot for SetAssociated objects is valid if the snapshot
+version is the same as the current version of the object</p>
+<dl class="method">
+<dt id="pyop2.Mat.Snapshot.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Mat.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Mat.cdim">
-<tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Mat.cdim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.Mat.cdim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The scalar number of values for each member of the object. This is
 the product of the dim tuple.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.Mat.create_snapshot">
+<tt class="descclassname">Mat.</tt><tt class="descname">create_snapshot</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Mat.create_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a snapshot of the current object. If not overriden, this
+method will return a full duplicate object.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Mat.ctype">
-<tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.Mat.ctype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">ctype</tt><a class="headerlink" href="#pyop2.Mat.ctype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The c type of the data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Mat.dim">
-<tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Mat.dim" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">dim</tt><a class="headerlink" href="#pyop2.Mat.dim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The shape tuple of the values for each element of the object.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Mat.dims">
-<tt class="descname">dims</tt><a class="headerlink" href="#pyop2.Mat.dims" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">dims</tt><a class="headerlink" href="#pyop2.Mat.dims" title="Permalink to this definition">¶</a></dt>
 <dd><p>A pair of integers giving the number of matrix rows and columns for
 each member of the row <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> and column <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>
 respectively. This corresponds to the <tt class="docutils literal"><span class="pre">cdim</span></tt> member of a
@@ -1704,25 +1736,25 @@ respectively. This corresponds to the <tt class="docutils literal"><span class="
 
 <dl class="attribute">
 <dt id="pyop2.Mat.dtype">
-<tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Mat.dtype" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Mat.dtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The Python type of the data.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Mat.name">
-<tt class="descname">name</tt><a class="headerlink" href="#pyop2.Mat.name" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.Mat.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Mat.sparsity">
-<tt class="descname">sparsity</tt><a class="headerlink" href="#pyop2.Mat.sparsity" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">sparsity</tt><a class="headerlink" href="#pyop2.Mat.sparsity" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#pyop2.Sparsity" title="pyop2.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt></a> on which the <tt class="docutils literal"><span class="pre">Mat</span></tt> is defined.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Mat.values">
-<tt class="descname">values</tt><a class="headerlink" href="#pyop2.Mat.values" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Mat.</tt><tt class="descname">values</tt><a class="headerlink" href="#pyop2.Mat.values" title="Permalink to this definition">¶</a></dt>
 <dd><p>A numpy array of matrix values.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -1735,8 +1767,34 @@ matrix has more than around 10000 degrees of freedom.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="kernels">
-<h3>Kernels<a class="headerlink" href="#kernels" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="parallel-loops-kernels-and-linear-solves">
+<h3>Parallel loops, kernels and linear solves<a class="headerlink" href="#parallel-loops-kernels-and-linear-solves" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="pyop2.par_loop">
+<tt class="descclassname">pyop2.</tt><tt class="descname">par_loop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.par_loop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.solve">
+<tt class="descclassname">pyop2.</tt><tt class="descname">solve</tt><big>(</big><em>A</em>, <em>x</em>, <em>b</em><big>)</big><a class="headerlink" href="#pyop2.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a matrix equation using the default <a class="reference internal" href="#pyop2.Solver" title="pyop2.Solver"><tt class="xref py py-class docutils literal"><span class="pre">Solver</span></tt></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>A</strong> &#8211; The <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> containing the matrix.</li>
+<li><strong>x</strong> &#8211; The <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> to receive the solution.</li>
+<li><strong>b</strong> &#8211; The <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> containing the RHS.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="pyop2.Kernel">
 <em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.Kernel" title="Permalink to this definition">¶</a></dt>
@@ -1758,6 +1816,79 @@ code must conform to the OP2 user kernel API.</p>
 <dt id="pyop2.Kernel.name">
 <tt class="descname">name</tt><a class="headerlink" href="#pyop2.Kernel.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Kernel name, must match the kernel function name in the code.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.Solver">
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Solver</tt><big>(</big><em>parameters=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.Solver" title="Permalink to this definition">¶</a></dt>
+<dd><p>OP2 Solver object. The <a class="reference internal" href="#pyop2.Solver" title="pyop2.Solver"><tt class="xref py py-class docutils literal"><span class="pre">Solver</span></tt></a> holds a set of parameters that are
+passed to the underlying linear algebra library when the <tt class="docutils literal"><span class="pre">solve</span></tt> method
+is called. These can either be passed as a dictionary <tt class="docutils literal"><span class="pre">parameters</span></tt> <em>or</em>
+as individual keyword arguments (combining both will cause an exception).</p>
+<p>Recognized parameters either as dictionary keys or keyword arguments are:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ksp_type</strong> &#8211; the solver type (&#8216;cg&#8217;)</li>
+<li><strong>pc_type</strong> &#8211; the preconditioner type (&#8216;jacobi&#8217;)</li>
+<li><strong>ksp_rtol</strong> &#8211; relative solver tolerance (1e-7)</li>
+<li><strong>ksp_atol</strong> &#8211; absolute solver tolerance (1e-50)</li>
+<li><strong>ksp_divtol</strong> &#8211; factor by which the residual norm may exceed the
+right-hand-side norm before the solve is considered to have diverged:
+<tt class="docutils literal"><span class="pre">norm(r)</span> <span class="pre">&gt;=</span> <span class="pre">dtol*norm(b)</span></tt> (1e4)</li>
+<li><strong>ksp_max_it</strong> &#8211; maximum number of solver iterations (10000)</li>
+<li><strong>error_on_nonconvergence</strong> &#8211; abort if the solve does not converge in the
+maximum number of iterations (True, if False only a warning is printed)</li>
+<li><strong>ksp_monitor</strong> &#8211; print the residual norm after each iteration
+(False)</li>
+<li><strong>plot_convergence</strong> &#8211; plot a graph of the convergence history after the
+solve has finished and save it to file (False, implies <em>ksp_monitor</em>)</li>
+<li><strong>plot_prefix</strong> &#8211; filename prefix for plot files (&#8216;&#8217;)</li>
+<li><strong>ksp_gmres_restart</strong> &#8211; restart period when using GMRES</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pyop2.Solver.solve">
+<tt class="descname">solve</tt><big>(</big><em>A</em>, <em>x</em>, <em>b</em><big>)</big><a class="headerlink" href="#pyop2.Solver.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a matrix equation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>A</strong> &#8211; The <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> containing the matrix.</li>
+<li><strong>x</strong> &#8211; The <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> to receive the solution.</li>
+<li><strong>b</strong> &#8211; The <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> containing the RHS.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.Solver.update_parameters">
+<tt class="descname">update_parameters</tt><big>(</big><em>parameters</em><big>)</big><a class="headerlink" href="#pyop2.Solver.update_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update solver parameters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parameters</strong> &#8211; Dictionary containing the parameters to update.</td>
+</tr>
+</tbody>
+</table>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1829,9 +1960,8 @@ invocations.</p>
 <li><a class="reference internal" href="#">pyop2 user documentation</a><ul>
 <li><a class="reference internal" href="#module-pyop2"><tt class="docutils literal"><span class="pre">pyop2</span></tt> Package</a><ul>
 <li><a class="reference internal" href="#initialization-and-finalization">Initialization and finalization</a></li>
-<li><a class="reference internal" href="#parallel-loops-and-linear-solves">Parallel loops and linear solves</a></li>
 <li><a class="reference internal" href="#data-structures">Data structures</a></li>
-<li><a class="reference internal" href="#kernels">Kernels</a></li>
+<li><a class="reference internal" href="#parallel-loops-kernels-and-linear-solves">Parallel loops, kernels and linear solves</a></li>
 </ul>
 </li>
 </ul>

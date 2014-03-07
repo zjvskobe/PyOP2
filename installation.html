@@ -150,6 +150,8 @@ priority over system installed packages on your <tt class="docutils literal"><sp
 <ul class="simple">
 <li>pytest &gt;= 2.3</li>
 <li>flake8 &gt;= 2.1.0</li>
+<li>gmsh</li>
+<li>triangle</li>
 </ul>
 <p>With the exception of the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> dependencies, these can be installed
 using the package management system of your OS, or via <tt class="docutils literal"><span class="pre">pip</span></tt>.</p>
@@ -377,6 +379,9 @@ following to <tt class="docutils literal"><span class="pre">~/.bashrc</span></tt
 <div class="highlight-python"><pre># Add pytest binaries to the path
 export PATH=${PATH}:${HOME}/.local/bin</pre>
 </div>
+<p>The regression tests further require <em>gmsh</em> and <em>triangle</em>:</p>
+<div class="highlight-python"><pre>sudo apt-get install gmsh triangle-bin unzip</pre>
+</div>
 <p>If all tests in our test suite pass, you should be good to go:</p>
 <div class="highlight-python"><pre>make test</pre>
 </div>
@@ -393,6 +398,18 @@ different places on the system.</p>
 <p>Run <tt class="docutils literal"><span class="pre">pydoc</span> <span class="pre">&lt;module&gt;</span></tt> to find out where a module/package is loaded
 from. To print the module search path, run:</p>
 <div class="highlight-python"><pre>python -c 'from pprint import pprint; import sys; pprint(sys.path)'</pre>
+</div>
+<div class="section" id="troubleshooting-test-failures">
+<h3>Troubleshooting test failures<a class="headerlink" href="#troubleshooting-test-failures" title="Permalink to this headline">¶</a></h3>
+<p>Run the tests as follows, to abort after the first failed test:</p>
+<p>Start with the unit tests with the sequential backend</p>
+<div class="highlight-python"><pre>py.test test/unit -vsx --tb=short --backend=sequential</pre>
+</div>
+<p>Then move on to the regression tests with the sequential backend</p>
+<div class="highlight-python"><pre>py.test test/regression -vsx --tb=short --backend=sequential</pre>
+</div>
+<p>With all the sequential tests passing, move on to the next backend in the same
+manner as required.</p>
 </div>
 </div>
 </div>
@@ -421,7 +438,10 @@ from. To print the module search path, run:</p>
 <li><a class="reference internal" href="#ffc-interface">FFC Interface</a></li>
 <li><a class="reference internal" href="#setting-up-the-environment">Setting up the environment</a></li>
 <li><a class="reference internal" href="#testing-your-installation">Testing your installation</a></li>
-<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li><a class="reference internal" href="#troubleshooting-test-failures">Troubleshooting test failures</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

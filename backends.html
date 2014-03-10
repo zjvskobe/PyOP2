@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
-    <link rel="next" title="pyop2 user documentation" href="user.html" />
+    <link rel="next" title="PyOP2 Linear Algebra Interface" href="linear_algebra.html" />
     <link rel="prev" title="PyOP2 Kernels" href="kernels.html" /> 
   </head>
   <body>
@@ -38,7 +38,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="user.html" title="pyop2 user documentation"
+          <a href="linear_algebra.html" title="PyOP2 Linear Algebra Interface"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="kernels.html" title="PyOP2 Kernels"
@@ -73,7 +73,7 @@ threads per MPI rank. Datastructures must be suitably partitioned in
 this case with overlapping regions, so called halos. These are
 described in detail in <tt class="xref doc docutils literal"><span class="pre">mpi</span></tt>.</p>
 <div class="section" id="sequential-backend">
-<h2>Sequential backend<a class="headerlink" href="#sequential-backend" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>Sequential backend<a class="headerlink" href="#sequential-backend" title="Permalink to this headline">¶</a></h2>
 <p>Any computation in PyOP2 requires the generation of code at runtime
 specific to each individual <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>. The sequential
 backend generates code via the <a class="reference external" href="https://bitbucket.org/fenics-project/instant">Instant</a> utility from the <a class="reference external" href="http://fenicsproject.org">FEniCS
@@ -160,7 +160,7 @@ consecutive double values, since the <a class="reference internal" href="user.ht
 dimension two in either case.</p>
 </div>
 <div class="section" id="openmp-backend">
-<h2>OpenMP backend<a class="headerlink" href="#openmp-backend" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>OpenMP backend<a class="headerlink" href="#openmp-backend" title="Permalink to this headline">¶</a></h2>
 <p>The OpenMP uses the same infrastructure for code generation and JIT
 compilation as the sequential backend described above. In contrast however,
 the <tt class="docutils literal"><span class="pre">for</span></tt> loop is annotated with OpenMP pragmas to make it execute in
@@ -221,11 +221,11 @@ its starting index. Note that each thread needs its own staging array
 <tt class="docutils literal"><span class="pre">arg1_0_vec</span></tt>, which is therefore scoped by the thread id.</p>
 </div>
 <div class="section" id="cuda-backend">
-<h2>CUDA backend<a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>CUDA backend<a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h2>
 <p>The CUDA backend makes extensive use of <a class="reference external" href="http://mathema.tician.de/software/pycuda/">PyCUDA</a> and its infrastructure for
 just-in-time compilation of CUDA kernels and interfacing them to Python.
 Linear solvers and sparse matrix data structures are implemented on top of the
-<a class="reference external" href="http://cusplibrary.github.io">CUSP library</a> and are described in greater detail in <tt class="xref doc docutils literal"><span class="pre">linear_algebra</span></tt>.
+<a class="reference external" href="http://cusplibrary.github.io">CUSP library</a> and are described in greater detail in <a class="reference internal" href="linear_algebra.html"><em>PyOP2 Linear Algebra Interface</em></a>.
 Code generation uses a template based approach, where a <tt class="docutils literal"><span class="pre">__global__</span></tt> stub
 routine to be called from the host is generated, which takes care of data
 marshalling and calling the user kernel as an inline <tt class="docutils literal"><span class="pre">__device__</span></tt> function.</p>
@@ -393,11 +393,11 @@ backends, the first, directly accessed, argument, is passed as a pointer to
 global device memory with a suitable offset.</p>
 </div>
 <div class="section" id="opencl-backend">
-<h2>OpenCL backend<a class="headerlink" href="#opencl-backend" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>OpenCL backend<a class="headerlink" href="#opencl-backend" title="Permalink to this headline">¶</a></h2>
 <p>The other device backend OpenCL is structurally very similar to the CUDA
 backend. It uses <a class="reference external" href="http://mathema.tician.de/software/pyopencl/">PyOpenCL</a> to interface to the OpenCL drivers and runtime.
 Linear algebra operations are handled by <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-as/">PETSc</a> as described in
-<tt class="xref doc docutils literal"><span class="pre">linear_algebra</span></tt>. PyOP2 generates a kernel stub from a template similar
+<a class="reference internal" href="linear_algebra.html"><em>PyOP2 Linear Algebra Interface</em></a>. PyOP2 generates a kernel stub from a template similar
 to the CUDA case. The OpenCL backend shares the same semantics for data
 transfer described for CUDA above.</p>
 <p>Consider the <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel from previous examples, whose parameters in
@@ -583,8 +583,8 @@ kernel attribute.</p>
   <p class="topless"><a href="kernels.html"
                         title="previous chapter">PyOP2 Kernels</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="user.html"
-                        title="next chapter">pyop2 user documentation</a></p>
+  <p class="topless"><a href="linear_algebra.html"
+                        title="next chapter">PyOP2 Linear Algebra Interface</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/backends.txt"
@@ -617,7 +617,7 @@ kernel attribute.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="user.html" title="pyop2 user documentation"
+          <a href="linear_algebra.html" title="PyOP2 Linear Algebra Interface"
              >next</a> |</li>
         <li class="right" >
           <a href="kernels.html" title="PyOP2 Kernels"

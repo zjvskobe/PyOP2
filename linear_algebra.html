@@ -54,8 +54,8 @@
             
   <div class="section" id="pyop2-linear-algebra-interface">
 <span id="linear-algebra"></span><h1>PyOP2 Linear Algebra Interface<a class="headerlink" href="#pyop2-linear-algebra-interface" title="Permalink to this headline">¶</a></h1>
-<p>PyOP2 supports linear algebra operations on sparse matrices and makes heavy
-use of the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> library, which is harnessed via its <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> interface.</p>
+<p>PyOP2 supports linear algebra operations on sparse matrices using a thin
+wrapper around the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> library harnessed via its <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> interface.</p>
 <p>As described in <a class="reference internal" href="concepts.html"><em>PyOP2 Concepts</em></a>, a sparse matrix is a linear operator that
 maps a <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> representing its row space to a
 <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> representing its column space and vice versa. These
@@ -65,44 +65,114 @@ declared on a <a class="reference internal" href="user.html#pyop2.Sparsity" titl
 <div class="section" id="sparse-matrix-storage-formats">
 <span id="matrix-storage"></span><h2>Sparse Matrix Storage Formats<a class="headerlink" href="#sparse-matrix-storage-formats" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> uses the popular Compressed Sparse Row (CSR) format to only store the
-non-zero entries of sparse matrices. In CSR, a matrix is stored as three
+non-zero entries of a sparse matrix. In CSR, a matrix is stored as three
 one-dimensional arrays of <em>row pointers</em>, <em>column indices</em> and <em>values</em>, where
 the two former are of integer type and the latter of float type, usually
 double. As the name suggests, non-zero entries are stored per row, where each
 non-zero is defined by a pair of column index and corresponding value. The
 column indices and values arrays therefore have a length equal to the total
 number of non-zero entries. Row indices are given implicitly by the row
-pointer array, which contains for each row <tt class="docutils literal"><span class="pre">i</span></tt> the starting index in the
-column index and values arrays for the non-zero entries of that particular
-row. In other words, the non-zeros for row <tt class="docutils literal"><span class="pre">i</span></tt> are at positions
-<tt class="docutils literal"><span class="pre">row_ptr[i]</span></tt> up to but not including <tt class="docutils literal"><span class="pre">row_ptr[i+1]</span></tt> in the column index
-and values arrays. For each row, entries are sorted by column index to allow
-for faster lookups using a binary search.</p>
+pointer array, which contains the starting index in the column index and
+values arrays for the non-zero entries of each row. In other words, the
+non-zeros for row <tt class="docutils literal"><span class="pre">i</span></tt> are at positions <tt class="docutils literal"><span class="pre">row_ptr[i]</span></tt> up to but not
+including <tt class="docutils literal"><span class="pre">row_ptr[i+1]</span></tt> in the column index and values arrays. For each
+row, entries are sorted by column index to allow for faster lookups using a
+binary search.</p>
+<div class="figure align-center">
+<img src="_images/csr.svg" /><p class="caption">A sparse matrix and its corresponding CSR row pointer, column indices and
+values arrays</p>
+</div>
 <p>For distributed parallel storage with MPI, the rows of the matrix are
 distribued evenly among the processors. Each row is then again divided into a
 <em>diagonal</em> and an <em>off-diagonal</em> part, where the diagonal part comprises
 columns <tt class="docutils literal"><span class="pre">i</span></tt> to <tt class="docutils literal"><span class="pre">j</span></tt> if <tt class="docutils literal"><span class="pre">i</span></tt> and <tt class="docutils literal"><span class="pre">j</span></tt> are the first and last row owned by
 a given processor, and the off-diagonal part all other rows.</p>
+<div class="figure align-center">
+<img src="_images/mpi_matrix.svg" /><p class="caption">Distribution of a sparse matrix among 3 MPI processes</p>
+</div>
 </div>
 <div class="section" id="matrix-assembly">
 <span id="id1"></span><h2>Matrix assembly<a class="headerlink" href="#matrix-assembly" title="Permalink to this headline">¶</a></h2>
 <p>Sparse matrices are assembled by adding up local contributions which are
 mapped to global matrix entries via a local-to-global mapping represented by a
 pair of <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a> for the row and column space.</p>
+<div class="figure align-center">
+<img src="_images/assembly.svg" /><p class="caption">Assembly of a local tensor <img class="math" src="_images/math/160af41b84ca464f353bd30ca15ad10948a4c14d.png" alt="A^K"/> into a global matrix <img class="math" src="_images/math/019e9892786e493964e145e7c5cf7b700314e53b.png" alt="A"/> using
+the local-to-global mapping <img class="math" src="_images/math/88182d147008174ad6c656150a6f537245ab7b49.png" alt="\iota_K^1"/> for rows and <img class="math" src="_images/math/91af85ccf10810399f4401719eaeae383c1024f5.png" alt="\iota_K^2"/>
+for columns</p>
+</div>
 <p>For each <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> that assembles a matrix, PyOP2 generates a
-call to <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>&#8216;s <tt class="docutils literal"><span class="pre">MatSetValues</span></tt> function for each element of the iteration
-set, adding the local contributions computed by the user kernel to the global
-matrix using the given <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a>.</p>
+call to <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>&#8216;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-dev/docs/manualpages/Mat/MatSetValues.html">MatSetValues</a> function for each element of the iteration set,
+adding the local contributions computed by the user kernel to the global
+matrix using the given <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a>. At the end of the
+<a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> PyOP2 automatically calls <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-dev/docs/manualpages/Mat/MatAssemblyBegin.html">MatAssemblyBegin</a> and
+<a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-dev/docs/manualpages/Mat/MatAssemblyEnd.html">MatAssemblyEnd</a> to finalise matrix assembly.</p>
+<p>Consider assembling a <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> on a <a class="reference internal" href="user.html#pyop2.Sparsity" title="pyop2.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt></a> built
+from a <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> from <tt class="docutils literal"><span class="pre">elements</span></tt> to <tt class="docutils literal"><span class="pre">nodes</span></tt>. The assembly is
+done in a <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> over <tt class="docutils literal"><span class="pre">elements</span></tt>, where the
+<a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> <tt class="docutils literal"><span class="pre">A</span></tt> is accssed indirectly via the <tt class="docutils literal"><span class="pre">elem_node</span></tt>
+<a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> using the <a class="reference internal" href="pyop2.html#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">IterationIndex</span></tt></a>
+<a class="reference internal" href="user.html#pyop2.i" title="pyop2.i"><tt class="xref py py-class docutils literal"><span class="pre">i</span></tt></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">nodes</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">NUM_NODES</span><span class="p">,</span> <span class="s">&quot;nodes&quot;</span><span class="p">)</span>
+<span class="n">elements</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Set</span><span class="p">(</span><span class="n">NUM_ELE</span><span class="p">,</span> <span class="s">&quot;elements&quot;</span><span class="p">)</span>
+
+<span class="n">elem_node</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Map</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+
+<span class="n">sparsity</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Sparsity</span><span class="p">((</span><span class="n">nodes</span><span class="p">,</span> <span class="n">nodes</span><span class="p">),</span> <span class="p">(</span><span class="n">elem_node</span><span class="p">,</span> <span class="n">elem_node</span><span class="p">))</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Mat</span><span class="p">(</span><span class="n">sparsity</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+<span class="c"># Assemble the matrix mat</span>
+<span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">mat_kernel</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span>
+             <span class="n">A</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">INC</span><span class="p">,</span> <span class="p">(</span><span class="n">elem_node</span><span class="p">[</span><span class="n">op2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">elem_node</span><span class="p">[</span><span class="n">op2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]])),</span>
+             <span class="o">...</span><span class="p">)</span>
+
+<span class="c"># Assemble the right-hand side vector b</span>
+<span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">rhs_kernel</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span>
+             <span class="n">b</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">INC</span><span class="p">,</span> <span class="n">elem_node</span><span class="p">[</span><span class="n">op2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span>
+             <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The code generated for the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> assembling the
+<a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> for the sequential backend is similar to the following,
+where initialisation and staging code described in <a class="reference internal" href="backends.html#sequential-backend"><em>Sequential backend</em></a>
+have been omitted for brevity. For each element of the iteration
+<a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> a buffer for the local tensor is initialised to zero and
+passed to the user kernel performing the local assembly operation. The
+<tt class="docutils literal"><span class="pre">addto_vector</span></tt> call subsequently adds this local contribution to the global
+sparse matrix.</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="kt">void</span> <span class="nf">wrap_mat_kernel__</span><span class="p">(...)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">;</span> <span class="n">n</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
+    <span class="p">...</span>
+    <span class="kt">double</span> <span class="n">buffer_arg0_0</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{{</span><span class="mi">0</span><span class="p">}};</span>     <span class="c1">// local tensor initialised to 0</span>
+    <span class="n">mat_kernel</span><span class="p">(</span><span class="n">buffer_arg0_0</span><span class="p">,</span> <span class="p">...);</span>         <span class="c1">// local assembly kernel</span>
+    <span class="n">addto_vector</span><span class="p">(</span><span class="n">arg0_0_0</span><span class="p">,</span> <span class="n">buffer_arg0_0</span><span class="p">,</span>   <span class="c1">// Mat objet, local tensor</span>
+                 <span class="mi">3</span><span class="p">,</span> <span class="n">arg0_0_map0_0</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>  <span class="c1">// # rows, global row indices</span>
+                 <span class="mi">3</span><span class="p">,</span> <span class="n">arg0_0_map1_0</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>  <span class="c1">// # cols, global column indices</span>
+                 <span class="mi">0</span><span class="p">);</span>                        <span class="c1">// mode: 0 add, 1 insert</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="building-a-sparsity-pattern">
 <span id="sparsity-pattern"></span><h2>Building a sparsity pattern<a class="headerlink" href="#building-a-sparsity-pattern" title="Permalink to this headline">¶</a></h2>
 <p>The sparsity pattern of a matrix is uniquely defined by the dimensions of the
-<a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSets</span></tt></a> forming its row and column space, and the
-pairs of <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a> defining the non-zero structure as
-described in <a class="reference internal" href="#matrix-assembly"><em>Matrix assembly</em></a>. This is exploited in PyOP2 by caching
-sparsity patterns with these unique attributes as the cache key to save
-expensive recomputation. Whenever a <tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt> is initialised an
-already computed pattern with the same unique key is returned if it exists.</p>
+<a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSets</span></tt></a> forming its row and column space, and one or
+more pairs of <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a> defining its non-zero structure. This
+is exploited in PyOP2 by caching sparsity patterns with these unique
+attributes as the cache key to save expensive recomputation. Whenever a
+<tt class="xref py py-class docutils literal"><span class="pre">Sparsity</span></tt> is initialised, an already computed pattern with the same
+unique key is returned if it exists.</p>
+<p>For a valid sparsity, each row <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> must map to the set of the
+row <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>, each column <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> to that of the
+column <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> and the from sets of each pair must match. A
+matrix on a sparsity pattern built from more than one pair of maps is
+assembled by multiple parallel loops iterating over the corresponding
+iteration set for each pair.</p>
 <p>Sparsity construction proceeds by iterating each <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> pair and
 building a set of indices of the non-zero columns for each row. Each pair of
 entries in the row and column maps gives the row and column index of a
@@ -113,32 +183,129 @@ exclusive scan yields the row pointer array. The column index array is the
 concatenation of all the sets. An algorithm for the sequential case is given
 below:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">rowmap</span><span class="p">,</span> <span class="n">colmap</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
-  <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">from_size</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
-      <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowdim</span><span class="p">):</span>
-        <span class="n">row</span> <span class="o">=</span> <span class="n">rowdim</span> <span class="o">*</span> <span class="n">rowmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span>
-        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
-          <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">coldim</span><span class="p">):</span>
-            <span class="n">diag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">coldim</span> <span class="o">*</span> <span class="n">colmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">d</span> <span class="o">+</span> <span class="n">e</span> <span class="o">*</span> <span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">from_size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">rowmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+                <span class="n">diag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">d</span> <span class="o">+</span> <span class="n">e</span> <span class="o">*</span> <span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>For the MPI parallel case a minor modification is required, since for each row
 a set of diagonal and off-diagonal column indices needs to be built as
 described in <a class="reference internal" href="#matrix-storage"><em>Sparse Matrix Storage Formats</em></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">rowmap</span><span class="p">,</span> <span class="n">colmap</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
-  <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">from_size</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
-      <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowdim</span><span class="p">):</span>
-        <span class="n">row</span> <span class="o">=</span> <span class="n">rowdim</span> <span class="o">*</span> <span class="n">rowmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span>
-        <span class="k">if</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">nrows</span> <span class="o">*</span> <span class="n">rowdim</span><span class="p">:</span>
-          <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">coldim</span><span class="p">):</span>
-              <span class="n">col</span> <span class="o">=</span> <span class="n">coldim</span> <span class="o">*</span> <span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">])</span> <span class="o">+</span> <span class="n">c</span>
-              <span class="k">if</span> <span class="n">col</span> <span class="o">&lt;</span> <span class="n">ncols</span> <span class="o">*</span> <span class="n">coldim</span><span class="p">:</span>
-                  <span class="n">diag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
-              <span class="k">else</span><span class="p">:</span>
-                  <span class="n">odiag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">from_size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">rowmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">rowmap</span><span class="o">.</span><span class="n">arity</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">nrows</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">col</span> <span class="o">&lt;</span> <span class="n">ncols</span><span class="p">:</span>
+                        <span class="n">diag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">odiag</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">colmap</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="o">*</span><span class="n">colmap</span><span class="o">.</span><span class="n">arity</span><span class="p">])</span>
 </pre></div>
+</div>
+</div>
+<div class="section" id="solving-a-linear-system">
+<span id="solving"></span><h2>Solving a linear system<a class="headerlink" href="#solving-a-linear-system" title="Permalink to this headline">¶</a></h2>
+<p>PyOP2 provides a <a class="reference internal" href="user.html#pyop2.Solver" title="pyop2.Solver"><tt class="xref py py-class docutils literal"><span class="pre">Solver</span></tt></a>, wrapping the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-dev/docs/manualpages/KSP/">KSP</a> Krylov
+solvers which support various iterative methods such as Conjugate Gradients
+(CG), Generalized Minimal Residual (GMRES), a stabilized version of
+BiConjugate Gradient Squared (BiCGStab) and others. The solvers are
+complemented with a range of preconditioners from <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>&#8216;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-dev/docs/manualpages/PC/">PC</a> collection,
+which includes Jacobi, incomplete Cholesky and LU decompositions and various
+multigrid based preconditioners.</p>
+<p>The choice of solver and preconditioner type and other parameters uses
+<a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>&#8216;s configuration mechanism documented in the <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-dev/docs/manual.pdf">PETSc manual</a>. Options
+are pased to the <a class="reference internal" href="user.html#pyop2.Solver" title="pyop2.Solver"><tt class="xref py py-class docutils literal"><span class="pre">Solver</span></tt></a> via the keyword argument
+<tt class="docutils literal"><span class="pre">parameters</span></tt> taking a dictionary of arguments or directly via keyword
+arguments. The solver type is chosen as <tt class="docutils literal"><span class="pre">ksp_type</span></tt>, the preconditioner as
+<tt class="docutils literal"><span class="pre">pc_type</span></tt> with the defaults <tt class="docutils literal"><span class="pre">cg</span></tt> and <tt class="docutils literal"><span class="pre">jacobi</span></tt>.</p>
+<p>Solving a linear system of the matrix <tt class="docutils literal"><span class="pre">A</span></tt> assembled above and the right-hand
+side vector <tt class="docutils literal"><span class="pre">b</span></tt> for a solution vector <tt class="docutils literal"><span class="pre">x</span></tt> is done with a call to
+<a class="reference internal" href="user.html#pyop2.Solver.solve" title="pyop2.Solver.solve"><tt class="xref py py-meth docutils literal"><span class="pre">solve()</span></tt></a>, where solver and preconditioner are chosen as
+<tt class="docutils literal"><span class="pre">gmres</span></tt> and <tt class="docutils literal"><span class="pre">ilu</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">x</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Dat</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+<span class="n">solver</span> <span class="o">=</span> <span class="n">op2</span><span class="o">.</span><span class="n">Solver</span><span class="p">(</span><span class="n">ksp_type</span><span class="o">=</span><span class="s">&#39;gmres&#39;</span><span class="p">,</span> <span class="n">pc_type</span><span class="o">=</span><span class="s">&#39;ilu&#39;</span><span class="p">)</span>
+<span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gpu-matrix-assembly">
+<span id="gpu-assembly"></span><h2>GPU matrix assembly<a class="headerlink" href="#gpu-matrix-assembly" title="Permalink to this headline">¶</a></h2>
+<p>In a <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> assembling a <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> on the GPU, the
+local contributions are first computed for all elements of the iteration set
+and stored in global memory in a structure-of-arrays (SoA) data layout such
+that all threads can write the data out in a coalesced manner. For the example
+above, the generated CUDA wrapper code is as follows, again omitting
+initialisation and staging code described in <a class="reference internal" href="backends.html#cuda-backend"><em>CUDA backend</em></a>.  The user
+kernel only computes a single element in the local iteration space as detailed
+in <a class="reference internal" href="kernels.html#local-iteration-spaces"><em>Local iteration spaces</em></a>.</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">__mat_kernel_stub</span><span class="p">(...,</span>
+                                  <span class="kt">double</span> <span class="o">*</span><span class="n">arg0</span><span class="p">,</span>    <span class="c1">// local matrix data array</span>
+                                  <span class="kt">int</span> <span class="n">arg0_offset</span><span class="p">,</span> <span class="c1">// offset into the array</span>
+                                  <span class="p">...</span> <span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span> <span class="c1">// omitted initialisation and shared memory staging code</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="kt">int</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">nelem</span><span class="p">;</span> <span class="n">idx</span> <span class="o">+=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span> <span class="c1">// omitted staging code</span>
+    <span class="k">for</span> <span class="p">(</span> <span class="kt">int</span> <span class="n">i0</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i0</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">i0</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="k">for</span> <span class="p">(</span> <span class="kt">int</span> <span class="n">i1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i1</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">i1</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="n">mass_cell_integral_0_otherwise</span><span class="p">(</span>
+          <span class="p">(</span><span class="kt">double</span> <span class="p">(</span><span class="o">*</span><span class="p">)[</span><span class="mi">1</span><span class="p">])(</span><span class="n">arg0</span> <span class="o">+</span> <span class="n">arg0_offset</span> <span class="o">+</span> <span class="n">idx</span> <span class="o">*</span> <span class="mi">9</span> <span class="o">+</span> <span class="n">i0</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">i1</span> <span class="o">*</span> <span class="mi">1</span><span class="p">),</span>
+          <span class="p">...,</span> <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A separate CUDA kernel given below is launched afterwards to compress the data
+into a sparse matrix in CSR storage format. Only the values array needs to be
+computed, since the row pointer and column indices have already been computed
+when building the sparsity on the host and subsequently transferred to GPU
+memory. Memory for the local contributions and the values array only needs to
+be allocated on the GPU.</p>
+<div class="highlight-c"><div class="highlight"><pre><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">__lma_to_csr</span><span class="p">(</span><span class="kt">double</span> <span class="o">*</span><span class="n">lmadata</span><span class="p">,</span>  <span class="c1">// local matrix data array</span>
+                             <span class="kt">double</span> <span class="o">*</span><span class="n">csrdata</span><span class="p">,</span>  <span class="c1">// CSR values array</span>
+                             <span class="kt">int</span> <span class="o">*</span><span class="n">rowptr</span><span class="p">,</span>      <span class="c1">// CSR row pointer array</span>
+                             <span class="kt">int</span> <span class="o">*</span><span class="n">colidx</span><span class="p">,</span>      <span class="c1">// CSR column indices array</span>
+                             <span class="kt">int</span> <span class="o">*</span><span class="n">rowmap</span><span class="p">,</span>      <span class="c1">// row map array</span>
+                             <span class="kt">int</span> <span class="n">rowmapdim</span><span class="p">,</span>    <span class="c1">// row map arity</span>
+                             <span class="kt">int</span> <span class="o">*</span><span class="n">colmap</span><span class="p">,</span>      <span class="c1">// column map array</span>
+                             <span class="kt">int</span> <span class="n">colmapdim</span><span class="p">,</span>    <span class="c1">// column map arity</span>
+                             <span class="kt">int</span> <span class="n">nelems</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">nentries_per_ele</span> <span class="o">=</span> <span class="n">rowmapdim</span> <span class="o">*</span> <span class="n">colmapdim</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="n">nelems</span> <span class="o">*</span> <span class="n">nentries_per_ele</span> <span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+
+  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="n">n</span> <span class="o">/</span> <span class="n">nentries_per_ele</span><span class="p">;</span>                        <span class="c1">// set element</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">e</span> <span class="o">*</span> <span class="n">nentries_per_ele</span><span class="p">)</span> <span class="o">/</span> <span class="n">rowmapdim</span><span class="p">;</span>      <span class="c1">// local row</span>
+  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">e</span> <span class="o">*</span> <span class="n">nentries_per_ele</span> <span class="o">-</span> <span class="n">i</span> <span class="o">*</span> <span class="n">colmapdim</span><span class="p">);</span>  <span class="c1">// local column</span>
+
+  <span class="c1">// Compute position in values array</span>
+  <span class="kt">int</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">pos</span><span class="p">(</span><span class="n">rowmap</span><span class="p">[</span><span class="n">e</span> <span class="o">*</span> <span class="n">rowmapdim</span> <span class="o">+</span> <span class="n">i</span><span class="p">],</span> <span class="n">colmap</span><span class="p">[</span><span class="n">e</span> <span class="o">*</span> <span class="n">colmapdim</span> <span class="o">+</span> <span class="n">j</span><span class="p">],</span>
+                   <span class="n">rowptr</span><span class="p">,</span> <span class="n">colidx</span><span class="p">);</span>
+  <span class="n">__atomic_add</span><span class="p">(</span><span class="n">csrdata</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">lmadata</span><span class="p">[</span><span class="n">n</span><span class="p">]);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="gpu-linear-algebra">
+<span id="gpu-solve"></span><h2>GPU linear algebra<a class="headerlink" href="#gpu-linear-algebra" title="Permalink to this headline">¶</a></h2>
+<p>Linear algebra on the GPU with the <tt class="docutils literal"><span class="pre">cuda</span></tt> backend uses the <a class="reference external" href="http://cusplibrary.github.io">Cusp</a> library,
+which does not support all solvers and preconditioners provided by <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>. The
+interface to the user is the same as for the <tt class="docutils literal"><span class="pre">sequential</span></tt> and <tt class="docutils literal"><span class="pre">openmp</span></tt>
+backends. Supported solver types are CG (<tt class="docutils literal"><span class="pre">cg</span></tt>), GMRES (<tt class="docutils literal"><span class="pre">gmres</span></tt>) and
+BiCGStab (<tt class="docutils literal"><span class="pre">bicgstab</span></tt>), with preconditioners of types Jacobi (<tt class="docutils literal"><span class="pre">jacobi</span></tt>),
+Bridson approximate inverse (<tt class="docutils literal"><span class="pre">ainv</span></tt>) and asymptotic multigrid (<tt class="docutils literal"><span class="pre">amg</span></tt>). An
+exception is raised if an unsupported solver or preconditioner type is
+requested.  A <a class="reference external" href="http://cusplibrary.github.io">Cusp</a> solver with the chosen parameters is automatically
+generated when <a class="reference internal" href="user.html#pyop2.solve" title="pyop2.solve"><tt class="xref py py-func docutils literal"><span class="pre">solve()</span></tt></a> is called.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Distributed parallel linear algebra operations with MPI are currently not
+supported by the <tt class="docutils literal"><span class="pre">cuda</span></tt> backend.</p>
 </div>
 </div>
 </div>
@@ -155,6 +322,9 @@ described in <a class="reference internal" href="#matrix-storage"><em>Sparse Mat
 <li><a class="reference internal" href="#sparse-matrix-storage-formats">Sparse Matrix Storage Formats</a></li>
 <li><a class="reference internal" href="#matrix-assembly">Matrix assembly</a></li>
 <li><a class="reference internal" href="#building-a-sparsity-pattern">Building a sparsity pattern</a></li>
+<li><a class="reference internal" href="#solving-a-linear-system">Solving a linear system</a></li>
+<li><a class="reference internal" href="#gpu-matrix-assembly">GPU matrix assembly</a></li>
+<li><a class="reference internal" href="#gpu-linear-algebra">GPU linear algebra</a></li>
 </ul>
 </li>
 </ul>

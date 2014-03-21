@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PyOP2 Architecture &mdash; PyOP2 0.10.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="next" title="PyOP2 Backends" href="backends.html" />
+    <link rel="prev" title="PyOP2 Kernels" href="kernels.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="backends.html" title="PyOP2 Backends"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kernels.html" title="PyOP2 Kernels"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pyop2-architecture">
+<span id="architecture"></span><h1>PyOP2 Architecture<a class="headerlink" href="#pyop2-architecture" title="Permalink to this headline">¶</a></h1>
+<p>As described in <a class="reference internal" href="concepts.html#concepts"><em>PyOP2 Concepts</em></a>, PyOP2 exposes an API that allows users to
+declare the topology of unstructured meshes in the form of <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Sets</span></tt></a> and <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a> and data in the form of
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dats</span></tt></a>, <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mats</span></tt></a>, <a class="reference internal" href="user.html#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Globals</span></tt></a> and <a class="reference internal" href="user.html#pyop2.Const" title="pyop2.Const"><tt class="xref py py-class docutils literal"><span class="pre">Consts</span></tt></a>. Computations on this data
+are described by <a class="reference internal" href="user.html#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernels</span></tt></a> described in <a class="reference internal" href="kernels.html#kernels"><em>PyOP2 Kernels</em></a>
+and executed by <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">parallel</span> <span class="pre">loops</span></tt></a>.</p>
+<p>The API is the frontend to the PyOP2 runtime compilation architecture, which
+supports the generation and just-in-time (JIT) compilation of low-level code
+for a range of backends described in <a class="reference internal" href="backends.html"><em>PyOP2 Backends</em></a> and the efficient
+scheduling of parallel computations. A schematic overview of the PyOP2
+architecture is given below:</p>
+<div class="figure align-center">
+<img src="_images/pyop2_architecture.svg" /><p class="caption">Schematic overview of the PyOP2 architecture</p>
+</div>
+<p>From an outside perspective, PyOP2 is a conventional Python library, with
+performance critical library functions implemented in <a class="reference external" href="http://cython.org">Cython</a>. A user&#8217;s
+application code makes calls to the PyOP2 API, most of which are conventional
+library calls.  The exception are <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> calls, which
+encapsulate PyOP2&#8217;s runtime core functionality performing backend-specific
+code generation.  Executing a parallel loop comprises the following steps:</p>
+<ol class="arabic simple">
+<li>Compute a parallel execution plan, including information for efficient
+staging of data and partitioning and colouring of the iteration set for
+conflict-free parallel execution.  This process is described in <a class="reference internal" href="plan.html"><em>Parallel Execution Plan</em></a>
+and does not apply to the sequential backend.</li>
+<li>Generate backend-specific code for executing the computation for a given
+set of <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> arguments as detailed in <a class="reference internal" href="backends.html"><em>PyOP2 Backends</em></a>
+according to the execution plan computed in the previous step.</li>
+<li>Pass the generated code to a backend-specific toolchain for just-in-time
+compilation, producing a shared library callable as a Python module which
+is dynamically loaded. This module is cached on disk to save recompilation
+when the same <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> is called again for the same backend.</li>
+<li>Build the backend-specific list of arguments to be passed to the generated
+code, which may initiate host to device data transfer for the CUDA and
+OpenCL backends.</li>
+<li>Call into the generated module to perform the actual computation. For
+distributed parallel computations this involves separate calls for the
+regions owned by the current processor and the halo as described in
+<tt class="xref doc docutils literal"><span class="pre">mpi</span></tt>.</li>
+<li>Perform any necessary reductions for <a class="reference internal" href="user.html#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Globals</span></tt></a>.</li>
+<li>Call the backend-specific matrix assembly procedure on any
+<a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> arguments.</li>
+</ol>
+<p>In practice, PyOP2 implements a lazy evaluation scheme where computations are
+postponed until results are requested. The correct execution of deferred
+computation is performed transparently to the users by enforcing read and
+write dependencies of Kernels as described in <tt class="xref doc docutils literal"><span class="pre">lazy</span></tt>.</p>
+<div class="section" id="multiple-backend-support">
+<span id="backend-support"></span><h2>Multiple Backend Support<a class="headerlink" href="#multiple-backend-support" title="Permalink to this headline">¶</a></h2>
+<p>The backend is selected by passing the keyword argument <tt class="docutils literal"><span class="pre">backend</span></tt> to the
+<a class="reference internal" href="user.html#pyop2.init" title="pyop2.init"><tt class="xref py py-func docutils literal"><span class="pre">init()</span></tt></a> function.  If omitted, the <tt class="docutils literal"><span class="pre">sequential</span></tt> backend is
+selected by default. This choice can be overridden by exporting the
+environment variable <tt class="docutils literal"><span class="pre">PYOP2_BACKEND</span></tt>, which allows switching backends
+without having to touch the code. Once chosen, the backend cannot be changed
+for the duration of the running Python interpreter session.</p>
+<p>PyOP2 provides a single API to the user, regardless of which backend the
+computations are running on. All classes and functions that form the public
+API defined in <a class="reference internal" href="pyop2.html#module-pyop2.op2" title="pyop2.op2"><tt class="xref py py-mod docutils literal"><span class="pre">pyop2.op2</span></tt></a> are interfaces, whose concrete implementations
+are initialised according to the chosen backend. A metaclass takes care of
+instantiating a backend-specific version of the requested class and setting
+the corresponding docstrings such that this process is entirely transparent to
+the user. The implementation of the PyOP2 backends is completely orthogonal to
+the backend selection process and free to use established practices of
+object-oriented design.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PyOP2 Architecture</a><ul>
+<li><a class="reference internal" href="#multiple-backend-support">Multiple Backend Support</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="kernels.html"
+                        title="previous chapter">PyOP2 Kernels</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="backends.html"
+                        title="next chapter">PyOP2 Backends</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/architecture.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="backends.html" title="PyOP2 Backends"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="kernels.html" title="PyOP2 Kernels"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

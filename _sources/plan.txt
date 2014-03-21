@@ -1,0 +1,19 @@
+.. _plan:
+
+Parallel Execution Plan
+=======================
+
+For all PyOP2 backends with the exception of sequential, a parallel execution
+plan is computed for each :func:`~pyop2.par_loop`. It contains information
+guiding the code generator how to partition, stage and colour the data.
+
+Partitioning
+------------
+
+The iteration set is split into a number of mini partitions such that those
+fit into last level cache.
+
+Staging
+-------
+
+

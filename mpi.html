@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>MPI &mdash; PyOP2 0.10.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="next" title="pyop2 user documentation" href="user.html" />
+    <link rel="prev" title="PyOP2 Linear Algebra Interface" href="linear_algebra.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="linear_algebra.html" title="PyOP2 Linear Algebra Interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="mpi">
+<span id="id1"></span><h1>MPI<a class="headerlink" href="#mpi" title="Permalink to this headline">¶</a></h1>
+<p>Distributed parallel computations with MPI in PyOP2 require the mesh to be
+partitioned among the processors. To be able to compute over entities on their
+boundaries, partitions need to access data owned by neighboring processors.
+This region, called the <em>halo</em>, needs to be kept up to date and is therefore
+exchanged between the processors whenever it changes.</p>
+<div class="section" id="local-numbering">
+<h2>Local Numbering<a class="headerlink" href="#local-numbering" title="Permalink to this headline">¶</a></h2>
+<p>Each processor owns a partition of each <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a>, which is again
+divided into the following four sections:</p>
+<ul class="simple">
+<li><strong>Core</strong>: Entities owned by this processor which can be processed without
+accessing halo data.</li>
+<li><strong>Owned</strong>: Entities owned by this processor which access halo data when
+processed.</li>
+<li><strong>Exec halo</strong>: Off-processor entities which are redundantly executed over
+because they touch owned entities.</li>
+<li><strong>Non-exec halo</strong>: Off-processor entities which are not processed, but read
+when computing the exec halo.</li>
+</ul>
+<p>These four sections are contiguous and local <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> entities
+must therefore be numbered such that core entities are first, follwed by
+owned, exec halo and non-exec halo in that order. A good partitioning
+maximises the size of the core section and minimises the halo regions. We can
+therefore assume that the vast majority of local <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> entities
+are in the core section. The following diagram illustrates the four sections
+for a mesh distributed among two processors:</p>
+<div class="figure align-center">
+<img src="_images/pyop2_mpi_mesh.svg" /><p class="caption">A mesh distributed among two processors with the entities of each mesh
+partition divided into <em>core</em>, <em>owned</em>, <em>exec halo</em> and <em>non-exec halo</em>.
+Matching halo sections are highlighted in matching colours. The owned
+section of process 0 correspondonds to the non-exec section of process 1.</p>
+</div>
+</div>
+<div class="section" id="computation-communication-overlap">
+<h2>Computation-communication Overlap<a class="headerlink" href="#computation-communication-overlap" title="Permalink to this headline">¶</a></h2>
+<p>Entities that do not access any halo data can be processed immediately, before
+the exchange of halos has completed. Computation on those entities can
+therefore overlap communication of the halo data.</p>
+<p>The ordering of <a class="reference internal" href="user.html#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> entities into four sections allow for a
+very efficient overlap of computation and communication. Core entities can be
+processed entirely without access to halo data immediately after the halo
+exchange is initiated. Execution over the owned and exec halo regions requires
+up to date halo data and can only start once the halo exchange is completed.
+The entire process is given below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">halo_exchange_begin</span><span class="p">()</span>                      <span class="c"># Initiate halo exchange</span>
+<span class="n">maybe_set_dat_dirty</span><span class="p">()</span>                      <span class="c"># Mark Dats as modified</span>
+<span class="n">compute_if_not_empty</span><span class="p">(</span><span class="n">itset</span><span class="o">.</span><span class="n">core_part</span><span class="p">)</span>      <span class="c"># Compute core region</span>
+<span class="n">halo_exchange_end</span><span class="p">()</span>                        <span class="c"># Wait for halo exchange</span>
+<span class="n">compute_if_not_empty</span><span class="p">(</span><span class="n">itset</span><span class="o">.</span><span class="n">owned_part</span><span class="p">)</span>     <span class="c"># Compute owned region</span>
+<span class="n">reduction_begin</span><span class="p">()</span>                          <span class="c"># Initiate reductions</span>
+<span class="k">if</span> <span class="n">needs_exec_halo</span><span class="p">:</span>                        <span class="c"># Any indirect Dat not READ?</span>
+    <span class="n">compute_if_not_empty</span><span class="p">(</span><span class="n">itset</span><span class="o">.</span><span class="n">exec_part</span><span class="p">)</span>  <span class="c"># Compute exec halo region</span>
+<span class="n">reduction_end</span><span class="p">()</span>                            <span class="c"># Wait for reductions</span>
+<span class="n">maybe_set_halo_update_needed</span><span class="p">()</span>             <span class="c"># Mark halos as out of date</span>
+<span class="n">assemble</span><span class="p">()</span>                                 <span class="c"># Finalise matrix assembly</span>
+</pre></div>
+</div>
+<p>Any reductions depend on data from the core and owned sections and are
+initiated as soon as the owned section has been processed and execute
+concurrently with computation on the exec halo. If the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>
+assembles a <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>, the matrix assembly is finalised at the end.</p>
+<p>By dividing entities into sections according to their relation to the halo,
+there is no need to check whether or not a given entity touches the halo or
+not during computations on each section. This avoids branching in kernels or
+wrapper code and allows launching separate kernels for GPU execution of each
+section. The <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> execution above therefore applies to all
+backends.</p>
+</div>
+<div class="section" id="halo-exchange">
+<h2>Halo exchange<a class="headerlink" href="#halo-exchange" title="Permalink to this headline">¶</a></h2>
+<p>Exchanging halo data is only required if the halo data is actually read, which
+is the case for <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> arguments to a <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>
+used in <a class="reference internal" href="user.html#pyop2.READ" title="pyop2.READ"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.READ</span></tt></a> or <a class="reference internal" href="user.html#pyop2.RW" title="pyop2.RW"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.RW</span></tt></a> mode.  PyOP2 keeps track
+whether or not the halo region may have been modified. This is the case for
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dats</span></tt></a> used in <a class="reference internal" href="user.html#pyop2.INC" title="pyop2.INC"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.INC</span></tt></a>, <a class="reference internal" href="user.html#pyop2.WRITE" title="pyop2.WRITE"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.WRITE</span></tt></a> or
+<a class="reference internal" href="user.html#pyop2.RW" title="pyop2.RW"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.RW</span></tt></a> mode or when a <a class="reference internal" href="user.html#pyop2.Solver" title="pyop2.Solver"><tt class="xref py py-class docutils literal"><span class="pre">Solver</span></tt></a> or a user requests
+access to the data. A halo exchange is triggered only for halos marked as out
+of date.</p>
+</div>
+<div class="section" id="distributed-assembly">
+<h2>Distributed Assembly<a class="headerlink" href="#distributed-assembly" title="Permalink to this headline">¶</a></h2>
+<p>For an MPI distributed matrix or vector, assembling owned entities at the
+boundary can contribute to off-process degrees of freedom and vice versa.</p>
+<p>There are different ways of accounting for these off-process contributions.
+<a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> supports insertion and subsequent communication of off-process matrix
+and vector entries, however its implementation is not thread safe. Concurrent
+insertion into <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> MPI matrices <em>is</em> thread safe if off-process insertions
+are not cached and concurrent writes to rows are avoided, which is done
+through colouring as described in <em class="xref std std-ref">colouring</em>.</p>
+<p>PyOP2 therefore disables <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>&#8216;s off-process insertion feature and instead
+redundantly computes over all off process entities that touch local dofs,
+which is the <em>exec halo</em> section described above. The price for this is
+maintaining a larger halo, since we also need halo data, the <em>non-exec halo</em>
+section, to perform the redundant computation. Halos grow by about a factor
+two, however in practice this is still small compared to the interior region
+of a partition and the main cost of halo exchange is the latency, which is
+independent of the exchanged data volume.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">MPI</a><ul>
+<li><a class="reference internal" href="#local-numbering">Local Numbering</a></li>
+<li><a class="reference internal" href="#computation-communication-overlap">Computation-communication Overlap</a></li>
+<li><a class="reference internal" href="#halo-exchange">Halo exchange</a></li>
+<li><a class="reference internal" href="#distributed-assembly">Distributed Assembly</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="linear_algebra.html"
+                        title="previous chapter">PyOP2 Linear Algebra Interface</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="user.html"
+                        title="next chapter">pyop2 user documentation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mpi.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user.html" title="pyop2 user documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="linear_algebra.html" title="PyOP2 Linear Algebra Interface"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

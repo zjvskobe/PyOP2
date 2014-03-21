@@ -1031,10 +1031,8 @@ PETSc&#8217;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/p
 <dl class="attribute">
 <dt id="pyop2.Sparsity.nz">
 <tt class="descname">nz</tt><a class="headerlink" href="#pyop2.Sparsity.nz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of non-zeroes per row in diagonal portion of the local
+<dd><p>Number of non-zeroes in the diagonal portion of the local
 submatrix.</p>
-<p>This is the same as the parameter <cite>d_nz</cite> used for preallocation in
-PETSc&#8217;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMPIAIJSetPreallocation.html">MatMPIAIJSetPreallocation</a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1049,10 +1047,8 @@ PETSc&#8217;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/p
 <dl class="attribute">
 <dt id="pyop2.Sparsity.onz">
 <tt class="descname">onz</tt><a class="headerlink" href="#pyop2.Sparsity.onz" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of non-zeroes per row in off-diagonal portion of the local
+<dd><p>Number of non-zeroes in the off-diagonal portion of the local
 submatrix.</p>
-<p>This is the same as the parameter o_nz used for preallocation in
-PETSc&#8217;s <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMPIAIJSetPreallocation.html">MatMPIAIJSetPreallocation</a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1256,6 +1252,17 @@ method will return a full duplicate object.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Global.nbytes">
+<tt class="descclassname">Global.</tt><tt class="descname">nbytes</tt><a class="headerlink" href="#pyop2.Global.nbytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an estimate of the size of the data associated with this
+<a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a> in bytes. This will be the correct size of the
+data payload, but does not take into account the overhead of
+the object and its metadata. This renders this method of
+little statistical significance, however it is included to
+make the interface consistent.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Global.shape">
 <tt class="descclassname">Global.</tt><tt class="descname">shape</tt><a class="headerlink" href="#pyop2.Global.shape" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1445,9 +1452,20 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Dat.nbytes">
+<tt class="descclassname">Dat.</tt><tt class="descname">nbytes</tt><a class="headerlink" href="#pyop2.Dat.nbytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an estimate of the size of the data associated with this
+<a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> in bytes. This will be the correct size of the data
+payload, but does not take into account the (presumably small)
+overhead of the object and its metadata.</p>
+<p>Note that this is the process local memory usage, not the sum
+over all MPI processes.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Dat.needs_halo_update">
 <tt class="descclassname">Dat.</tt><tt class="descname">needs_halo_update</tt><a class="headerlink" href="#pyop2.Dat.needs_halo_update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Has this Dat been written to since the last halo exchange?</p>
+<dd><p>Has this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> been written to since the last halo exchange?</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1634,6 +1652,17 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.MixedDat.nbytes">
+<tt class="descclassname">MixedDat.</tt><tt class="descname">nbytes</tt><a class="headerlink" href="#pyop2.MixedDat.nbytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an estimate of the size of the data associated with this
+<a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> in bytes. This will be the correct size of the data
+payload, but does not take into account the (presumably small)
+overhead of the object and its metadata.</p>
+<p>Note that this is the process local memory usage, not the sum
+over all MPI processes.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.MixedDat.needs_halo_update">
 <tt class="descclassname">MixedDat.</tt><tt class="descname">needs_halo_update</tt><a class="headerlink" href="#pyop2.MixedDat.needs_halo_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Has this Dat been written to since the last halo exchange?</p>
@@ -1749,6 +1778,18 @@ respectively. This corresponds to the <tt class="docutils literal"><span class="
 <dt id="pyop2.Mat.name">
 <tt class="descclassname">Mat.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.Mat.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>User-defined label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Mat.nbytes">
+<tt class="descclassname">Mat.</tt><tt class="descname">nbytes</tt><a class="headerlink" href="#pyop2.Mat.nbytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an estimate of the size of the data associated with this
+<a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> in bytes. This will be the correct size of the
+data payload, but does not take into account the (presumably
+small) overhead of the object and its metadata. The memory
+associated with the sparsity pattern is also not recorded.</p>
+<p>Note that this is the process local memory usage, not the sum
+over all MPI processes.</p>
 </dd></dl>
 
 <dl class="attribute">

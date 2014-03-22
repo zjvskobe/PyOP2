@@ -7,13 +7,18 @@ Distributed parallel computations with MPI in PyOP2 require the mesh to be
 partitioned among the processors. To be able to compute over entities on their
 boundaries, partitions need to access data owned by neighboring processors.
 This region, called the *halo*, needs to be kept up to date and is therefore
-exchanged between the processors whenever it changes.
+exchanged between the processors as required.
 
 Local Numbering
 ---------------
 
-Each processor owns a partition of each :class:`~pyop2.Set`, which is again
-divided into the following four sections:
+The partition of each :class:`~pyop2.Set` local to each process consists of
+entities *owned* by the process and the *halo*, which are entities owned by
+other processes but required to compute on the boundary of the owned entities.
+Each of these sections is again divided into two sections required to
+efficiently overlap communication and computation and avoid communication
+during matrix assembly as described below. Each locally stored
+:class:`~pyop2.Set` entitity therefore belongs to one of four categories:
 
 * **Core**: Entities owned by this processor which can be processed without
   accessing halo data.
@@ -24,13 +29,8 @@ divided into the following four sections:
 * **Non-exec halo**: Off-processor entities which are not processed, but read
   when computing the exec halo.
 
-These four sections are contiguous and local :class:`~pyop2.Set` entities
-must therefore be numbered such that core entities are first, follwed by
-owned, exec halo and non-exec halo in that order. A good partitioning
-maximises the size of the core section and minimises the halo regions. We can
-therefore assume that the vast majority of local :class:`~pyop2.Set` entities
-are in the core section. The following diagram illustrates the four sections
-for a mesh distributed among two processors:
+The following diagram illustrates the four sections for a mesh distributed
+among two processors:
 
 .. figure:: images/pyop2_mpi_mesh.svg
   :align: center
@@ -40,18 +40,25 @@ for a mesh distributed among two processors:
   Matching halo sections are highlighted in matching colours. The owned
   section of process 0 correspondonds to the non-exec section of process 1.
 
+For data defined on the :class:`~pyop2.Set` to be stored contiguously per
+section, local :class:`~pyop2.Set` entities must be numbered such that core
+entities are first, followed by owned, exec halo and non-exec halo in that
+order. A good partitioning maximises the size of the core section and
+minimises the halo regions. We can therefore assume that the vast majority of
+local :class:`~pyop2.Set` entities are in the core section. 
+
 Computation-communication Overlap
 ---------------------------------
 
-Entities that do not access any halo data can be processed immediately, before
-the exchange of halos has completed. Computation on those entities can
-therefore overlap communication of the halo data.
-
 The ordering of :class:`~pyop2.Set` entities into four sections allow for a
-very efficient overlap of computation and communication. Core entities can be
-processed entirely without access to halo data immediately after the halo
-exchange is initiated. Execution over the owned and exec halo regions requires
-up to date halo data and can only start once the halo exchange is completed.
+very efficient overlap of computation and communication. Core entities that do
+not access any halo data can be processed entirely without access to halo data
+immediately after the halo exchange has been initiated. Execution over the
+owned and exec halo regions requires up to date halo data and can only start
+once the halo exchange is completed.  Depending on the latency and bandwidth
+of communication and the size of the core section relative to the halo, the
+halo exchange may complete before the computation on the core section.
+
 The entire process is given below: ::
 
   halo_exchange_begin()                      # Initiate halo exchange
@@ -68,15 +75,18 @@ The entire process is given below: ::
 
 Any reductions depend on data from the core and owned sections and are
 initiated as soon as the owned section has been processed and execute
-concurrently with computation on the exec halo. If the :func:`~pyop2.par_loop`
-assembles a :class:`~pyop2.Mat`, the matrix assembly is finalised at the end.
+concurrently with computation on the exec halo. Similar to
+`halo_exchange_begin` and `halo_exchange_end`, `reduction_begin` and
+`reduction_end` do no work at all if none of the :func:`~pyop2.par_loop`
+arguments requires a reduction. If the :func:`~pyop2.par_loop` assembles a
+:class:`~pyop2.Mat`, the matrix assembly is finalised at the end.
 
 By dividing entities into sections according to their relation to the halo,
 there is no need to check whether or not a given entity touches the halo or
 not during computations on each section. This avoids branching in kernels or
 wrapper code and allows launching separate kernels for GPU execution of each
-section. The :func:`~pyop2.par_loop` execution above therefore applies to all
-backends.
+section. The :func:`~pyop2.par_loop` execution therefore has the above
+structure for all backends.
 
 Halo exchange
 -------------

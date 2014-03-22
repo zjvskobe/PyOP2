@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
     <link rel="next" title="PyOP2 Linear Algebra Interface" href="linear_algebra.html" />
-    <link rel="prev" title="PyOP2 Kernels" href="kernels.html" /> 
+    <link rel="prev" title="PyOP2 Architecture" href="architecture.html" /> 
   </head>
   <body>
     <div class="related">
@@ -41,7 +41,7 @@
           <a href="linear_algebra.html" title="PyOP2 Linear Algebra Interface"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="kernels.html" title="PyOP2 Kernels"
+          <a href="architecture.html" title="PyOP2 Architecture"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
@@ -54,7 +54,7 @@
             
   <div class="section" id="pyop2-backends">
 <span id="backends"></span><h1>PyOP2 Backends<a class="headerlink" href="#pyop2-backends" title="Permalink to this headline">¶</a></h1>
-<p>PyOP2 supports a number of different backends to be able to run parallel
+<p>PyOP2 provides a number of different backends to be able to run parallel
 computations on different hardware architectures. The currently supported
 backends are</p>
 <ul class="simple">
@@ -65,26 +65,29 @@ threads is set with the environment variable <tt class="docutils literal"><span 
 <li><tt class="docutils literal"><span class="pre">opencl</span></tt>: offloads computation to an OpenCL device, either a multi-core
 CPU or a GPU (requires <a class="reference internal" href="installation.html#opencl-installation"><em>OpenCL and pyopencl</em></a>)</li>
 </ul>
-<p>The <tt class="docutils literal"><span class="pre">sequential</span></tt> and <tt class="docutils literal"><span class="pre">openmp</span></tt> backends fully support distributed
-parallel computations using MPI, the <tt class="docutils literal"><span class="pre">cuda</span></tt> and <tt class="docutils literal"><span class="pre">opencl</span></tt> backends
-only support parallel loops on <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dats</span></tt></a> with MPI. For
-OpenMP this means a hybrid parallel execution with <tt class="docutils literal"><span class="pre">OMP_NUM_THREADS</span></tt>
-threads per MPI rank. Datastructures must be suitably partitioned in
-this case with overlapping regions, so called halos. These are
-described in detail in <tt class="xref doc docutils literal"><span class="pre">mpi</span></tt>.</p>
+<p>Distributed parallel computations using MPI are supported by PyOP2 and
+described in detail in <a class="reference internal" href="mpi.html"><em>MPI</em></a>. Datastructures must be partitioned among
+MPI processes with overlapping regions, so called halos.  The host backends
+<tt class="docutils literal"><span class="pre">sequential</span></tt> and <tt class="docutils literal"><span class="pre">openmp</span></tt> have full MPI support, the device backends
+<tt class="docutils literal"><span class="pre">cuda</span></tt> and <tt class="docutils literal"><span class="pre">opencl</span></tt> only support parallel loops on <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dats</span></tt></a>. Hybrid parallel computations with OpenMP are possible, where
+<tt class="docutils literal"><span class="pre">OMP_NUM_THREADS</span></tt> threads are launched per MPI rank.</p>
+<div class="section" id="host-backends">
+<span id="id1"></span><h2>Host backends<a class="headerlink" href="#host-backends" title="Permalink to this headline">¶</a></h2>
+<p>Any computation in PyOP2 requires the generation of code at runtime specific
+to each individual <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>. The host backends generate code
+which is just-in-time (JIT) compiled into a shared library callable as a
+Python module using the <a class="reference external" href="https://bitbucket.org/fenics-project/instant">Instant</a> utility from the <a class="reference external" href="http://fenicsproject.org">FEniCS project</a>. <a class="reference external" href="https://bitbucket.org/fenics-project/instant">Instant</a>
+also takes care of caching the modules on disk to save having to recompile the
+same code.</p>
 <div class="section" id="sequential-backend">
-<span id="id1"></span><h2>Sequential backend<a class="headerlink" href="#sequential-backend" title="Permalink to this headline">¶</a></h2>
-<p>Any computation in PyOP2 requires the generation of code at runtime
-specific to each individual <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>. The sequential
-backend generates code via the <a class="reference external" href="https://bitbucket.org/fenics-project/instant">Instant</a> utility from the <a class="reference external" href="http://fenicsproject.org">FEniCS
-project</a>. Since there is no parallel computation for the sequential
-backend, the generated code is a C wrapper function with a <tt class="docutils literal"><span class="pre">for</span></tt>
-loop calling the kernel for the respective <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>.
-This wrapper also takes care of staging in and out the data as
-requested by the access descriptors requested in the parallel loop.
-Both the kernel and the wrapper function are just-in-time compiled in
-a single compilation unit such that the kernel call can be inlined and
-does not incur any function call overhead.</p>
+<span id="id2"></span><h3>Sequential backend<a class="headerlink" href="#sequential-backend" title="Permalink to this headline">¶</a></h3>
+<p>Since there is no parallel computation for the sequential backend, the
+generated code is a C wrapper function with a <tt class="docutils literal"><span class="pre">for</span></tt> loop calling the kernel
+for the respective <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>.  This wrapper also takes care of
+staging in and out the data as requested by the access descriptors requested
+in the parallel loop.  Both the kernel and the wrapper function are
+just-in-time compiled in a single compilation unit such that the kernel call
+can be inlined and does not incur any function call overhead.</p>
 <p>Recall the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> calling the <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel from
 <a class="reference internal" href="kernels.html"><em>PyOP2 Kernels</em></a>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">op2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span>
@@ -147,26 +150,24 @@ corresponding to a <a class="reference internal" href="user.html#pyop2.Dat" titl
 <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>. Arguments are consecutively numbered to avoid name
 clashes.</p>
 <p>The first <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> argument <tt class="docutils literal"><span class="pre">midpoints</span></tt> is direct and
-therefore no corresponding <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is passed to the
-wrapper function and the data pointer is passed straight to the kernel
-with an appropriate offset. The second argument <tt class="docutils literal"><span class="pre">coordinates</span></tt> is
-indirect and hence a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>-<a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> pair is
-passed. Pointers to the data are gathered via the <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>
-of arity 3 and staged in the array <tt class="docutils literal"><span class="pre">arg1_0_vec</span></tt>, which is passed to
-the kernel. The coordinate data can therefore be accessed in the
-kernel via double indirection with the <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> already
-applied. Note that for both arguments, the pointers are to two
-consecutive double values, since the <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> is of
-dimension two in either case.</p>
+therefore no corresponding <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is passed to the wrapper
+function and the data pointer is passed straight to the kernel with an
+appropriate offset. The second argument <tt class="docutils literal"><span class="pre">coordinates</span></tt> is indirect and hence
+a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>-<a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> pair is passed. Pointers to the data
+are gathered via the <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> of arity 3 and staged in the array
+<tt class="docutils literal"><span class="pre">arg1_0_vec</span></tt>, which is passed to the kernel. The coordinate data can
+therefore be accessed in the kernel via double indirection with the
+<a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> already applied. Note that for both arguments, the
+pointers are to two consecutive double values, since the
+<a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a> is of dimension two in either case.</p>
 </div>
 <div class="section" id="openmp-backend">
-<span id="id2"></span><h2>OpenMP backend<a class="headerlink" href="#openmp-backend" title="Permalink to this headline">¶</a></h2>
-<p>The OpenMP uses the same infrastructure for code generation and JIT
-compilation as the sequential backend described above. In contrast however,
-the <tt class="docutils literal"><span class="pre">for</span></tt> loop is annotated with OpenMP pragmas to make it execute in
-parallel with multiple threads. To avoid race conditions on data access, the
-iteration set is coloured and a thread safe execution plan is computed as
-described in <tt class="xref doc docutils literal"><span class="pre">colouring</span></tt>.</p>
+<span id="id3"></span><h3>OpenMP backend<a class="headerlink" href="#openmp-backend" title="Permalink to this headline">¶</a></h3>
+<p>In contrast to the sequential backend, the outermost <tt class="docutils literal"><span class="pre">for</span></tt> loop in the
+OpenMP backend is annotated with OpenMP pragmas to execute in parallel with
+multiple threads. To avoid race conditions on data access, the iteration set
+is coloured and a thread safe execution plan is computed as described in
+<em class="xref std std-ref">colouring</em>.</p>
 <p>The JIT compiled code for the parallel loop from above changes as follows:</p>
 <div class="highlight-c"><pre>void wrap_midpoint__(PyObject* _boffset,
                      PyObject* _nblocks,
@@ -220,22 +221,14 @@ plan. These are the number of elements that are part of the given block and
 its starting index. Note that each thread needs its own staging array
 <tt class="docutils literal"><span class="pre">arg1_0_vec</span></tt>, which is therefore scoped by the thread id.</p>
 </div>
-<div class="section" id="cuda-backend">
-<span id="id3"></span><h2>CUDA backend<a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h2>
-<p>The CUDA backend makes extensive use of <a class="reference external" href="http://mathema.tician.de/software/pycuda/">PyCUDA</a> and its infrastructure for
-just-in-time compilation of CUDA kernels and interfacing them to Python.
-Linear solvers and sparse matrix data structures are implemented on top of the
-<a class="reference external" href="http://cusplibrary.github.io">CUSP library</a> and are described in greater detail in <a class="reference internal" href="linear_algebra.html"><em>PyOP2 Linear Algebra Interface</em></a>.
-Code generation uses a template based approach, where a <tt class="docutils literal"><span class="pre">__global__</span></tt> stub
-routine to be called from the host is generated, which takes care of data
-marshalling and calling the user kernel as an inline <tt class="docutils literal"><span class="pre">__device__</span></tt> function.</p>
-<p>When the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> is called, PyOP2 uses the
-<a class="reference internal" href="concepts.html#access-descriptors"><em>Access descriptors</em></a> to determine which data needs to be allocated or
-transferred from host to device prior to launching the kernel and which data
-needs to be brought back to the host afterwards. Data is only transferred if
-it is out of date at the target location and all data transfer is triggered
-lazily i.e. the actual copy only occurs once the data is requested. Flags
-indicate the present state of a given <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>:</p>
+</div>
+<div class="section" id="device-backends">
+<span id="id4"></span><h2>Device backends<a class="headerlink" href="#device-backends" title="Permalink to this headline">¶</a></h2>
+<p>As with the host backends, the device backends have most of the implementation
+in common. The PyOP2 data carriers <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>, <a class="reference internal" href="user.html#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>
+and <a class="reference internal" href="user.html#pyop2.Const" title="pyop2.Const"><tt class="xref py py-class docutils literal"><span class="pre">Const</span></tt></a> have a data array in host memory and a separate
+array in device memory. Flags indicate the present state of a given data
+carrier:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">DEVICE_UNALLOCATED</span></tt>: no data is allocated on the device</li>
 <li><tt class="docutils literal"><span class="pre">HOST_UNALLOCATED</span></tt>: no data is allocated on the host</li>
@@ -244,6 +237,84 @@ host</li>
 <li><tt class="docutils literal"><span class="pre">HOST</span></tt>: data is up-to-date (valid) on the host, but invalid on the device</li>
 <li><tt class="docutils literal"><span class="pre">BOTH</span></tt>: data is up-to-date (valid) on both the host and device</li>
 </ul>
+<p>When a <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> is called, PyOP2 uses the
+<a class="reference internal" href="concepts.html#access-descriptors"><em>Access descriptors</em></a> to determine which data needs to be allocated or
+transferred from host to device prior to launching the kernel. Data is only
+transferred if it is out of date at the target location and all data transfer
+is triggered lazily i.e. the actual copy only occurs once the data is
+requested. In particular there is no automatic transfer back of data from
+device to host unless it is accessed on the host.</p>
+<p>A newly created device <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> has no associated device data and
+starts out in the state <tt class="docutils literal"><span class="pre">DEVICE_UNALLOCATED</span></tt>. The diagram below shows all
+actions that involve a state transition, which can be divided into three
+groups: calling explicit data transfer functions (red), access data on the
+host (black) and using the <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> in a <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>
+(blue). There is no need for users to explicitly initiate data transfers and
+the tranfer functions are only given for completeness.</p>
+<div class="figure align-center">
+<img src="_images/pyop2_device_data_state.svg" /><p class="caption">State transitions of a data carrier on PyOP2 device backends</p>
+</div>
+<p>When a device <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is used in a <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> for the
+first time, data is allocated on the device. If the <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is
+only read, the host array is transferred to device if it was in state <tt class="docutils literal"><span class="pre">HOST</span></tt>
+or <tt class="docutils literal"><span class="pre">DEVICE_UNALLOCATED</span></tt> before the <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> and the
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is in the state <tt class="docutils literal"><span class="pre">BOTH</span></tt> afterwards, unless it was in
+state <tt class="docutils literal"><span class="pre">DEVICE</span></tt> in which case it remains in that state. If the
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is written to, data transfer before the
+<a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> is necessary unless the access descriptor is
+<a class="reference internal" href="user.html#pyop2.WRITE" title="pyop2.WRITE"><tt class="xref py py-data docutils literal"><span class="pre">WRITE</span></tt></a> and the host data is out of date afterwards and the
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is in the state <tt class="docutils literal"><span class="pre">DEVICE</span></tt>. An overview of the state
+transitions and necessary memory allocations and data transfers for the two
+cases is given in the table below:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="29%" />
+<col width="49%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Initial state</th>
+<th class="head"><a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> read</th>
+<th class="head"><a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> written to</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">DEVICE_UNALLOCATED</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">BOTH</span></tt> (alloc, transfer h2d)</td>
+<td><tt class="docutils literal"><span class="pre">DEVICE</span></tt> (alloc, transfer h2d unless write-only)</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">DEVICE</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">DEVICE</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">DEVICE</span></tt></td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">HOST</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">BOTH</span></tt> (transfer h2d)</td>
+<td><tt class="docutils literal"><span class="pre">DEVICE</span></tt> (transfer h2d unless write-only)</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">BOTH</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">BOTH</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">DEVICE</span></tt></td>
+</tr>
+</tbody>
+</table>
+<p>Accessing data on the host initiates a device to host data transfer if the
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is in state <tt class="docutils literal"><span class="pre">DEVICE</span></tt> and leaves it in state <tt class="docutils literal"><span class="pre">HOST</span></tt>
+when using the <a class="reference internal" href="user.html#pyop2.Dat.data" title="pyop2.Dat.data"><tt class="xref py py-meth docutils literal"><span class="pre">data()</span></tt></a> property and <tt class="docutils literal"><span class="pre">BOTH</span></tt> when using
+<a class="reference internal" href="user.html#pyop2.Dat.data_ro" title="pyop2.Dat.data_ro"><tt class="xref py py-meth docutils literal"><span class="pre">data_ro()</span></tt></a>.</p>
+<p>The state transitions described above apply in the same way to a
+<a class="reference internal" href="user.html#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>. A <a class="reference internal" href="user.html#pyop2.Const" title="pyop2.Const"><tt class="xref py py-class docutils literal"><span class="pre">Const</span></tt></a> is read-only, never modified
+on device and therefore never out of date on the host. Hence there is no
+state <tt class="docutils literal"><span class="pre">DEVICE</span></tt> and it is not necessary to copy back <a class="reference internal" href="user.html#pyop2.Const" title="pyop2.Const"><tt class="xref py py-class docutils literal"><span class="pre">Const</span></tt></a>
+data from device to host.</p>
+<div class="section" id="cuda-backend">
+<span id="id5"></span><h3>CUDA backend<a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h3>
+<p>The CUDA backend makes extensive use of <a class="reference external" href="http://mathema.tician.de/software/pycuda/">PyCUDA</a> and its infrastructure for
+just-in-time compilation of CUDA kernels and interfacing them to Python.
+Linear solvers and sparse matrix data structures are implemented on top of the
+<a class="reference external" href="http://cusplibrary.github.io">CUSP library</a> and are described in greater detail in <a class="reference internal" href="linear_algebra.html"><em>PyOP2 Linear Algebra Interface</em></a>.
+Code generation uses a template based approach, where a <tt class="docutils literal"><span class="pre">__global__</span></tt> stub
+routine to be called from the host is generated, which takes care of data
+marshalling and calling the user kernel as an inline <tt class="docutils literal"><span class="pre">__device__</span></tt> function.</p>
 <p>We consider the same <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel as in the previous examples, which
 requires no CUDA-specific modifications and is automatically annotated with a
 <tt class="docutils literal"><span class="pre">__device__</span></tt> qualifier. <a class="reference external" href="http://mathema.tician.de/software/pycuda/">PyCUDA</a> automatically generates a host stub for the
@@ -393,13 +464,12 @@ backends, the first, directly accessed, argument, is passed as a pointer to
 global device memory with a suitable offset.</p>
 </div>
 <div class="section" id="opencl-backend">
-<span id="id4"></span><h2>OpenCL backend<a class="headerlink" href="#opencl-backend" title="Permalink to this headline">¶</a></h2>
+<span id="id6"></span><h3>OpenCL backend<a class="headerlink" href="#opencl-backend" title="Permalink to this headline">¶</a></h3>
 <p>The other device backend OpenCL is structurally very similar to the CUDA
 backend. It uses <a class="reference external" href="http://mathema.tician.de/software/pyopencl/">PyOpenCL</a> to interface to the OpenCL drivers and runtime.
 Linear algebra operations are handled by <a class="reference external" href="http://www.mcs.anl.gov/petsc/petsc-as/">PETSc</a> as described in
 <a class="reference internal" href="linear_algebra.html"><em>PyOP2 Linear Algebra Interface</em></a>. PyOP2 generates a kernel stub from a template similar
-to the CUDA case. The OpenCL backend shares the same semantics for data
-transfer described for CUDA above.</p>
+to the CUDA case.</p>
 <p>Consider the <tt class="docutils literal"><span class="pre">midpoint</span></tt> kernel from previous examples, whose parameters in
 the kernel signature are automatically annotated with OpenCL storage
 qualifiers. <a class="reference external" href="http://mathema.tician.de/software/pyopencl/">PyOpenCL</a> provides Python wrappers for OpenCL runtime functions to
@@ -561,6 +631,7 @@ parameter to the kernel, whereas in OpenCL it needs to be hard coded as a
 kernel attribute.</p>
 </div>
 </div>
+</div>
 
 
           </div>
@@ -571,17 +642,23 @@ kernel attribute.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">PyOP2 Backends</a><ul>
+<li><a class="reference internal" href="#host-backends">Host backends</a><ul>
 <li><a class="reference internal" href="#sequential-backend">Sequential backend</a></li>
 <li><a class="reference internal" href="#openmp-backend">OpenMP backend</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#device-backends">Device backends</a><ul>
 <li><a class="reference internal" href="#cuda-backend">CUDA backend</a></li>
 <li><a class="reference internal" href="#opencl-backend">OpenCL backend</a></li>
 </ul>
 </li>
 </ul>
+</li>
+</ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="kernels.html"
-                        title="previous chapter">PyOP2 Kernels</a></p>
+  <p class="topless"><a href="architecture.html"
+                        title="previous chapter">PyOP2 Architecture</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="linear_algebra.html"
                         title="next chapter">PyOP2 Linear Algebra Interface</a></p>
@@ -620,7 +697,7 @@ kernel attribute.</p>
           <a href="linear_algebra.html" title="PyOP2 Linear Algebra Interface"
              >next</a> |</li>
         <li class="right" >
-          <a href="kernels.html" title="PyOP2 Kernels"
+          <a href="architecture.html" title="PyOP2 Architecture"
              >previous</a> |</li>
         <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>

@@ -76,7 +76,7 @@ code generation.  Executing a parallel loop comprises the following steps:</p>
 <ol class="arabic simple">
 <li>Compute a parallel execution plan, including information for efficient
 staging of data and partitioning and colouring of the iteration set for
-conflict-free parallel execution.  This process is described in <a class="reference internal" href="plan.html"><em>Parallel Execution Plan</em></a>
+conflict-free parallel execution.  This process is described in <tt class="xref doc docutils literal"><span class="pre">plan</span></tt>
 and does not apply to the sequential backend.</li>
 <li>Generate backend-specific code for executing the computation for a given
 set of <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> arguments as detailed in <a class="reference internal" href="backends.html"><em>PyOP2 Backends</em></a>
@@ -91,7 +91,7 @@ OpenCL backends.</li>
 <li>Call into the generated module to perform the actual computation. For
 distributed parallel computations this involves separate calls for the
 regions owned by the current processor and the halo as described in
-<tt class="xref doc docutils literal"><span class="pre">mpi</span></tt>.</li>
+<a class="reference internal" href="mpi.html"><em>MPI</em></a>.</li>
 <li>Perform any necessary reductions for <a class="reference internal" href="user.html#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Globals</span></tt></a>.</li>
 <li>Call the backend-specific matrix assembly procedure on any
 <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> arguments.</li>

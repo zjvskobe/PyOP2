@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.abspath('../../..'))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.pngmath']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.pngmath', 'sphinx.ext.graphviz']
 autodoc_default_flags = ['members', 'undoc-members']
 # Both the class’ and the __init__ method’s docstring are concatenated and
 # inserted into the class definition

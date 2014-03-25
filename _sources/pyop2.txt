@@ -33,6 +33,14 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`compilation` Module
+-------------------------
+
+.. automodule:: pyop2.compilation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`computeind` Module
 ------------------------
 

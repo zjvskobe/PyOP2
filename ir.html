@@ -1,0 +1,413 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The PyOP2 Intermediate Representation &mdash; PyOP2 0.10.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.10.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="next" title="PyOP2 Architecture" href="architecture.html" />
+    <link rel="prev" title="PyOP2 Kernels" href="kernels.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="architecture.html" title="PyOP2 Architecture"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kernels.html" title="PyOP2 Kernels"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-pyop2-intermediate-representation">
+<h1>The PyOP2 Intermediate Representation<a class="headerlink" href="#the-pyop2-intermediate-representation" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-class docutils literal"><span class="pre">parallel</span> <span class="pre">loop</span></tt></a> is the main construct of PyOP2.
+It applies a specific <a class="reference internal" href="user.html#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> to all elements in the iteration
+set of the parallel loop. Here, we describe how to use the PyOP2 API to build
+a kernel and, also, we provide simple guidelines on how to write efficient
+kernels.</p>
+<div class="section" id="using-the-intermediate-representation">
+<h2>Using the Intermediate Representation<a class="headerlink" href="#using-the-intermediate-representation" title="Permalink to this headline">¶</a></h2>
+<p>In the <a class="reference internal" href="kernels.html"><em>previous section</em></a>, we described the API for
+PyOP2 kernels in terms of the C code that gets executed.
+Passing in a string of C code is the simplest way of creating a
+<a class="reference internal" href="user.html#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a>.  Another possibility is to use PyOP2 Intermediate
+Representation (IR) objects to express the <a class="reference internal" href="user.html#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> semantics.</p>
+<p>An Abstract Syntax Tree of the kernel code can be manually built using IR
+objects. Since PyOP2 has been primarily thought to be fed by higher layers
+of abstractions, rather than by users, no C-to-AST parser is currently provided.
+The advantage of providing an AST, instead of C code, is that it enables PyOP2
+to inspect and transform the kernel, which is aimed at achieving performance
+portability among different architectures and, more in general, better execution
+times.</p>
+<p>For the purposes of exposition, let us consider a simple
+kernel <tt class="docutils literal"><span class="pre">init</span></tt> which initialises the members of a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>
+to zero.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">op2</span> <span class="kn">import</span> <span class="n">Kernel</span>
+
+<span class="n">code</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;void init(double* edge_weight) {</span>
+<span class="s">  for (int i = 0; i &lt; 3; i++)</span>
+<span class="s">    edge_weight[i] = 0.0;</span>
+<span class="s">}&quot;&quot;&quot;</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s">&quot;init&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, we describe how we can use PyOP2 IR objects to build an AST for
+the this kernel. For example, the most basic AST one can come up with
+is</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">op2</span> <span class="kn">import</span> <span class="n">Kernel</span>
+<span class="kn">from</span> <span class="nn">ir.ast_base</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">ast</span> <span class="o">=</span> <span class="n">FlatBlock</span><span class="p">(</span><span class="s">&quot;&quot;&quot;void init(double* edge_weight) {</span>
+<span class="s">  for (int i = 0; i &lt; 3; i++)</span>
+<span class="s">    edge_weight[i] = 0.0;</span>
+<span class="s">}&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="s">&quot;init&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.FlatBlock" title="pyop2.ir.ast_base.FlatBlock"><tt class="xref py py-class docutils literal"><span class="pre">FlatBlock</span></tt></a> object encapsulates a &#8220;flat&#8221; block
+of code, which is not modified by the IR engine. A
+<a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.FlatBlock" title="pyop2.ir.ast_base.FlatBlock"><tt class="xref py py-class docutils literal"><span class="pre">FlatBlock</span></tt></a> is used to represent (possibly large)
+fragments of code for which we are not interested in any kind of
+transformations, so it may be particularly useful to speed up code development
+when writing, for example, test cases or non-expensive kernels.  On the other
+hand, time-demanding kernels should be properly represented using a &#8220;real&#8221;
+AST. For example, an useful AST for <tt class="docutils literal"><span class="pre">init</span></tt> could be the following</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">op2</span> <span class="kn">import</span> <span class="n">Kernel</span>
+<span class="kn">from</span> <span class="nn">ir.ast_base</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">ast_body</span> <span class="o">=</span> <span class="p">[</span><span class="n">FlatBlock</span><span class="p">(</span><span class="s">&quot;...some code can go here...&quot;</span><span class="p">),</span>
+            <span class="n">c_for</span><span class="p">(</span><span class="s">&quot;i&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">Assign</span><span class="p">(</span><span class="n">Symbol</span><span class="p">(</span><span class="s">&quot;edge_weight&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s">&quot;i&quot;</span><span class="p">,)),</span> <span class="n">c_sym</span><span class="p">(</span><span class="s">&quot;0.0&quot;</span><span class="p">)))]</span>
+<span class="n">ast</span> <span class="o">=</span> <span class="n">FunDecl</span><span class="p">(</span><span class="s">&quot;void&quot;</span><span class="p">,</span> <span class="s">&quot;init&quot;</span><span class="p">,</span>
+              <span class="p">[</span><span class="n">Decl</span><span class="p">(</span><span class="s">&quot;double*&quot;</span><span class="p">,</span> <span class="n">c_sym</span><span class="p">(</span><span class="s">&quot;edge_weight&quot;</span><span class="p">))],</span>
+              <span class="n">ast_body</span><span class="p">)</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="s">&quot;init&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, we first construct the body of the kernel function. We have
+an initial <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.FlatBlock" title="pyop2.ir.ast_base.FlatBlock"><tt class="xref py py-class docutils literal"><span class="pre">FlatBlock</span></tt></a> that contains, for instance,
+some sort of initializing code. <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_for" title="pyop2.ir.ast_base.c_for"><tt class="xref py py-func docutils literal"><span class="pre">c_for()</span></tt></a> is a shortcut
+for building a <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.For" title="pyop2.ir.ast_base.For"><tt class="xref py py-class docutils literal"><span class="pre">for</span> <span class="pre">loop</span></tt></a>.  It takes an
+iteration variable (<tt class="docutils literal"><span class="pre">i</span></tt>), the extent of the loop and its body.  Multiple
+statements in the body can be passed in as a list.
+<a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_sym" title="pyop2.ir.ast_base.c_sym"><tt class="xref py py-func docutils literal"><span class="pre">c_sym()</span></tt></a> is a shortcut for building <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.Symbol" title="pyop2.ir.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">symbols</span></tt></a>. You may want to use
+<a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_sym" title="pyop2.ir.ast_base.c_sym"><tt class="xref py py-func docutils literal"><span class="pre">c_sym()</span></tt></a> when the symbol makes no explicit use of
+iteration variables.</p>
+<p>We use <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.Symbol" title="pyop2.ir.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">Symbol</span></tt></a> instead of
+<a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_sym" title="pyop2.ir.ast_base.c_sym"><tt class="xref py py-func docutils literal"><span class="pre">c_sym()</span></tt></a>,  when <tt class="docutils literal"><span class="pre">edge_weight</span></tt> accesses a specific
+element using the iteration variable <tt class="docutils literal"><span class="pre">i</span></tt>. This is fundamental to allow the
+IR engine performing many kind of transformations involving the kernel&#8217;s
+iteration space(s). Finally, the signature of the function is constructed
+using the <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.FunDecl" title="pyop2.ir.ast_base.FunDecl"><tt class="xref py py-class docutils literal"><span class="pre">FunDecl</span></tt></a>.</p>
+<p>Other examples on how to build ASTs can be found in the tests folder,
+particularly looking into <tt class="docutils literal"><span class="pre">test_matrices.py</span></tt> and
+<tt class="docutils literal"><span class="pre">test_iteration_space_dats.py</span></tt>.</p>
+</div>
+<div class="section" id="achieving-performance-portability-with-the-ir">
+<h2>Achieving Performance Portability with the IR<a class="headerlink" href="#achieving-performance-portability-with-the-ir" title="Permalink to this headline">¶</a></h2>
+<p>One of the key objectives of PyOP2 is obtaining performance portability.
+This means that exactly the same program can be executed on a range of
+different platforms, and that the PyOP2 engine will strive to get the best
+performance out of the chosen platform. PyOP2 allows users to write kernels
+by completely abstracting from the underlying machine. This is mainly
+achieved in two steps:</p>
+<ul class="simple">
+<li>Given the AST of a kernel, PyOP2 applies a first transformation aimed at
+mapping the parallelism inherent to the kernel to that available in the
+backend.</li>
+<li>Then, PyOP2 applies optimizations to the sequential code, depending on the
+underlying backend.</li>
+</ul>
+<p>To maximize the outcome of the transformation process, it is important that
+kernels are written as simple as possible. That is, premature optimizations,
+possibly for a specific backend, might be harmful for performance.</p>
+<p>A minimal language, the so-called PyOP2 Kernel Domain-Specific Language, is
+used to trigger specific transformations. If we had had a parser from C
+code to AST, we would have embedded this DSL in C by means of <tt class="docutils literal"><span class="pre">pragmas</span></tt>.
+As we directly build an AST, we achieve the same goal by decorating AST nodes
+with specific attributes, added at node creation-time. An overview of the
+language follows</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">itspace</span></tt>. This is added to <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.For" title="pyop2.ir.ast_base.For"><tt class="xref py py-class docutils literal"><span class="pre">For</span></tt></a>
+nodes (i.e. written on top of for loops). It tells PyOP2 that the following
+is a fully-parallel loop, that is all of its iterations can be executed in
+parallel without any sort of synchronization.</li>
+<li><tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">assembly(itvar1,</span> <span class="pre">itvar2)</span></tt>. This is added to a statement node,
+to denote that we are performing a local assembly operation along to the
+<tt class="docutils literal"><span class="pre">itvar1</span></tt> and <tt class="docutils literal"><span class="pre">itvar2</span></tt> dimensions.</li>
+<li><tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">simd</span></tt>. This is added on top of the kernel signature. It is
+used to suggest PyOP2 to apply simd vectorization along the ParLoop&#8217;s
+iteration set dimension. Such kind of vectorization is also known as
+<em>inter-kernel vectorization</em>. This feature is currently not supported
+by PyOP2, and will be added only in a future release.</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">itspace</span></tt> pragma tells PyOP2 how to extract parallelism from the kernel.
+Consider again our usual example. To expose a parallel iteration space, one
+one must write</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">op2</span> <span class="kn">import</span> <span class="n">Kernel</span>
+
+<span class="n">code</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;void init(double* edge_weight) {</span>
+<span class="s">  #pragma pyop2 itspace</span>
+<span class="s">  for (int i = 0; i &lt; 3; i++)</span>
+<span class="s">    edge_weight[i] = 0.0;</span>
+<span class="s">}&quot;&quot;&quot;</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="s">&quot;init&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_for" title="pyop2.ir.ast_base.c_for"><tt class="xref py py-func docutils literal"><span class="pre">c_for()</span></tt></a> shortcut when creating an AST expresses
+the same semantics of a for loop decorated with a <tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">itspace</span></tt>.</p>
+<p>Now, imagine we are executing the <tt class="docutils literal"><span class="pre">init</span></tt> kernel on a CPU architecture.
+Typically we want a single core to execute the entire kernel, because it is
+very likely that the kernel&#8217;s iteration space is small and its working set
+fits the L1 cache, and no benefit would be gained by splitting the computation
+among distinct cores. On the other end, if the backend is a GPU or an
+accelerator, a different execution model might give better performance.
+There&#8217;s a huge amount of parallelism available, for example, in a GPU, so
+delegating the execution of an individual iteration (or a chunk of iterations)
+to a single thread could pay off. If that is the case, the PyOP2 IR engine
+re-structures the kernel code to exploit such parallelism.</p>
+</div>
+<div class="section" id="optimizing-kernels-on-cpus">
+<h2>Optimizing kernels on CPUs<a class="headerlink" href="#optimizing-kernels-on-cpus" title="Permalink to this headline">¶</a></h2>
+<p>So far, some effort has been spent on optimizations for CPU platforms. Being a
+DSL, PyOP2 provides specific support for those (linear algebra) operations that
+are common among unstructured-mesh-based numerical methods. For example, PyOP2
+is capable of aggressively optimizing local assembly codes for applications
+based on the Finite Element Method. We therefore distinguish optimizations in
+two categories:</p>
+<ul class="simple">
+<li>Generic optimizations, such as data alignment and support for autovectorization.</li>
+<li>Domain-specific optimizations (DSO)</li>
+</ul>
+<p>To trigger DSOs, statements must be decorated using the kernel DSL. For example,
+if the kernel computes the local assembly of an element in an unstructured mesh,
+then a <tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">assembly(itvar1,</span> <span class="pre">itvar2)</span></tt> should be added on top of the
+corresponding statement. When constructing the AST of a kernel, this can be
+simply achieved by</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">ir.ast_base</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">s1</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s">&quot;X&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s">&quot;i&quot;</span><span class="p">,))</span>
+<span class="n">s2</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s">&quot;Y&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s">&quot;j&quot;</span><span class="p">,))</span>
+<span class="n">tensor</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s">&quot;i&quot;</span><span class="p">,</span> <span class="s">&quot;j&quot;</span><span class="p">))</span>
+<span class="n">pragma</span> <span class="o">=</span> <span class="s">&quot;#pragma pyop2 outerproduct(j,k)&quot;</span>
+<span class="n">code</span> <span class="o">=</span> <span class="n">c_for</span><span class="p">(</span><span class="s">&quot;i&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">c_for</span><span class="p">(</span><span class="s">&quot;j&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">Incr</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">Prod</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">),</span> <span class="n">pragma</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>That, conceptually, corresponds to</p>
+<div class="highlight-c"><pre>#pragma pyop2 itspace
+for (int i = 0; i &lt; 3; i++)
+  #pragma pyop2 itspace
+  for (int j = 0; j &lt; 3; j++)
+    #pragma pyop2 assembly(i, j)
+    A[i][j] += X[i]*Y[j]</pre>
+</div>
+<p>Visiting the AST, PyOP2 finds a 2-dimensional iteration space and an assembly
+statement. Currently, <tt class="docutils literal"><span class="pre">#pragma</span> <span class="pre">pyop2</span> <span class="pre">itspace</span></tt> is ignored when the backend is
+a CPU. The <tt class="docutils literal"><span class="pre">#pragma</span> <span class="pre">pyop2</span> <span class="pre">assembly(i,</span> <span class="pre">j)</span></tt> can trigger multiple DSOs.
+PyOP2 currently lacks an autotuning system that finds out automatically the
+best possible kernel implementation, that is the optimizations that minimize
+the kernel run-time. To drive the optimization process, the user (or the
+higher layer) can specifiy which optimizations should be applied. Currently,
+PyOP2 can automate:</p>
+<ul class="simple">
+<li>Alignment and padding of data structures: for issuing aligned loads and stores.</li>
+<li>Loop trip count adjustment according to padding: useful for autovectorization
+when the trip count is not a multiple of the vector length</li>
+<li>Loop-invariant code motion and autovectorization of invariant code: this is
+particularly useful since trip counts are typically small, and hoisted code
+can still represent a significant proportion of the execution time</li>
+<li>Register tiling for rectangular iteration spaces</li>
+<li>(DSO for pragma assembly): Outer-product vectorization + unroll-and-jam of
+outer loops to improve register re-use or to mitigate register pressure</li>
+</ul>
+</div>
+<div class="section" id="how-to-select-specific-kernel-optimizations">
+<h2>How to select specific kernel optimizations<a class="headerlink" href="#how-to-select-specific-kernel-optimizations" title="Permalink to this headline">¶</a></h2>
+<p>When constructing a <a class="reference internal" href="user.html#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a>, it is possible to specify the set
+of optimizations we want PyOP2 to apply. The IR engine will analyse the kernel
+AST and will try to apply, incrementally, such optimizations. The PyOP2&#8217;s FFC
+interface, which build a <a class="reference internal" href="user.html#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> object given an AST provided
+by FFC, makes already use of the available optimizations. Here, we take the
+emblematic case of the FFC interface and describe how to play with the various
+optimizations through a series of examples.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ast</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;licm&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;tile&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="s">&#39;ap&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&#39;vect&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">}</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="s">&#39;my_kernel&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, we have an AST <tt class="docutils literal"><span class="pre">ast</span></tt> and we specify optimizations through
+the dictionary <tt class="docutils literal"><span class="pre">opts</span></tt>; then, we build the <a class="reference internal" href="user.html#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a>, passing in
+the optional argument <tt class="docutils literal"><span class="pre">opts</span></tt>. No optimizations are enabled here. The
+possible options are:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">licm</span></tt>: Loop-Invariant Code Motion.</li>
+<li><tt class="docutils literal"><span class="pre">tile</span></tt>: Register Tiling (of rectangular iteration spaces)</li>
+<li><tt class="docutils literal"><span class="pre">ap</span></tt>: Data alignment, padding. Trip count adjustment.</li>
+<li><tt class="docutils literal"><span class="pre">vect</span></tt>: SIMD intra-kernel vectorization.</li>
+</ul>
+<p>If we wanted to apply both loop-invariant code motion and data alignment, we
+would simply write</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ast</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;licm&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;ap&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="s">&#39;my_kernel&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, let&#8217;s assume we know the kernel has a rectangular iteration space. We want
+to try register tiling, with a particular tile size. The way to get it is</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ast</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;tile&#39;</span><span class="p">:</span> <span class="p">(</span><span class="bp">True</span><span class="p">,</span> <span class="mi">8</span><span class="p">)}</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="s">&#39;my_kernel&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, the iteration space is sliced into tiles of size 8x8. If the
+iteration space is smaller than the slice, then the transformation is not
+applied. By specifying <tt class="docutils literal"><span class="pre">-1</span></tt> instead of <tt class="docutils literal"><span class="pre">8</span></tt>, we leave PyOP2 free to choose
+automatically a certain tile size.</p>
+<p>A fundamental optimization for any PyOP2 kernel is SIMD vectorization. This is
+because almost always kernels fit the L1 cache and are likely to be compute-
+bound. Backend compilers&#8217; AutoVectorization (AV) is therefore an opportunity.
+By enforcing data alignment and padding, we can increase the chance AV is
+successful. To try AV, one should write</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ir.ast_plan</span> <span class="kn">as</span> <span class="nn">ap</span>
+
+<span class="n">ast</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ap&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;vect&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">AUTOVECT</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)}</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="s">&#39;my_kernel&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">vect</span></tt>&#8216;s second parameter (-1) is ignored when AV is requested.
+If our kernel is computing an assembly-like operation, then we can ask PyOP2
+to optimize for register locality and register pressure, by resorting to a
+different vectorization technique. Early experiments show that this approach
+can be particularly useful when the amount of data movement in the assembly
+loops is &#8220;significant&#8221;. Of course, this depends on kernel parameters (e.g.
+size of assembly loop, number and size of arrays involved in the assembly) as
+well as on architecture parameters (e.g. size of L1 cache, number of available
+registers). This strategy takes the name of <em>Outer-Product Vectorization</em>
+(OP), and can be activated in the following way (again, we suggest to use it
+along with data alignment and padding).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ir.ast_plan</span> <span class="kn">as</span> <span class="nn">ap</span>
+
+<span class="n">ast</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;ap&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;vect&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">ap</span><span class="o">.</span><span class="n">V_OP_UAJ</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Kernel</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="s">&#39;my_kernel&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">UAJ</span></tt> in <tt class="docutils literal"><span class="pre">V_OP_UAJ</span></tt> stands for <tt class="docutils literal"><span class="pre">Unroll-and-Jam</span></tt>. It has been proved that
+OP shows a much better performance when used in combination with unrolling the
+outer assembly loop and incorporating (<em>jamming</em>) the unrolled iterations
+within the inner loop. The second parameter, therefore, specifies the unroll-
+and-jam factor: the higher it is, the larger is the number of iterations
+unrolled. A factor 1 means that no unroll-and-jam is performed. The optimal
+factor highly depends on the computational characteristics of the kernel.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The PyOP2 Intermediate Representation</a><ul>
+<li><a class="reference internal" href="#using-the-intermediate-representation">Using the Intermediate Representation</a></li>
+<li><a class="reference internal" href="#achieving-performance-portability-with-the-ir">Achieving Performance Portability with the IR</a></li>
+<li><a class="reference internal" href="#optimizing-kernels-on-cpus">Optimizing kernels on CPUs</a></li>
+<li><a class="reference internal" href="#how-to-select-specific-kernel-optimizations">How to select specific kernel optimizations</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="kernels.html"
+                        title="previous chapter">PyOP2 Kernels</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="architecture.html"
+                        title="next chapter">PyOP2 Architecture</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ir.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="architecture.html" title="PyOP2 Architecture"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="kernels.html" title="PyOP2 Kernels"
+             >previous</a> |</li>
+        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012-2013, Imperial College et al.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

@@ -161,9 +161,11 @@ Abstract Syntax Tree (ast).</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">ArrayInit</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.ArrayInit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Expr" title="pyop2.ir.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Expr</span></tt></a></p>
 <p>Array Initilizer. A n-dimensional array A can be statically initialized
-to some values. For example, A[3][3] = {{0.0}} or A[3] = {1, 1, 1}.
-At the moment, initial values like {{0.0}} and {1, 1, 1} are passed in as
-simple strings.</p>
+to some values. For example</p>
+<div class="highlight-python"><pre>A[3][3] = {{0.0}} or A[3] = {1, 1, 1}.</pre>
+</div>
+<p>At the moment, initial values like <tt class="docutils literal"><span class="pre">{{0.0}}</span></tt> and <tt class="docutils literal"><span class="pre">{1,</span> <span class="pre">1,</span> <span class="pre">1}</span></tt> are passed
+in as simple strings.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.ArrayInit.gencode">
 <tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.ArrayInit.gencode" title="Permalink to this definition">¶</a></dt>
@@ -215,17 +217,29 @@ simple strings.</p>
 <dt id="pyop2.ir.ast_base.Less">
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Less</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Less" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.BinExpr" title="pyop2.ir.ast_base.BinExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.BinExpr</span></tt></a></p>
-<p>Compare two expressions using the operand &#8216;&lt;&#8217; .</p>
+<p>Compare two expressions using the operand <tt class="docutils literal"><span class="pre">&lt;</span></tt>.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.ir.ast_base.Symbol">
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Symbol</tt><big>(</big><em>symbol</em>, <em>rank</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Symbol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Expr" title="pyop2.ir.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Expr</span></tt></a></p>
-<p>A generic symbol. len(rank) = 0 =&gt; scalar, 1 =&gt; array, 2 =&gt; matrix, etc
-rank is a tuple whose entries represent the iteration variables the symbol
+<p>A generic symbol. The length of <tt class="docutils literal"><span class="pre">rank</span></tt> is the tensor rank:</p>
+<ul class="simple">
+<li>0: scalar</li>
+<li>1: array</li>
+<li>2: matrix, etc.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rank</strong> (<em>tuple</em>) &#8211; entries represent the iteration variables the symbol
 depends on, or explicit numbers representing the entry of a tensor the
-symbol is accessing, or the size of the tensor itself.</p>
+symbol is accessing, or the size of the tensor itself.</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.Symbol.gencode">
 <tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Symbol.gencode" title="Permalink to this definition">¶</a></dt>
@@ -366,8 +380,12 @@ using AVX intrinsics.</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Decl</tt><big>(</big><em>typ</em>, <em>sym</em>, <em>init=None</em>, <em>qualifiers=None</em>, <em>attributes=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Decl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Declaration of a symbol.</p>
-<p>Syntax: [qualifiers] typ sym [attributes] [= init];
-E.g.: static const double FE0[3][3] __attribute__(align(32)) = {{...}};</p>
+<p>Syntax:</p>
+<div class="highlight-python"><pre>[qualifiers] typ sym [attributes] [= init];</pre>
+</div>
+<p>E.g.:</p>
+<div class="highlight-python"><pre>static const double FE0[3][3] __attribute__(align(32)) = {{...}};</pre>
+</div>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.Decl.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Decl.gencode" title="Permalink to this definition">¶</a></dt>
@@ -393,8 +411,9 @@ E.g.: static const double FE0[3][3] __attribute__(align(32)) = {{...}};</p>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Represent the classic for loop of an imperative language, although
 some restrictions must be considered: only a single iteration variable
-can be declared and modified (i.e. it is not supported something like
-for (int i = 0, j = 0; ...).</p>
+can be declared and modified (i.e. it is not supported something like</p>
+<div class="highlight-python"><pre>for (int i = 0, j = 0; ...)</pre>
+</div>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.For.it_var">
 <tt class="descname">it_var</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.For.it_var" title="Permalink to this definition">¶</a></dt>
@@ -429,8 +448,12 @@ for (int i = 0, j = 0; ...).</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">FunDecl</tt><big>(</big><em>ret</em>, <em>name</em>, <em>args</em>, <em>body</em>, <em>pred=</em><span class="optional">[</span><span class="optional">]</span>, <em>headers=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunDecl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Function declaration.</p>
-<p>Syntax: [pred] ret name ([args]) {body};
-E.g.: static inline void foo(int a, int b) {return;};</p>
+<p>Syntax:</p>
+<div class="highlight-python"><pre>[pred] ret name ([args]) {body};</pre>
+</div>
+<p>E.g.:</p>
+<div class="highlight-python"><pre>static inline void foo(int a, int b) {return;};</pre>
+</div>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.FunDecl.gencode">
 <tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunDecl.gencode" title="Permalink to this definition">¶</a></dt>
@@ -455,7 +478,7 @@ E.g.: static inline void foo(int a, int b) {return;};</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXLocalPermute</tt><big>(</big><em>r</em>, <em>mask</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXLocalPermute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Permutation of values in a vector register using AVX intrinsics.
-The intrinsic function used is _mm256_permute_pd</p>
+The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_permute_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.AVXLocalPermute.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXLocalPermute.gencode" title="Permalink to this definition">¶</a></dt>
@@ -468,7 +491,7 @@ The intrinsic function used is _mm256_permute_pd</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXGlobalPermute</tt><big>(</big><em>r1</em>, <em>r2</em>, <em>mask</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXGlobalPermute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Permutation of values in two vector registers using AVX intrinsics.
-The intrinsic function used is _mm256_permute2f128_pd</p>
+The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_permute2f128_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.AVXGlobalPermute.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXGlobalPermute.gencode" title="Permalink to this definition">¶</a></dt>
@@ -481,7 +504,7 @@ The intrinsic function used is _mm256_permute2f128_pd</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXUnpackHi</tt><big>(</big><em>r1</em>, <em>r2</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXUnpackHi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Unpack of values in a vector register using AVX intrinsics.
-The intrinsic function used is _mm256_unpackhi_pd</p>
+The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_unpackhi_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.AVXUnpackHi.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXUnpackHi.gencode" title="Permalink to this definition">¶</a></dt>
@@ -494,7 +517,7 @@ The intrinsic function used is _mm256_unpackhi_pd</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXUnpackLo</tt><big>(</big><em>r1</em>, <em>r2</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXUnpackLo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Unpack of values in a vector register using AVX intrinsics.
-The intrinsic function used is _mm256_unpacklo_pd</p>
+The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_unpacklo_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.AVXUnpackLo.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXUnpackLo.gencode" title="Permalink to this definition">¶</a></dt>
@@ -529,7 +552,7 @@ The intrinsic function used is _mm256_unpacklo_pd</p>
 <dl class="function">
 <dt id="pyop2.ir.ast_base.indent">
 <tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">indent</tt><big>(</big><em>block</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.indent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Indent each row of the given string block with n*2 spaces.</p>
+<dd><p>Indent each row of the given string block with <tt class="docutils literal"><span class="pre">n*2</span></tt> spaces.</p>
 </dd></dl>
 
 <dl class="function">
@@ -585,8 +608,8 @@ pressure and register re-use.</li>
 <dt id="pyop2.ir.ast_optimizer.LoopOptimiser.extract_itspace">
 <tt class="descname">extract_itspace</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_optimizer.LoopOptimiser.extract_itspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove fully-parallel loop from the iteration space. These are
-the loops that were marked by the user/higher layer with a &#8216;pragma
-pyop2 itspace&#8217;.</p>
+the loops that were marked by the user/higher layer with a <tt class="docutils literal"><span class="pre">pragma</span>
+<span class="pre">pyop2</span> <span class="pre">itspace</span></tt>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -624,34 +647,30 @@ By default, it slices the inner outer-product loop.</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_plan.</tt><tt class="descname">ASTKernel</tt><big>(</big><em>ast</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_plan.ASTKernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Manipulate the kernel&#8217;s Abstract Syntax Tree.</p>
-<p>The single functionality present at the moment is provided by the plan_gpu
-method, which transforms the AST for GPU execution.</p>
+<p>The single functionality present at the moment is provided by the
+<a class="reference internal" href="#pyop2.ir.ast_plan.ASTKernel.plan_gpu" title="pyop2.ir.ast_plan.ASTKernel.plan_gpu"><tt class="xref py py-meth docutils literal"><span class="pre">plan_gpu()</span></tt></a> method, which transforms the AST for GPU execution.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_plan.ASTKernel.plan_gpu">
 <tt class="descname">plan_gpu</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_plan.ASTKernel.plan_gpu" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform the kernel suitably for GPU execution.</p>
-<p>Loops decorated with a &#8220;pragma pyop2 itspace&#8221; are hoisted out of
+<p>Loops decorated with a <tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">itspace</span></tt> are hoisted out of
 the kernel. The list of arguments in the function signature is
 enriched by adding iteration variables of hoisted loops. Size of
 kernel&#8217;s non-constant tensors modified in hoisted loops are modified
 accordingly.</p>
 <p>For example, consider the following function:</p>
-<dl class="docutils">
-<dt>void foo (int A[3]) {</dt>
-<dd><p class="first">int B[3] = {...};
-#pragma pyop2 itspace
-for (int i = 0; i &lt; 3; i++)</p>
-<blockquote class="last">
-<div>A[i] = B[i];</div></blockquote>
-</dd>
-</dl>
-<p>}</p>
+<div class="highlight-python"><pre>void foo (int A[3]) {
+  int B[3] = {...};
+  #pragma pyop2 itspace
+  for (int i = 0; i &lt; 3; i++)
+    A[i] = B[i];
+}</pre>
+</div>
 <p>plan_gpu modifies its AST such that the resulting output code is</p>
-<dl class="docutils">
-<dt>void foo(int A[1], int i) {</dt>
-<dd>A[0] = B[i];</dd>
-</dl>
-<p>}</p>
+<div class="highlight-python"><pre>void foo(int A[1], int i) {
+  A[0] = B[i];
+}</pre>
+</div>
 </dd></dl>
 
 <dl class="method">

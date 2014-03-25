@@ -329,4 +329,173 @@ Once this rewriting phase is performed, the total order on the
 :class:`~pyop2.lazy.LazyComputation` is executed and the
 :class:`~pyop2.lazy.ExecutionTrace` is emptied.
 
+Future Work
+-----------
+
+* Early halo skips: pairs of halo exchanges for which the `send` can be
+  scheduled immediately (that is the `send` is a child of the `top` node) can
+  be removed from the DAG if the halo of that :class:`~pyop2.Dat` is up to
+  date. This is not per se an optimisation, as no actual exchange would happen
+  there, but a simplification of the DAG:
+
+.. graphviz::
+
+        digraph finale {
+            A1a2 [label="HaloSend(v)" color=red fontcolor=red];
+            P [label="p_expr[core,owned]" ];
+            A1b [label="assemble1[core]" ];
+            A2c2 [label="HaloRecv(v)"];
+            Z2 [label="zero(t2)" ];
+            A2d [label="assemble2[owned]" ];
+            A2b [label="assemble2[core]" ];
+            A2a1 [label="HaloSend(phi)" ];
+            DT2 [label="phi_expr[core,owned]" ];
+            A2c1 [label="HaloRecv(phi)" ];
+            DT1 [label="phi_expr[core,owned]" ];
+            A1c2 [label="HaloRecv(v)" color=red fontcolor=red];
+            top [label="top" ];
+            bot [label="bot" ];
+            Z1 [label="zero(t1)" ];
+            A1a1 [label="HaloSend(phi)" ];
+            A1d [label="assemble1[owned]" ];
+            A1c1 [label="HaloRecv(phi)" ];
+            A2a2 [label="HaloSend(v)"];
+            
+            
+            top -> Z2 -> A2b -> A2d;
+            DT1 -> A2b;
+            top -> DT1 -> A1a1 -> A1c1 -> A2a1 -> A2c1 -> A2d;
+            DT1 -> A1b;
+            
+            top-> A1a2 -> A1c2 -> A2a2 -> A2c2 -> A2d;
+            top -> Z1 -> A1b -> A1d;
+            A1d -> A2c2;
+            A1d -> A2c1;
+            A1c2 -> A1d;
+            
+            A2d -> P -> DT2 -> bot;
+        }
+
+* Successive halo exchanges: On two successive halo exchanges, the second one
+  can be systematically removed (since the halo will be up to date, whenever a
+  ``halo_send`` is directly dependent on a ``halo_recv``), again, this is not
+  an optimisation per se, but a graph simplification:
+
+.. graphviz::
+
+        digraph finale {
+            A1a2 [label="HaloSend(v)" color=blue fontcolor=blue];
+            P [label="p_expr[core,owned]" ];
+            A1b [label="assemble1[core]" ];
+            A2c2 [label="HaloRecv(v)" color=red fontcolor=red];
+            Z2 [label="zero(t2)" ];
+            A2d [label="assemble2[owned]" ];
+            A2b [label="assemble2[core]" ];
+            A2a1 [label="HaloSend(phi)" ];
+            DT2 [label="phi_expr[core,owned]" ];
+            A2c1 [label="HaloRecv(phi)" ];
+            DT1 [label="phi_expr[core,owned]" ];
+            A1c2 [label="HaloRecv(v)" color=blue fontcolor=blue];
+            top [label="top" ];
+            bot [label="bot" ];
+            Z1 [label="zero(t1)" ];
+            A1a1 [label="HaloSend(phi)" ];
+            A1d [label="assemble1[owned]" ];
+            A1c1 [label="HaloRecv(phi)" ];
+            A2a2 [label="HaloSend(v)" color=red fontcolor=red];
+            
+            
+            top -> Z2 -> A2b -> A2d;
+            DT1 -> A2b;
+            top -> DT1 -> A1a1 -> A1c1 -> A2a1 -> A2c1 -> A2d;
+            DT1 -> A1b;
+            
+            top-> A1a2 -> A1c2 -> A2a2 -> A2c2 -> A2d;
+            top -> Z1 -> A1b -> A1d;
+            A1d -> A2c2;
+            A1d -> A2c1;
+            A1c2 -> A1d;
+            
+            A2d -> P -> DT2 -> bot;
+        }
+
+* Soft kernel loop fusion: by definition, sibling compute operations can be
+  fused simply, provided they have the same iteration set. One good candidate
+  for this would be parallel loops zeroing temporary dats.
+
+* Soft kernel loop fusion of direct loops: two directly dependent compute
+  operations on the same iteration set can also be fused if the parallel loops
+  are direct.
+
+* Exposing more PyOP2 operations to the lazy evaluation scheme: currently,
+  temporary :class:`Dats <pyop2.Dat>` (:class:`Dats <pyop2.Dat>` created from
+  a zeroed memory) are created in PyOP2 outside of the lazy evaluation scheme.
+  The only visible part of the temporary :class:`~pyop2.Dat` creation is the
+  zeroing :func:`~pyop2.par_loop`. By exposing each step of memory allocation
+  (allocate memory and release memory) this would open up the opportunity to
+  effectively reasign memory to new temporaries. In our running example, two
+  temporaries are created for the two assembly operations. Both are zeroed
+  before the actual assembly loops, and are destroyed after the ``p += t1 /
+  t2`` loop.  Provided that the lifecycle of a temporary creates the following
+  closures:
+
+  =================  =====  =====================
+  closure            reads  writes
+  =================  =====  =====================
+  LazyMalloc(x)             MEM
+                            CORE(dat), OWNED(dat)
+  -----------------  -----  ---------------------
+  zero[CORE, OWNED]         CORE(dat), OWNED(dat)
+  -----------------  -----  ---------------------
+  LazyFree(x)               MEM
+                            CORE(dat), OWNED(dat)
+  =================  =====  =====================
+
+  Then two successive iterations of our example, would produce the following
+  graph (provided the above halo exchange optimisations are implemented):
+
+.. graphviz::
+
+        digraph hypothetical {
+            P [label="p_expr[core,owned]" ];
+            A1b [label="assemble1[core]" ];
+            Z2 [label="zero(t2)" ];
+            A2d [label="assemble2[owned]" ];
+            A2b [label="assemble2[core]" ];
+            DT2 [label="phi_expr[core,owned]" ];
+            DT1 [label="phi_expr[core,owned]" ];
+            top [label="top" ];
+            bot [label="bot" ];
+            T1 [label="malloc(t1)" color=red fontcolor=red];
+            T2 [label="malloc(t2)" color=red fontcolor=red];
+            F1 [label="free(t1)" color=red fontcolor=red];
+            F2 [label="free(t2)" color=red fontcolor=red];
+            Z1 [label="zero(t1)" ];
+            A1a1 [label="HaloSend(phi)" ];
+            A1d [label="assemble1[owned]" ];
+            A1c1 [label="HaloRecv(phi)" ];
+
+            { rank=min; top; }
+            { rank=max; bot; }
+
+            top -> T2 -> Z2 -> A2b -> A2d;
+            DT1 -> A2b;
+            top -> DT1 -> A1a1 -> A1c1 -> A2d;
+            DT1 -> A1b;
+
+            top -> T1 -> Z1 -> A1b -> A1d;
+            A1d -> A2d;
+
+            A2d -> P;
+            P -> DT2 -> bot;
+            P -> F1 -> bot;
+            P -> F2 -> bot;
+
+           bot -> top;
+        }
+
+This in turn, would make it possible to "reuse" memory allocated for temporary
+dats accross successive iteration, and fusing the zeroing, the ``p_expr`` and
+``phi_expr`` loops into one.
+
 .. _Firedrake: http://firedrakeproject.org

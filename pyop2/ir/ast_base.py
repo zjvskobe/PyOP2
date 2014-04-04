@@ -39,13 +39,19 @@ point = lambda p: "[%s]" % p
 point_ofs = lambda p, o: "[%s*%d+%d]" % (p, o[0], o[1])
 assign = lambda s, e: "%s = %s" % (s, e)
 incr = lambda s, e: "%s += %s" % (s, e)
-incr_by_1 = lambda s: "%s++" % s
+incr_by_1 = lambda s: "++%s" % s
+decr = lambda s, e: "%s -= %s" % (s, e)
+decr_by_1 = lambda s: "--%s" % s
+idiv = lambda s, e: "%s /= %s" % (s, e)
+imul = lambda s, e: "%s *= %s" % (s, e)
 wrap = lambda e: "(%s)" % e
 bracket = lambda s: "{%s}" % s
 decl = lambda q, t, s, a: "%s%s %s %s" % (q, t, s, a)
 decl_init = lambda q, t, s, a, e: "%s%s %s %s = %s" % (q, t, s, a, e)
 for_loop = lambda s1, e, s2, s3: "for (%s; %s; %s)\n%s" % (s1, e, s2, s3)
+ternary = lambda e, s1, s2: wrap("%s ? %s : %s" % (e, s1, s2))
 
+as_symbol = lambda s: s if isinstance(s, Node) else Symbol(s)
 # Base classes of the AST ###
 
 
@@ -54,7 +60,7 @@ class Node(object):
     """The base class of the AST."""
 
     def __init__(self, children=None):
-        self.children = children or []
+        self.children = map(as_symbol, children) if children else []
 
     def gencode(self):
         code = ""
@@ -90,7 +96,7 @@ class BinExpr(Expr):
         self.op = op
 
     def gencode(self):
-        return self.op.join([n.gencode() for n in self.children])
+        return (" "+self.op+" ").join([n.gencode() for n in self.children])
 
 
 class UnaryExpr(Expr):
@@ -104,9 +110,12 @@ class UnaryExpr(Expr):
 class ArrayInit(Expr):
 
     """Array Initilizer. A n-dimensional array A can be statically initialized
-    to some values. For example, A[3][3] = {{0.0}} or A[3] = {1, 1, 1}.
-    At the moment, initial values like {{0.0}} and {1, 1, 1} are passed in as
-    simple strings."""
+    to some values. For example ::
+
+        A[3][3] = {{0.0}} or A[3] = {1, 1, 1}.
+
+    At the moment, initial values like ``{{0.0}}`` and ``{1, 1, 1}`` are passed
+    in as simple strings."""
 
     def __init__(self, values):
         self.values = values
@@ -157,20 +166,48 @@ class Div(BinExpr):
 
 class Less(BinExpr):
 
-    """Compare two expressions using the operand '<' ."""
+    """Compare two expressions using the operand ``<``."""
 
     def __init__(self, expr1, expr2):
         super(Less, self).__init__(expr1, expr2, "<")
 
 
+class FunCall(Expr):
+
+    """Function call. """
+
+    def __init__(self, function_name, *args):
+        super(BinExpr, self).__init__(args)
+        self.funcall = as_symbol(function_name)
+
+    def gencode(self, scope=False):
+        return self.funcall.gencode() + \
+            wrap(",".join([n.gencode() for n in self.children]))
+
+
+class Ternary(Expr):
+
+    """Ternary operator: expr ? true_stmt : false_stmt."""
+    def __init__(self, expr, true_stmt, false_stmt):
+        super(Ternary, self).__init__([expr, true_stmt, false_stmt])
+
+    def gencode(self):
+        return ternary(*[c.gencode() for c in self.children])
+
+
 class Symbol(Expr):
 
-    """A generic symbol. len(rank) = 0 => scalar, 1 => array, 2 => matrix, etc
-    rank is a tuple whose entries represent the iteration variables the symbol
-    depends on, or explicit numbers representing the entry of a tensor the
-    symbol is accessing, or the size of the tensor itself. """
+    """A generic symbol. The length of ``rank`` is the tensor rank:
 
-    def __init__(self, symbol, rank, offset=None):
+    * 0: scalar
+    * 1: array
+    * 2: matrix, etc.
+
+    :param tuple rank: entries represent the iteration variables the symbol
+        depends on, or explicit numbers representing the entry of a tensor the
+        symbol is accessing, or the size of the tensor itself. """
+
+    def __init__(self, symbol, rank=(), offset=None):
         self.symbol = symbol
         self.rank = rank
         self.offset = offset
@@ -300,7 +337,7 @@ class Assign(Statement):
 
 class Incr(Statement):
 
-    """Increment a symbol by a certain amount."""
+    """Increment a symbol by an expression."""
 
     def __init__(self, sym, exp, pragma=None):
         super(Incr, self).__init__([sym, exp], pragma)
@@ -308,25 +345,66 @@ class Incr(Statement):
     def gencode(self, scope=False):
         sym, exp = self.children
         if isinstance(exp, Symbol) and exp.symbol == 1:
-            return incr_by_1(sym.gencode())
+            return incr_by_1(sym.gencode()) + semicolon(scope)
         else:
             return incr(sym.gencode(), exp.gencode()) + semicolon(scope)
+
+
+class Decr(Statement):
+
+    """Decrement a symbol by an expression."""
+    def __init__(self, sym, exp, pragma=None):
+        super(Decr, self).__init__([sym, exp], pragma)
+
+    def gencode(self, scope=False):
+        sym, exp = self.children
+        if isinstance(exp, Symbol) and exp.symbol == 1:
+            return decr_by_1(sym.gencode()) + semicolon(scope)
+        else:
+            return decr(sym.gencode(), exp.gencode()) + semicolon(scope)
+
+
+class IMul(Statement):
+
+    """In-place multiplication of a symbol by an expression."""
+    def __init__(self, sym, exp, pragma=None):
+        super(IMul, self).__init__([sym, exp], pragma)
+
+    def gencode(self, scope=False):
+        sym, exp = self.children
+        return imul(sym.gencode(), exp.gencode()) + semicolon(scope)
+
+
+class IDiv(Statement):
+
+    """In-place division of a symbol by an expression."""
+    def __init__(self, sym, exp, pragma=None):
+        super(IDiv, self).__init__([sym, exp], pragma)
+
+    def gencode(self, scope=False):
+        sym, exp = self.children
+        return idiv(sym.gencode(), exp.gencode()) + semicolon(scope)
 
 
 class Decl(Statement):
 
     """Declaration of a symbol.
 
-    Syntax: [qualifiers] typ sym [attributes] [= init];
-    E.g.: static const double FE0[3][3] __attribute__(align(32)) = {{...}};"""
+    Syntax: ::
+
+        [qualifiers] typ sym [attributes] [= init];
+
+    E.g.: ::
+
+        static const double FE0[3][3] __attribute__(align(32)) = {{...}};"""
 
     def __init__(self, typ, sym, init=None, qualifiers=None, attributes=None):
         super(Decl, self).__init__()
         self.typ = typ
-        self.sym = sym
+        self.sym = as_symbol(sym)
         self.qual = qualifiers or []
         self.attr = attributes or []
-        self.init = init or EmptyStatement()
+        self.init = as_symbol(init) if init is not None else EmptyStatement()
 
     def gencode(self, scope=False):
 
@@ -363,10 +441,15 @@ class For(Statement):
 
     """Represent the classic for loop of an imperative language, although
     some restrictions must be considered: only a single iteration variable
-    can be declared and modified (i.e. it is not supported something like
-    for (int i = 0, j = 0; ...)."""
+    can be declared and modified (i.e. it is not supported something like ::
+
+        for (int i = 0, j = 0; ...)"""
 
     def __init__(self, init, cond, incr, body, pragma=""):
+        # If the body is a plain list, cast it to a Block.
+        if not isinstance(body, Node):
+            body = Block(body, open_scope=True)
+
         super(For, self).__init__([body], pragma)
         self.init = init
         self.cond = cond
@@ -385,23 +468,17 @@ class For(Statement):
                                              self.children[0].gencode())
 
 
-class FunCall(Statement):
-
-    """Function call. """
-
-    def __init__(self, funcall):
-        self.funcall = funcall
-
-    def gencode(self, scope=False):
-        return self.funcall
-
-
 class FunDecl(Statement):
 
     """Function declaration.
 
-    Syntax: [pred] ret name ([args]) {body};
-    E.g.: static inline void foo(int a, int b) {return;};"""
+    Syntax: ::
+
+        [pred] ret name ([args]) {body};
+
+    E.g.: ::
+
+        static inline void foo(int a, int b) {return;};"""
 
     def __init__(self, ret, name, args, body, pred=[], headers=None):
         super(FunDecl, self).__init__([body])
@@ -436,7 +513,7 @@ class AVXStore(Assign):
 class AVXLocalPermute(Statement):
 
     """Permutation of values in a vector register using AVX intrinsics.
-    The intrinsic function used is _mm256_permute_pd"""
+    The intrinsic function used is ``_mm256_permute_pd``."""
 
     def __init__(self, r, mask):
         self.r = r
@@ -451,7 +528,7 @@ class AVXLocalPermute(Statement):
 class AVXGlobalPermute(Statement):
 
     """Permutation of values in two vector registers using AVX intrinsics.
-    The intrinsic function used is _mm256_permute2f128_pd"""
+    The intrinsic function used is ``_mm256_permute2f128_pd``."""
 
     def __init__(self, r1, r2, mask):
         self.r1 = r1
@@ -468,7 +545,7 @@ class AVXGlobalPermute(Statement):
 class AVXUnpackHi(Statement):
 
     """Unpack of values in a vector register using AVX intrinsics.
-    The intrinsic function used is _mm256_unpackhi_pd"""
+    The intrinsic function used is ``_mm256_unpackhi_pd``."""
 
     def __init__(self, r1, r2):
         self.r1 = r1
@@ -483,7 +560,7 @@ class AVXUnpackHi(Statement):
 class AVXUnpackLo(Statement):
 
     """Unpack of values in a vector register using AVX intrinsics.
-    The intrinsic function used is _mm256_unpacklo_pd"""
+    The intrinsic function used is ``_mm256_unpacklo_pd``."""
 
     def __init__(self, r1, r2):
         self.r1 = r1
@@ -514,14 +591,14 @@ class PreprocessNode(Node):
         super(PreprocessNode, self).__init__([prep])
 
     def gencode(self, scope=False):
-        return self.children[0]
+        return self.children[0].gencode()
 
 
 # Utility functions ###
 
 
 def indent(block):
-    """Indent each row of the given string block with n*2 spaces."""
+    """Indent each row of the given string block with ``n*2`` spaces."""
     indentation = " " * 2
     return indentation + ("\n" + indentation).join(block.split("\n"))
 

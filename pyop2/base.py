@@ -36,18 +36,22 @@ information which is backend independent. Individual runtime backends should
 subclass these as required to implement backend-specific features.
 """
 
+import weakref
 import numpy as np
 import operator
 from hashlib import md5
 
-from caching import Cached, KernelCached
 from configuration import configuration
+from caching import Cached
+from versioning import Versioned, modifies, CopyOnWrite, shallow_copy
 from exceptions import *
 from utils import *
 from backends import _make_object
 from mpi import MPI, _MPI, _check_comm, collective
 from sparsity import build_sparsity
 from version import __version__ as version
+
+from ir.ast_base import Node
 
 
 class LazyComputation(object):
@@ -566,6 +570,7 @@ class Set(object):
         self._name = name or "set_%d" % Set._globalcount
         self._halo = halo
         self._partition_size = 1024
+        self._extruded = False
         if self.halo:
             self.halo.verify(self)
         Set._globalcount += 1
@@ -659,11 +664,6 @@ class Set(object):
         """Return None (not an :class:`ExtrudedSet`)."""
         return None
 
-    @property
-    def _extruded(self):
-        """Is this :class:`Set` an :class:`ExtrudedSet`?"""
-        return isinstance(self, ExtrudedSet)
-
     @classmethod
     def fromhdf5(cls, f, name):
         """Construct a :class:`Set` from set named ``name`` in HDF5 data ``f``"""
@@ -711,6 +711,7 @@ class ExtrudedSet(Set):
             raise SizeTypeError("Number of layers must be > 1 (not %s)" % layers)
         self._layers = layers
         self._ext_tb_bcs = None
+        self._extruded = True
 
     def __getattr__(self, name):
         """Returns a :class:`Set` specific attribute."""
@@ -753,7 +754,7 @@ class ExtrudedSet(Set):
         self._ext_tb_bcs = value
 
 
-class Subset(Set):
+class Subset(ExtrudedSet):
 
     """OP2 subset.
 
@@ -827,6 +828,11 @@ class Subset(Set):
     def indices(self):
         """Returns the indices pointing in the superset."""
         return self._indices
+
+    @property
+    def _argtype(self):
+        """Ctypes argtype for this :class:`Subset`"""
+        return np.ctypeslib.ndpointer(self._indices.dtype, shape=self._indices.shape)
 
 
 class SetPartition(object):
@@ -1396,13 +1402,32 @@ class IterationSpace(object):
             isinstance(self._iterset, Subset), ext_key
 
 
-class DataCarrier(object):
+class DataCarrier(Versioned):
 
     """Abstract base class for OP2 data.
 
     Actual objects will be :class:`DataCarrier` objects of rank 0
     (:class:`Const` and :class:`Global`), rank 1 (:class:`Dat`), or rank 2
     (:class:`Mat`)"""
+
+    class Snapshot(object):
+        """A snapshot of the current state of the DataCarrier object. If
+        is_valid() returns True, then the object hasn't changed since this
+        snapshot was taken (and still exists)."""
+        def __init__(self, obj):
+            self._duplicate = obj.duplicate()
+            self._original = weakref.ref(obj)
+
+        def is_valid(self):
+            objref = self._original()
+            if objref is not None:
+                return self._duplicate == objref
+            return False
+
+    def create_snapshot(self):
+        """Returns a snapshot of the current object. If not overriden, this
+        method will return a full duplicate object."""
+        return type(self).Snapshot(self)
 
     @property
     def dtype(self):
@@ -1467,6 +1492,7 @@ class _EmptyDataMixin(object):
     def __init__(self, data, dtype, shape):
         if data is None:
             self._dtype = np.dtype(dtype if dtype is not None else np.float64)
+            self._version_set_zero()
         else:
             self._data = verify_reshape(data, dtype, shape, allow_none=True)
             self._dtype = self._data.dtype
@@ -1490,8 +1516,26 @@ class _EmptyDataMixin(object):
         return hasattr(self, '_numpy_data')
 
 
-class Dat(DataCarrier, _EmptyDataMixin):
+class SetAssociated(DataCarrier):
+    """Intermediate class between DataCarrier and subtypes associated with a
+    Set (vectors and matrices)."""
 
+    class Snapshot(object):
+        """A snapshot for SetAssociated objects is valid if the snapshot
+        version is the same as the current version of the object"""
+
+        def __init__(self, obj):
+            self._original = weakref.ref(obj)
+            self._snapshot_version = obj._version
+
+        def is_valid(self):
+            objref = self._original()
+            if objref is not None:
+                return self._snapshot_version == objref._version
+            return False
+
+
+class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
     """OP2 vector data. A :class:`Dat` holds values on every element of a
     :class:`DataSet`.
 
@@ -1531,10 +1575,12 @@ class Dat(DataCarrier, _EmptyDataMixin):
     _globalcount = 0
     _modes = [READ, WRITE, RW, INC]
 
-    @validate_type(('dataset', (DataCarrier, DataSet, Set), DataSetTypeError), ('name', str, NameTypeError))
+    @validate_type(('dataset', (DataCarrier, DataSet, Set), DataSetTypeError),
+                   ('name', str, NameTypeError))
     @validate_dtype(('dtype', None, DataTypeError))
     def __init__(self, dataset, data=None, dtype=None, name=None,
                  soa=None, uid=None):
+
         if isinstance(dataset, Dat):
             self.__init__(dataset.dataset, None, dtype=dataset.dtype,
                           name="copy_of_%s" % dataset.name, soa=dataset.soa)
@@ -1546,6 +1592,7 @@ class Dat(DataCarrier, _EmptyDataMixin):
             dataset = dataset ** 1
         self._shape = (dataset.total_size,) + (() if dataset.cdim == 1 else dataset.dim)
         _EmptyDataMixin.__init__(self, data, dtype, self._shape)
+
         self._dataset = dataset
         # Are these data to be treated as SoA on the device?
         self._soa = bool(soa)
@@ -1574,6 +1621,12 @@ class Dat(DataCarrier, _EmptyDataMixin):
             raise MapValueError("To Set of Map does not match Set of Dat.")
         return _make_object('Arg', data=self, map=path, access=access, flatten=flatten)
 
+    def __getitem__(self, idx):
+        """Return self if ``idx`` is 0, raise an error otherwise."""
+        if idx != 0:
+            raise IndexValueError("Can only extract component 0 from %r" % self)
+        return self
+
     @property
     def split(self):
         """Tuple containing only this :class:`Dat`."""
@@ -1601,6 +1654,12 @@ class Dat(DataCarrier, _EmptyDataMixin):
         return self._soa
 
     @property
+    def _argtype(self):
+        """Ctypes argtype for this :class:`Dat`"""
+        return np.ctypeslib.ndpointer(self._data.dtype, shape=self._data.shape)
+
+    @property
+    @modifies
     @collective
     def data(self):
         """Numpy array containing the data values.
@@ -1693,8 +1752,21 @@ class Dat(DataCarrier, _EmptyDataMixin):
         return self._dtype
 
     @property
+    def nbytes(self):
+        """Return an estimate of the size of the data associated with this
+        :class:`Dat` in bytes. This will be the correct size of the data
+        payload, but does not take into account the (presumably small)
+        overhead of the object and its metadata.
+
+        Note that this is the process local memory usage, not the sum
+        over all MPI processes.
+        """
+
+        return self.dtype.itemsize * self.dataset.total_size * self.dataset.cdim
+
+    @property
     def needs_halo_update(self):
-        '''Has this Dat been written to since the last halo exchange?'''
+        '''Has this :class:`Dat` been written to since the last halo exchange?'''
         return self._needs_halo_update
 
     @needs_halo_update.setter
@@ -1716,11 +1788,19 @@ class Dat(DataCarrier, _EmptyDataMixin):
         _make_object('ParLoop', self._zero_kernel, self.dataset.set,
                      self(WRITE)).enqueue()
 
+        self._version_set_zero()
+
     @collective
     def copy(self, other):
         """Copy the data in this :class:`Dat` into another.
 
         :arg other: The destination :class:`Dat`"""
+
+        self._copy_parloop(other).enqueue()
+
+    @collective
+    def _copy_parloop(self, other):
+        """Create the :class:`ParLoop` implementing copy."""
         if not hasattr(self, '_copy_kernel'):
             k = """void copy(%(t)s *self, %(t)s *other) {
                 for (int n = 0; n < %(dim)s; ++n) {
@@ -1728,8 +1808,8 @@ class Dat(DataCarrier, _EmptyDataMixin):
                 }
             }""" % {'t': self.ctype, 'dim': self.cdim}
             self._copy_kernel = _make_object('Kernel', k, 'copy')
-        _make_object('ParLoop', self._copy_kernel, self.dataset.set,
-                     self(READ), other(WRITE)).enqueue()
+        return _make_object('ParLoop', self._copy_kernel, self.dataset.set,
+                            self(READ), other(WRITE))
 
     def __iter__(self):
         """Yield self when iterated over."""
@@ -1758,6 +1838,34 @@ class Dat(DataCarrier, _EmptyDataMixin):
         """:class:`Dat`\s compare equal if defined on the same
         :class:`DataSet` and containing the same data."""
         return not self == other
+
+    def _cow_actual_copy(self, src):
+        # Force the execution of the copy parloop
+
+        # We need to ensure that PyOP2 allocates fresh storage for this copy.
+        del self._numpy_data
+
+        if configuration['lazy_evaluation']:
+            _trace.evaluate(self._cow_parloop.reads, self._cow_parloop.writes)
+            _trace._trace.remove(self._cow_parloop)
+
+        self._cow_parloop._run()
+
+    def _cow_shallow_copy(self):
+
+        other = shallow_copy(self)
+
+        # Set up the copy to happen when required.
+        other._cow_parloop = self._copy_parloop(other)
+        # Remove the write dependency of the copy (in order to prevent
+        # premature execution of the loop).
+        other._cow_parloop.writes = set()
+        if configuration['lazy_evaluation']:
+            # In the lazy case, we enqueue now to ensure we are at the
+            # right point in the trace.
+            other._cow_parloop.enqueue()
+
+        return other
 
     def __str__(self):
         return "OP2 Dat: %s on (%s) with datatype %s" \
@@ -1801,6 +1909,7 @@ class Dat(DataCarrier, _EmptyDataMixin):
         par_loop(k, self.dataset.set, self(READ), other(READ), ret(WRITE))
         return ret
 
+    @modifies
     def _iop(self, other, op):
         ops = {operator.iadd: '+=',
                operator.isub: '-=',
@@ -2051,6 +2160,19 @@ class MixedDat(Dat):
         for d in self._dats:
             d.zero()
 
+    @property
+    def nbytes(self):
+        """Return an estimate of the size of the data associated with this
+        :class:`Dat` in bytes. This will be the correct size of the data
+        payload, but does not take into account the (presumably small)
+        overhead of the object and its metadata.
+
+        Note that this is the process local memory usage, not the sum
+        over all MPI processes.
+        """
+
+        return np.sum([d.nbytes for d in self._dats])
+
     def __iter__(self):
         """Yield all :class:`Dat`\s when iterated over."""
         for d in self._dats:
@@ -2085,6 +2207,18 @@ class Const(DataCarrier):
 
     """Data that is constant for any element of any set."""
 
+    class Snapshot(object):
+        """Overridden from DataCarrier; a snapshot is always valid as long as
+        the Const object still exists"""
+        def __init__(self, obj):
+            self._original = weakref.ref(obj)
+
+        def is_valid(self):
+            objref = self._original()
+            if objref is not None:
+                return True
+            return False
+
     class NonUniqueNameError(ValueError):
 
         """The Names of const variables are required to be globally unique.
@@ -2104,6 +2238,16 @@ class Const(DataCarrier):
                 "OP2 Constants are globally scoped, %s is already in use" % self._name)
         Const._defs.add(self)
         Const._globalcount += 1
+
+    def duplicate(self):
+        """A Const duplicate can always refer to the same data vector, since
+        it's read-only"""
+        return type(self)(self.dim, data=self._data, dtype=self.dtype, name=self.name)
+
+    @property
+    def _argtype(self):
+        """Ctypes argtype for this :class:`Const`"""
+        return np.ctypeslib.ndpointer(self._data.dtype, shape=self._data.shape)
 
     @property
     def data(self):
@@ -2234,6 +2378,11 @@ class Global(DataCarrier, _EmptyDataMixin):
                                            self._data.dtype, self._name)
 
     @property
+    def _argtype(self):
+        """Ctypes argtype for this :class:`Global`"""
+        return np.ctypeslib.ndpointer(self._data.dtype, shape=self._data.shape)
+
+    @property
     def shape(self):
         return self._dim
 
@@ -2255,9 +2404,22 @@ class Global(DataCarrier, _EmptyDataMixin):
         return self.data
 
     @data.setter
+    @modifies
     def data(self, value):
         _trace.evaluate(set(), set([self]))
         self._data = verify_reshape(value, self.dtype, self.dim)
+
+    @property
+    def nbytes(self):
+        """Return an estimate of the size of the data associated with this
+        :class:`Global` in bytes. This will be the correct size of the
+        data payload, but does not take into account the overhead of
+        the object and its metadata. This renders this method of
+        little statistical significance, however it is included to
+        make the interface consistent.
+        """
+
+        return self.dtype.itemsize * self._cdim
 
     @property
     def soa(self):
@@ -2340,7 +2502,7 @@ class Map(object):
     _globalcount = 0
 
     @validate_type(('iterset', Set, SetTypeError), ('toset', Set, SetTypeError),
-                  ('arity', int, ArityTypeError), ('name', str, NameTypeError))
+                   ('arity', int, ArityTypeError), ('name', str, NameTypeError))
     def __init__(self, iterset, toset, arity, values=None, name=None, offset=None, parent=None, bt_masks=None):
         self._iterset = iterset
         self._toset = toset
@@ -2385,8 +2547,20 @@ class Map(object):
         raise NotImplementedError("Slicing maps is not currently implemented")
 
     @property
+    def _argtype(self):
+        """Ctypes argtype for this :class:`Map`"""
+        return np.ctypeslib.ndpointer(self._values.dtype, shape=self._values.shape)
+
+    @property
     def split(self):
         return (self,)
+
+    @property
+    def iteration_region(self):
+        """Return the iteration region for the current map. For a normal map it
+        will always be ALL. For a class `SparsityMap` it will specify over which mesh
+        region the iteration will take place."""
+        return [ALL]
 
     @property
     def iterset(self):
@@ -2487,6 +2661,36 @@ class Map(object):
         if len(arity) != 1:
             raise ArityTypeError("Unrecognised arity value %s" % arity)
         return cls(iterset, toset, arity[0], values, name)
+
+
+class SparsityMap(Map):
+    """Augmented type for a map used in the case of building the sparsity
+    for horizontal facets.
+
+    :param map: The original class:`Map`.
+
+    :param iteration_region: The class:`IterationRegion` of the mesh over which
+                             the parallel loop will iterate.
+
+    The iteration over a specific part of the mesh will lead to the creation of
+    the appropriate sparsity pattern."""
+
+    def __new__(cls, map, iteration_region):
+        if isinstance(map, MixedMap):
+            return MixedMap([SparsityMap(m, iteration_region) for m in map])
+        return super(SparsityMap, cls).__new__(cls, map, iteration_region)
+
+    def __init__(self, map, iteration_region):
+        self._map = map
+        self._iteration_region = iteration_region
+
+    def __getattr__(self, name):
+        return getattr(self._map, name)
+
+    @property
+    def iteration_region(self):
+        """Returns the type of the iteration to be performed."""
+        return self._iteration_region
 
 
 class MixedMap(Map):
@@ -2827,20 +3031,14 @@ class Sparsity(Cached):
 
     @property
     def nz(self):
-        """Number of non-zeroes per row in diagonal portion of the local
-        submatrix.
-
-        This is the same as the parameter `d_nz` used for preallocation in
-        PETSc's MatMPIAIJSetPreallocation_."""
+        """Number of non-zeroes in the diagonal portion of the local
+        submatrix."""
         return int(self._d_nz)
 
     @property
     def onz(self):
-        """Number of non-zeroes per row in off-diagonal portion of the local
-        submatrix.
-
-        This is the same as the parameter o_nz used for preallocation in
-        PETSc's MatMPIAIJSetPreallocation_."""
+        """Number of non-zeroes in the off-diagonal portion of the local
+        submatrix."""
         return int(self._o_nz)
 
     def __contains__(self, other):
@@ -2855,8 +3053,7 @@ class Sparsity(Cached):
         return False
 
 
-class Mat(DataCarrier):
-
+class Mat(SetAssociated):
     """OP2 matrix data. A ``Mat`` is defined on a sparsity pattern and holds a value
     for each element in the :class:`Sparsity`.
 
@@ -2892,6 +3089,11 @@ class Mat(DataCarrier):
             raise MapValueError("Path maps not in sparsity maps")
         return _make_object('Arg', data=self, map=path_maps, access=access,
                             idx=path_idxs, flatten=flatten)
+
+    @property
+    def _argtype(self):
+        """Ctypes argtype for this :class:`Mat`"""
+        return np.ctypeslib.ctypes.c_voidp
 
     @property
     def dims(self):
@@ -2932,6 +3134,21 @@ class Mat(DataCarrier):
         """The Python type of the data."""
         return self._datatype
 
+    @property
+    def nbytes(self):
+        """Return an estimate of the size of the data associated with this
+        :class:`Mat` in bytes. This will be the correct size of the
+        data payload, but does not take into account the (presumably
+        small) overhead of the object and its metadata. The memory
+        associated with the sparsity pattern is also not recorded.
+
+        Note that this is the process local memory usage, not the sum
+        over all MPI processes.
+        """
+
+        return (self._sparsity.nz + self._sparsity.onz) \
+            * self.dtype.itemsize * np.prod(self._sparsity.dims)
+
     def __iter__(self):
         """Yield self when iterated over."""
         yield self
@@ -2951,7 +3168,7 @@ class Mat(DataCarrier):
 # Kernel API
 
 
-class Kernel(KernelCached):
+class Kernel(Cached):
 
     """OP2 kernel type."""
 
@@ -2964,14 +3181,23 @@ class Kernel(KernelCached):
         # Both code and name are relevant since there might be multiple kernels
         # extracting different functions from the same code
         # Also include the PyOP2 version, since the Kernel class might change
-        return md5(code + name + str(opts) + str(include_dirs) + version).hexdigest()
+        return md5(str(hash(code)) + name + str(opts) + str(include_dirs) +
+                   version).hexdigest()
+
+    def _ast_to_c(self, ast, opts={}):
+        """Transform an Abstract Syntax Tree representing the kernel into a
+        string of C code."""
+        if isinstance(ast, Node):
+            self._ast = ast
+            return ast.gencode()
+        return ast
 
     def __init__(self, code, name, opts={}, include_dirs=[]):
         # Protect against re-initialization when retrieved from cache
         if self._initialized:
             return
         self._name = name or "kernel_%d" % Kernel._globalcount
-        self._code = preprocess(code, include_dirs)
+        self._code = preprocess(self._ast_to_c(code, opts), include_dirs)
         Kernel._globalcount += 1
         # Record used optimisations
         self._opt_is_padded = opts.get('ap', False)
@@ -2998,7 +3224,13 @@ class Kernel(KernelCached):
 
 class JITModule(Cached):
 
-    """Cached module encapsulating the generated :class:`ParLoop` stub."""
+    """Cached module encapsulating the generated :class:`ParLoop` stub.
+
+    .. warning::
+
+       Note to implementors.  This object is *cached* and therefore
+       should not hold any references to objects you might want to be
+       collected (such PyOP2 data objects)."""
 
     _cache = {}
 
@@ -3021,6 +3253,10 @@ class JITModule(Cached):
                 map_arities = (arg.map[0].arity, arg.map[1].arity)
                 key += (arg.data.dims, arg.data.dtype, idxs,
                         map_arities, arg.access)
+
+        iterate = kwargs.get("iterate", None)
+        if iterate is not None:
+            key += ((iterate,))
 
         # The currently defined Consts need to be part of the cache key, since
         # these need to be uploaded to the device before launching the kernel
@@ -3048,10 +3284,47 @@ class JITModule(Cached):
             fname = "%s-%s.%s" % (self._kernel.name,
                                   hashlib.md5(src).hexdigest(),
                                   ext if ext is not None else "c")
+            if not os.path.exists(configuration['dump_gencode_path']):
+                os.makedirs(configuration['dump_gencode_path'])
             output = os.path.abspath(os.path.join(configuration['dump_gencode_path'],
                                                   fname))
             with open(output, "w") as f:
                 f.write(src)
+
+
+class IterationRegion(object):
+    """ Class that specifies the way to iterate over a column of extruded
+    mesh elements. A column of elements refers to the elements which are
+    in the extrusion direction. The accesses to these elements are direct.
+    """
+
+    _iterates = ["ON_BOTTOM", "ON_TOP", "ON_INTERIOR_FACETS", "ALL"]
+
+    @validate_in(('iterate', _iterates, IterateValueError))
+    def __init__(self, iterate):
+        self._iterate = iterate
+
+    @property
+    def where(self):
+        return self._iterate
+
+    def __str__(self):
+        return "OP2 Iterate: %s" % self._iterate
+
+    def __repr__(self):
+        return "%r" % self._iterate
+
+ON_BOTTOM = IterationRegion("ON_BOTTOM")
+"""Iterate over the cells at the bottom of the column in an extruded mesh."""
+
+ON_TOP = IterationRegion("ON_TOP")
+"""Iterate over the top cells in an extruded mesh."""
+
+ON_INTERIOR_FACETS = IterationRegion("ON_INTERIOR_FACETS")
+"""Iterate over the interior facets of an extruded mesh."""
+
+ALL = IterationRegion("ALL")
+"""Iterate over all cells of an extruded mesh."""
 
 
 class ParLoop(LazyComputation):
@@ -3062,11 +3335,15 @@ class ParLoop(LazyComputation):
 
         Users should not directly construct :class:`ParLoop` objects, but
         use :func:`pyop2.op2.par_loop` instead.
+
+    An optional keyword argument, ``iterate``, can be used to specify
+    which region of an :class:`ExtrudedSet` the parallel loop should
+    iterate over.
     """
 
     @validate_type(('kernel', Kernel, KernelTypeError),
                    ('iterset', Set, SetTypeError))
-    def __init__(self, kernel, iterset, *args):
+    def __init__(self, kernel, iterset, *args, **kwargs):
         LazyComputation.__init__(self,
                                  set([a.data for a in args if a.access in [READ, RW]]) | Const._defs,
                                  set([a.data for a in args if a.access in [RW, WRITE, MIN, MAX, INC]]))
@@ -3074,6 +3351,7 @@ class ParLoop(LazyComputation):
         self._actual_args = args
         self._kernel = kernel
         self._is_layered = iterset._extruded
+        self._iteration_region = kwargs.get("iterate", None)
 
         for i, arg in enumerate(self._actual_args):
             arg.position = i
@@ -3097,20 +3375,17 @@ class ParLoop(LazyComputation):
         """Executes the kernel over all members of the iteration space."""
         self.halo_exchange_begin()
         self.maybe_set_dat_dirty()
-        self._compute_if_not_empty(self.it_space.iterset.core_part)
+        self._compute(self.it_space.iterset.core_part)
         self.halo_exchange_end()
-        self._compute_if_not_empty(self.it_space.iterset.owned_part)
+        self._compute(self.it_space.iterset.owned_part)
         self.reduction_begin()
         if self.needs_exec_halo:
-            self._compute_if_not_empty(self.it_space.iterset.exec_part)
+            self._compute(self.it_space.iterset.exec_part)
         self.reduction_end()
         self.maybe_set_halo_update_needed()
         self.assemble()
 
-    def _compute_if_not_empty(self, part):
-        if part.size > 0:
-            self._compute(part)
-
+    @collective
     def _compute(self, part):
         """Executes the kernel over all members of a MPI-part of the iteration space."""
         raise RuntimeError("Must select a backend")
@@ -3265,6 +3540,14 @@ class ParLoop(LazyComputation):
         """Flag which triggers extrusion"""
         return self._is_layered
 
+    @property
+    def iteration_region(self):
+        """Specifies the part of the mesh the parallel loop will
+        be iterating over. The effect is the loop only iterates over
+        a certain part of an extruded mesh, for example on top cells, bottom cells or
+        interior facets."""
+        return self._iteration_region
+
 DEFAULT_SOLVER_PARAMETERS = {'ksp_type': 'cg',
                              'pc_type': 'jacobi',
                              'ksp_rtol': 1.0e-7,
@@ -3342,5 +3625,5 @@ class Solver(object):
 
 
 @collective
-def par_loop(kernel, it_space, *args):
-    return _make_object('ParLoop', kernel, it_space, *args).enqueue()
+def par_loop(kernel, it_space, *args, **kwargs):
+    return _make_object('ParLoop', kernel, it_space, *args, **kwargs).enqueue()

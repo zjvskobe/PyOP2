@@ -335,6 +335,7 @@ class Mat(DeviceDataMixin, op2.Mat):
         base._trace.evaluate(set([self]), set([self]))
         return self._csrdata.get()
 
+    @modifies
     def zero_rows(self, rows, diag_val=1.0):
         """Zeroes the specified rows of the matrix, with the exception of the
         diagonal entry, which is set to diag_val. May be used for applying
@@ -356,6 +357,7 @@ class Mat(DeviceDataMixin, op2.Mat):
         base._trace.evaluate(set([]), set([self]))
         self._csrdata.fill(0)
         self._lmadata.fill(0)
+        self._version_set_zero()
 
 
 class Const(DeviceDataMixin, op2.Const):
@@ -684,14 +686,39 @@ class Solver(base.Solver):
 class JITModule(base.JITModule):
 
     def __init__(self, kernel, itspace_extents, *args, **kwargs):
-        # No need to protect against re-initialization since these attributes
-        # are not expensive to set and won't be used if we hit cache
+        """
+        A cached compiled function to execute for a specified par_loop.
+
+        See :func:`~.par_loop` for the description of arguments.
+
+        .. warning ::
+
+           Note to implementors.  This object is *cached*, and therefore
+           should not hold any long term references to objects that
+           you want to be collected.  In particular, after the
+           ``args`` have been inspected to produce the compiled code,
+           they **must not** remain part of the object's slots,
+           otherwise they (and the :class:`~.Dat`\s, :class:`~.Map`\s
+           and :class:`~.Mat`\s they reference) will never be collected.
+        """
+        if self._initialized:
+            return
         self._parloop = kwargs.get('parloop')
+        self._kernel = self._parloop._kernel
         self._config = kwargs.get('config')
+        self._initialized = True
 
     def compile(self):
         if hasattr(self, '_fun'):
+            # It should not be possible to pull a jit module out of
+            # the cache referencing its par_loop
+            if hasattr(self, '_parloop'):
+                raise RuntimeError("JITModule is holding onto parloop, causing a memory leak (should never happen)")
             return self._fun
+        # If we weren't in the cache we /must/ have a par_loop
+        if not hasattr(self, '_parloop'):
+            raise RuntimeError("JITModule has no parloop associated with it, should never happen")
+
         compiler_opts = ['-m64', '-Xptxas', '-dlcm=ca',
                          '-Xptxas=-v', '-O3', '-use_fast_math', '-DNVCC']
         inttype = np.dtype('int32').char
@@ -725,7 +752,7 @@ class JITModule(base.JITModule):
             argtypes += inttype  # number of colours in the block
 
         self._module = SourceModule(src, options=compiler_opts)
-        self._dump_generated_code(src, ext=".cu")
+        self._dump_generated_code(src, ext="cu")
 
         # Upload Const data.
         for c in Const._definitions():
@@ -733,6 +760,10 @@ class JITModule(base.JITModule):
 
         self._fun = self._module.get_function(self._parloop._stub_name)
         self._fun.prepare(argtypes)
+        # Blow away everything we don't need any more
+        del self._parloop
+        del self._kernel
+        del self._config
         return self._fun
 
     def __call__(self, *args, **kwargs):
@@ -770,6 +801,9 @@ class ParLoop(op2.ParLoop):
                     'WARPSIZE': 32}
 
     def _compute(self, part):
+        if part.size == 0:
+            # Return before plan call if no computation should occur
+            return
         arglist = [np.int32(part.size), np.int32(part.offset)]
         config = self.launch_configuration(part)
         config['subset'] = False

@@ -75,25 +75,26 @@ Preparing the system
 PyOP2 require a number of tools to be available: 
 
 * gcc, make, CMake 
-* bzr, Git, Mercurial 
+* Git, Mercurial
 * pip and the Python headers 
 * SWIG
 
 On a Debian-based system (Ubuntu, Mint, etc.) install them by running::
 
-  sudo apt-get install -y build-essential python-dev bzr git-core mercurial \
+  sudo apt-get install -y build-essential python-dev git-core mercurial \
   cmake cmake-curses-gui python-pip swig
 
 Dependencies
 ------------
 
-To install dependencies system-wide use ``sudo -E pip install ...``, to
+To install dependencies system-wide use ``sudo pip install ...``, to
 install to a user site use ``pip install --user ...``. If you don't want
 PyOP2 or its dependencies interfering with your existing Python environment,
 consider creating a `virtualenv <http://virtualenv.org/>`__.
 
-**Note:** In the following we will use ``pip install ...`` to mean any
-of the above options.
+**Note:** In the following we will use ``sudo pip install ...``. If
+ you want either of the other options you should change the command
+ appropriately.
 
 **Note:** Installing to the user site does not always give packages
 priority over system installed packages on your ``sys.path``.
@@ -105,15 +106,16 @@ Common dependencies:
 
 * Cython >= 0.17 
 * decorator 
-* instant revision 7301ecb or newer
 * numpy >= 1.6 
-* PETSc_ >= 3.4 with Fortran interfaces
-* PETSc4py_ >= 3.4
+* PETSc_ current git master (see below)
+* PETSc4py_ current git master (see below)
 
 Testing dependencies (optional, required to run the tests):
 
 * pytest >= 2.3
 * flake8 >= 2.1.0
+* gmsh
+* triangle
 
 With the exception of the PETSc_ dependencies, these can be installed
 using the package management system of your OS, or via ``pip``.
@@ -128,8 +130,7 @@ can selectively upgrade packages via ``pip``, see below.
 
 Install dependencies via ``pip``::
 
-  pip install "Cython>=0.17" decorator "numpy>=1.6"
-  pip install git+https://bitbucket.org/fenics-project/instant
+  sudo pip install "Cython>=0.17" decorator "numpy>=1.6"
 
 Additional Python 2.6 dependencies: 
 
@@ -138,7 +139,7 @@ Additional Python 2.6 dependencies:
 
 Install these via ``pip``::
 
-  pip install argparse ordereddict
+  sudo pip install argparse ordereddict
 
 PETSc
 ~~~~~
@@ -147,18 +148,11 @@ PyOP2 uses petsc4py_, the Python bindings for the PETSc_ linear algebra
 library and requires:
 
 * an MPI implementation built with *shared libraries* 
-* PETSc_ 3.4 or later built with *shared libraries*
+* The current PETSc_ master branch built with *shared libraries*
 
-If you have a suitable PETSc_ installed on your system, ``PETSC_DIR`` and
-``PETSC_ARCH`` need to be set for the petsc4py_ installer to find it. On
-a Debian/Ubuntu system with PETSc_ 3.4 installed, this can be achieved
-via e.g. (adapt for your system) ::
-
-  export PETSC_DIR=/usr/lib/petscdir/3.4
-  export PETSC_ARCH=linux-gnu-c-opt
-
-If you are on Ubuntu 12.04 LTS, you can install the binary package for PETSc_
-3.4.2 from the PPA_ ``ppa:amcg/petsc3.4``.
+If you have a suitable PETSc_ installed on your system, ``PETSC_DIR``
+and ``PETSC_ARCH`` need to be set for the petsc4py_ installer to find
+it. Note that no current packaged version for any OS will suffice.
 
 If not, make sure all PETSc_ dependencies (BLAS/LAPACK, MPI and a Fortran
 compiler) are installed. On a Debian based system, run::
@@ -167,8 +161,8 @@ compiler) are installed. On a Debian based system, run::
 
 Then install PETSc_ via ``pip`` ::
 
-  PETSC_CONFIGURE_OPTIONS="--with-fortran-interfaces=1 --with-c++-support" \
-    pip install "petsc >= 3.4"
+  sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
+    pip install git+https://bitbucket.org/petsc/petsc.git
   unset PETSC_DIR
   unset PETSC_ARCH
 
@@ -177,7 +171,12 @@ should be left unset when building petsc4py_.
 
 Install petsc4py_ via ``pip``::
 
-  pip install "petsc4py >= 3.4"
+  sudo pip install git+https://bitbucket.org/petsc/petsc4py.git
+
+If you have previously installed and older version of PETSc_ or petsc4py_,
+``pip`` might tell you that the requirements are already satisfied when running
+above commands. In that case, use ``pip install -U --no-deps`` to upgrade
+(``--no-deps`` prevents also recursively upgrading any dependencies).
 
 .. _cuda-installation:
 
@@ -210,7 +209,7 @@ is too old, you will need to install it via ``pip``, see below.
 
 Install dependencies via ``pip``::
 
-  pip install codepy Jinja2 mako pycparser>=2.10
+  sudo pip install codepy Jinja2 mako pycparser>=2.10
 
 If a pycuda package is not available, it will be necessary to install it
 manually. Make sure ``nvcc`` is in your ``$PATH`` and ``libcuda.so`` in
@@ -260,7 +259,7 @@ location you need to configure pyopencl manually::
 
 Otherwise, install dependencies via ``pip``::
 
-  pip install Jinja2 mako pyopencl>=2012.1 pycparser>=2.10
+  sudo pip install Jinja2 mako pyopencl>=2012.1 pycparser>=2.10
 
 Installing the Intel OpenCL toolkit (64bit systems only)::
 
@@ -298,7 +297,7 @@ On a Debian-based system, run::
 
   sudo apt-get install libhdf5-mpi-dev python-h5py
 
-Alternatively, if the HDF5 library is available, ``pip install h5py``.
+Alternatively, if the HDF5 library is available, ``sudo pip install h5py``.
 
 Building PyOP2
 --------------
@@ -324,14 +323,16 @@ necessary.
 FFC Interface
 -------------
 
-Solving UFL_ finite element equations requires a fork of FFC_, UFL_ and FIAT_.
+Solving UFL_ finite element equations requires a fork of FFC_, UFL_
+and FIAT_.  Note that FFC_ requires a version of Instant_.
 
 Install FFC_ and all dependencies via pip::
 
-  pip install \
+  sudo pip install \
     git+https://bitbucket.org/mapdes/ffc.git#egg=ffc
     git+https://bitbucket.org/mapdes/ufl.git#egg=ufl
     git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
+    git+https://bitbucket.org/fenics-project/instant.git#egg=instant
     hg+https://bitbucket.org/khinsen/scientificpython
 
 Setting up the environment
@@ -364,16 +365,16 @@ Testing your installation
 PyOP2 unit tests use `pytest <http://pytest.org>`__ >= 2.3. Install via package
 manager::
 
-  sudo apt-get install python-pytest 
+  sudo apt-get install python-pytest
 
 or pip::
 
-  pip install "pytest>=2.3"
+  sudo pip install "pytest>=2.3"
 
 The code linting test uses `flake8 <http://flake8.readthedocs.org>`__.
 Install via pip::
 
-  pip install "flake8>=2.1.0"
+  sudo pip install "flake8>=2.1.0"
 
 If you install *pytest* and *flake8* using ``pip --user``, you should
 include the binary folder of your local site in your path by adding the
@@ -381,6 +382,10 @@ following to ``~/.bashrc`` or ``.env``::
 
   # Add pytest binaries to the path
   export PATH=${PATH}:${HOME}/.local/bin
+
+The regression tests further require *gmsh* and *triangle*: ::
+
+  sudo apt-get install gmsh triangle-bin unzip
 
 If all tests in our test suite pass, you should be good to go::
 
@@ -404,9 +409,26 @@ from. To print the module search path, run::
 
  python -c 'from pprint import pprint; import sys; pprint(sys.path)'
 
+Troubleshooting test failures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the tests as follows, to abort after the first failed test:
+
+Start with the unit tests with the sequential backend ::
+
+  py.test test/unit -vsx --tb=short --backend=sequential
+
+Then move on to the regression tests with the sequential backend ::
+
+  py.test test/regression -vsx --tb=short --backend=sequential
+
+With all the sequential tests passing, move on to the next backend in the same
+manner as required.
+
 .. _PPA: https://launchpad.net/~amcg/+archive/petsc3.4/
 .. _PETSc: http://www.mcs.anl.gov/petsc/
 .. _petsc4py: http://pythonhosted.org/petsc4py/
 .. _FFC: https://bitbucket.org/mapdes/ffc
 .. _FIAT: https://bitbucket.org/mapdes/fiat
 .. _UFL: https://bitbucket.org/mapdes/ufl
+.. _Instant: https://bitbucket.org/fenics-project/instant

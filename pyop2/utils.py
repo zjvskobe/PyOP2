@@ -150,7 +150,7 @@ class validate_in(validate_base):
     and exception is the exception type to be raised if validation fails."""
 
     def check_arg(self, arg, values, exception):
-        if not arg in values:
+        if arg not in values:
             raise exception("%s:%d %s must be one of %s"
                             % (self.file, self.line, arg, values))
 
@@ -211,7 +211,7 @@ def verify_reshape(data, dtype, shape, allow_none=False):
             return a
         except ValueError:
             raise DataValueError("Invalid data: expected %d values, got %d!" %
-                                (np.prod(shape), np.asarray(data).size))
+                                 (np.prod(shape), np.asarray(data).size))
 
 
 def align(bytes, alignment=16):
@@ -273,7 +273,7 @@ def parse_args(*args, **kwargs):
 
 
 def preprocess(text, include_dirs=[]):
-    cmd = ['cpp', '-E', '-I' + os.path.dirname(__file__)] + ['-I' + d for d in include_dirs]
+    cmd = ['cpp', '-std=c99', '-E', '-I' + os.path.dirname(__file__)] + ['-I' + d for d in include_dirs]
     p = Popen(cmd, stdin=PIPE, stdout=PIPE, universal_newlines=True)
     # Strip empty lines and any preprocessor instructions other than pragmas
     processed = '\n'.join(l for l in p.communicate(text)[0].split('\n')

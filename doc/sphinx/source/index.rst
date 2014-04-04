@@ -14,7 +14,13 @@ Contents:
    installation
    concepts
    kernels
+   ir
+   architecture
    backends
+   linear_algebra
+   plan
+   mixed
+   mpi
    user
    pyop2
 

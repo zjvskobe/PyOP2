@@ -44,7 +44,7 @@ from ffc import default_parameters, compile_form as ffc_compile_form
 from ffc import constants
 from ffc.log import set_level, ERROR
 
-from caching import DiskCached, KernelCached
+from caching import DiskCached
 from op2 import Kernel
 from mpi import MPI
 
@@ -77,7 +77,7 @@ def _check_version():
                        % (version, getattr(constants, 'PYOP2_VERSION', 'unknown')))
 
 
-class FFCKernel(DiskCached, KernelCached):
+class FFCKernel(DiskCached):
 
     _cache = {}
     _cachedir = os.path.join(tempfile.gettempdir(),
@@ -95,20 +95,20 @@ class FFCKernel(DiskCached, KernelCached):
             return
 
         incl = PreprocessNode('#include "pyop2_geometry.h"\n')
-        ffc_tree = ffc_compile_form(form, prefix=name, parameters=ffc_parameters)
-
-        form_data = form.form_data()
+        forms = ffc_compile_form(form, prefix=name, parameters=ffc_parameters)
+        fdict = dict((f.name, f) for f in forms)
 
         kernels = []
-        for ida, kernel in zip(form_data.integral_data, ffc_tree):
+        for ida in form.form_data().preprocessed_form.integrals():
+            fname = '%s_%s_integral_0_%s' % (name, ida.domain_type(), ida.domain_id())
             # Set optimization options
-            opts = {} if ida.domain_type not in ['cell'] else \
+            opts = {} if ida.domain_type() not in ['cell'] else \
                    {'licm': False,
                     'tile': None,
                     'vect': None,
-                    'ap': False}
-            kernels.append(Kernel(Root([incl, kernel]), '%s_%s_integral_0_%s' %
-                          (name, ida.domain_type, ida.domain_id), opts))
+                    'ap': False,
+                    'split': None}
+            kernels.append(Kernel(Root([incl, fdict[fname]]), fname, opts))
         self.kernels = tuple(kernels)
 
         self._initialized = True

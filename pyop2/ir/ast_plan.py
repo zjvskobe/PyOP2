@@ -35,7 +35,8 @@
 
 from ast_base import *
 from ast_optimizer import LoopOptimiser
-from ast_vectorizer import init_vectorizer, LoopVectoriser, vectorizer_init
+from ast_vectorizer import init_vectorizer, LoopVectoriser
+import ast_vectorizer
 
 # Possibile optimizations
 AUTOVECT = 1        # Auto-vectorization
@@ -53,8 +54,8 @@ class ASTKernel(object):
 
     """Manipulate the kernel's Abstract Syntax Tree.
 
-    The single functionality present at the moment is provided by the plan_gpu
-    method, which transforms the AST for GPU execution.
+    The single functionality present at the moment is provided by the
+    :meth:`plan_gpu` method, which transforms the AST for GPU execution.
     """
 
     def __init__(self, ast):
@@ -63,9 +64,11 @@ class ASTKernel(object):
 
     def _visit_ast(self, node, parent=None, fors=None, decls=None):
         """Return lists of:
-            - Declarations within the kernel
-            - Loop nests
-            - Dense Linear Algebra Blocks
+
+        * Declarations within the kernel
+        * Loop nests
+        * Dense Linear Algebra Blocks
+
         that will be exploited at plan creation time."""
 
         if isinstance(node, Decl):
@@ -89,26 +92,26 @@ class ASTKernel(object):
     def plan_gpu(self):
         """Transform the kernel suitably for GPU execution.
 
-        Loops decorated with a "pragma pyop2 itspace" are hoisted out of
+        Loops decorated with a ``pragma pyop2 itspace`` are hoisted out of
         the kernel. The list of arguments in the function signature is
         enriched by adding iteration variables of hoisted loops. Size of
         kernel's non-constant tensors modified in hoisted loops are modified
         accordingly.
 
-        For example, consider the following function:
+        For example, consider the following function: ::
 
-        void foo (int A[3]) {
-          int B[3] = {...};
-          #pragma pyop2 itspace
-          for (int i = 0; i < 3; i++)
-            A[i] = B[i];
-        }
+            void foo (int A[3]) {
+              int B[3] = {...};
+              #pragma pyop2 itspace
+              for (int i = 0; i < 3; i++)
+                A[i] = B[i];
+            }
 
-        plan_gpu modifies its AST such that the resulting output code is
+        plan_gpu modifies its AST such that the resulting output code is ::
 
-        void foo(int A[1], int i) {
-          A[0] = B[i];
-        }
+            void foo(int A[1], int i) {
+              A[0] = B[i];
+            }
         """
 
         lo = [LoopOptimiser(l, pre_l, self.decls) for l, pre_l in self.fors]
@@ -152,6 +155,7 @@ class ASTKernel(object):
         tile = opts.get('tile')
         vect = opts.get('vect')
         ap = opts.get('ap')
+        split = opts.get('split')
 
         v_type, v_param = vect if vect else (None, None)
         tile_opt, tile_sz = tile if tile else (False, -1)
@@ -164,16 +168,20 @@ class ASTKernel(object):
                 inv_outer_loops = nest.op_licm()  # noqa
                 self.decls.update(nest.decls)
 
-            # 2) Register tiling
+            # 2) Splitting
+            if split:
+                nest.op_split(split[0], split[1])
+
+            # 3) Register tiling
             if tile_opt and v_type == AUTOVECT:
                 nest.op_tiling(tile_sz)
 
-            # 3) Vectorization
-            if vectorizer_init:
+            # 4) Vectorization
+            if ast_vectorizer.initialized:
                 vect = LoopVectoriser(nest)
                 if ap:
                     vect.align_and_pad(self.decls)
-                if v_type != AUTOVECT:
+                if v_type and v_type != AUTOVECT:
                     vect.outer_product(v_type, v_param)
 
 

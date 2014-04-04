@@ -68,6 +68,9 @@ class Configuration(object):
         "lazy_evaluation": ("PYOP2_LAZY", bool, True),
         "lazy_max_trace_length": ("PYOP2_MAX_TRACE_LENGTH", int, 0),
         "dump_gencode": ("PYOP2_DUMP_GENCODE", bool, False),
+        "cache_dir": ("PYOP2_CACHE_DIR", str,
+                      os.path.join(gettempdir(),
+                                   "pyop2-cache-uid%s" % os.getuid())),
         "dump_gencode_path": ("PYOP2_DUMP_GENCODE_PATH", str,
                               os.path.join(gettempdir(), "pyop2-gencode")),
     }
@@ -80,6 +83,8 @@ class Configuration(object):
             if not isinstance(typ, type):
                 typ = typ[0]
             try:
+                if typ is bool:
+                    return bool(int(os.environ.get(env, v)))
                 return typ(os.environ.get(env, v))
             except ValueError:
                 raise ValueError("Cannot convert value of environment variable %s to %r" % (env, typ))

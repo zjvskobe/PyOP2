@@ -40,12 +40,12 @@ from mpi import collective
 
 class Kernel(base.Kernel):
 
-    @classmethod
-    def _ast_to_c(cls, ast, name, opts={}, include_dirs=[]):
+    def _ast_to_c(self, ast, opts={}):
         """Transform an Abstract Syntax Tree representing the kernel into a
         string of code (C syntax) suitable to GPU execution."""
         if not isinstance(ast, Node):
             return ast
+        self._ast = ast
         ast_handler = ASTKernel(ast)
         ast_handler.plan_gpu()
         return ast.gencode()
@@ -324,8 +324,8 @@ class Mat(base.Mat):
 
 class ParLoop(base.ParLoop):
 
-    def __init__(self, kernel, itspace, *args):
-        base.ParLoop.__init__(self, kernel, itspace, *args)
+    def __init__(self, kernel, itspace, *args, **kwargs):
+        base.ParLoop.__init__(self, kernel, itspace, *args, **kwargs)
         # List of arguments with vector-map/iteration-space indexes
         # flattened out
         # Does contain Mat arguments (cause of coloring)

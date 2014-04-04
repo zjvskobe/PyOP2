@@ -5,12 +5,12 @@ from llvm.ee import *
 from llvm_cbuilder import *
 from petsc_base import *
 import host
+import subprocess
 import ctypes
 import numpy as np
 import llvm_cbuilder.shortnames as C
 
 # Parallel loop API
-
 
 class JITModule(host.JITModule):
     def __init__(self, kernel, itspace, *args, **kwargs):
@@ -43,7 +43,11 @@ class JITModule(host.JITModule):
 
         # Create module for kernel code, verify, and link to main wrapper
         # module.
-        kernel_module = Module.from_assembly(self._kernel.code)
+        if self._kernel._is_llvm_kernel:
+            kernel_module = Module.from_assembly(self._kernel.code)
+        else:
+            kernel_module = Module.from_assembly(self.c_kernel_to_llvm())
+
         kernel_module.verify()
         llvm_module = Module.new('mod_' + self._kernel.name)
         llvm_module.link_in(kernel_module)
@@ -56,6 +60,17 @@ class JITModule(host.JITModule):
         self._dump_generated_code(str(llvm_module))
 
         # TODO - Handle optimisation flags depending on debug level etc
+
+    def c_kernel_to_llvm(self):
+        # TODO - Remove this before merge in to master, this is just here
+        # temporarily to aid debugging (easier to write C test cases than raw
+        # LLVM).
+        file = open('/tmp/kernel.c', "w")
+        file.write(self._kernel.code)
+        file.close()
+        output = subprocess.check_output(['clang', '/tmp/kernel.c', '-S',
+                                          '-emit-llvm', '-o', '-'])
+        return output
 
     def generate_wrapper(self, llvm_module):
         _index_expr = "n"
@@ -146,10 +161,14 @@ class JITModule(host.JITModule):
 
 class Arg(host.Arg):
     _dtype_llvm_map = {np.int16: C.int16,
-                       np.int32: C.int32}
+                       np.int32: C.int32,
+                       np.float32: C.float,
+                       np.float64: C.double}
 
     _dtype_ctype_map = {np.int16: ctypes.c_int16,
-                        np.int32: ctypes.c_int32}
+                        np.int32: ctypes.c_int32,
+                        np.float32: ctypes.c_float,
+                        np.float64: ctypes.c_double}
 
     def dtype_to_llvm(self, dtype):
         type = self._dtype_llvm_map.get(dtype.type)

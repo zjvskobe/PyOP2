@@ -18,6 +18,7 @@ nodes = op2.Set(nnode, "nodes")
 p_nodes = op2.Dat(nodes, data=A, name="p_nodes")
 
 # Create kernel
+kernel_opts = {'llvm_kernel': True}
 kernel = op2.Kernel("""
 define void @direct_inc(i32* %x) nounwind {
   %1 = alloca i32*, align 4
@@ -29,7 +30,7 @@ define void @direct_inc(i32* %x) nounwind {
   store i32 %4, i32* %5, align 4
   ret void
 }
-""", "direct_inc")
+""", "direct_inc", kernel_opts)
 
 # Print values before kernel invocation
 print "--- Values before running kernel ---"

@@ -3203,6 +3203,7 @@ class Kernel(Cached):
         self._opt_is_padded = opts.get('ap', False)
         self._include_dirs = include_dirs
         self._initialized = True
+        self._is_llvm_kernel = opts.get('llvm_kernel', False)
 
     @property
     def name(self):

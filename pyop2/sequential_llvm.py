@@ -12,6 +12,12 @@ import llvm_cbuilder.shortnames as C
 
 # Parallel loop API
 
+
+_dtype_ctype_map = {np.int16: ctypes.c_int16,
+                    np.int32: ctypes.c_int32,
+                    np.float32: ctypes.c_float,
+                    np.float64: ctypes.c_double}
+
 class JITModule(host.JITModule):
     def __init__(self, kernel, itspace, *args, **kwargs):
         self._kernel = kernel
@@ -27,13 +33,16 @@ class JITModule(host.JITModule):
             self.translate()
 
         ctypes_args = [ctypes.c_int32(args[0]), ctypes.c_int32(args[1])]
-
-        # TODO consider when args may not be an int32 array...
-        # Probably need some switch/case based on type of numpy array
-        ctypes_args += [arg.ctypes.data_as(ctypes.POINTER(ctypes.c_int32))
-                        for arg in args[2:]]
+        ctypes_args += [self.arg_to_ctype(arg) for arg in args[2:]]
 
         self._func(*ctypes_args)
+
+    def arg_to_ctype(self, arg):
+        type = _dtype_ctype_map.get(arg.dtype.type)
+        if type is None:
+            # TODO Improve error message
+            raise NotImplementedError('Unsupported Numpy type')
+        return arg.ctypes.data_as(ctypes.POINTER(type))
 
     # Taking an LLVM IR kernel, create the loop wrapper
     def translate(self):
@@ -165,11 +174,6 @@ class Arg(host.Arg):
                        np.float32: C.float,
                        np.float64: C.double}
 
-    _dtype_ctype_map = {np.int16: ctypes.c_int16,
-                        np.int32: ctypes.c_int32,
-                        np.float32: ctypes.c_float,
-                        np.float64: ctypes.c_double}
-
     def dtype_to_llvm(self, dtype):
         type = self._dtype_llvm_map.get(dtype.type)
         if type is None:
@@ -177,7 +181,7 @@ class Arg(host.Arg):
         return type
 
     def dtype_to_ctype(self, dtype):
-        type = self._dtype_ctype_map.get(dtype.type)
+        type = _dtype_ctype_map.get(dtype.type)
         if type is None:
             raise NotImplementedError("Numpy type '%s' not yet supported in sequential_llvm." % dtype)
         return type

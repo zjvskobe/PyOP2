@@ -221,7 +221,7 @@ class Arg(host.Arg):
             raise NotImplementedError("Unsupported kernel arg")
 
         if isinstance(self.data, Global):
-            return vars['i']
+            return vars[self.llvm_arg_name(i)]
         else:
             # <argname> + i * <argdim>
             dim = cb.constant(C.int32, self.data.cdim)

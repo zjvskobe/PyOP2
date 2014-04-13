@@ -104,7 +104,7 @@ the <a class="reference internal" href="#par-loops"><em>Parallel loops</em></a> 
 <span id="data-dat"></span><h3>Dat<a class="headerlink" href="#dat" title="Permalink to this headline">¶</a></h3>
 <p>Since a set does not have any type but only a cardinality, data declared on a
 set through a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> needs additional metadata to allow PyOP2 to
-inpret the data and to specify how much memory is required to store it. This
+interpret the data and to specify how much memory is required to store it. This
 metadata is the <em>datatype</em> and the <em>shape</em> of the data associated with any
 given set element. The shape is not associated with the <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>
 directly, but with a <a class="reference internal" href="user.html#pyop2.DataSet" title="pyop2.DataSet"><tt class="xref py py-class docutils literal"><span class="pre">DataSet</span></tt></a>. One can associate a scalar with
@@ -251,6 +251,11 @@ therefore use the access descriptor <a class="reference internal" href="user.htm
              <span class="n">coordinates</span><span class="p">(</span><span class="n">op2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">edges2vertices</span><span class="p">))</span>
 </pre></div>
 </div>
+<p>You can stack up multiple successive parallel loops that add values to
+a matrix, before you use the resulting values, you must explicitly
+tell PyOP2 that you want to do so, by calling
+<a class="reference internal" href="user.html#pyop2.Mat.assemble" title="pyop2.Mat.assemble"><tt class="xref py py-meth docutils literal"><span class="pre">assemble()</span></tt></a> on the matrix.  Note that executing a
+<a class="reference internal" href="user.html#pyop2.solve" title="pyop2.solve"><tt class="xref py py-func docutils literal"><span class="pre">solve()</span></tt></a> will do this automatically for you.</p>
 </div>
 <div class="section" id="loops-with-global-reductions">
 <span id="reduction-loops"></span><h3>Loops with global reductions<a class="headerlink" href="#loops-with-global-reductions" title="Permalink to this headline">¶</a></h3>

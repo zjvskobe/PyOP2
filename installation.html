@@ -127,12 +127,15 @@ cmake cmake-curses-gui python-pip swig</pre>
 </div>
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
-<p>To install dependencies system-wide use <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">-E</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></tt>, to
+<p>To install dependencies system-wide use <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></tt>, to
 install to a user site use <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--user</span> <span class="pre">...</span></tt>. If you don&#8217;t want
 PyOP2 or its dependencies interfering with your existing Python environment,
 consider creating a <a class="reference external" href="http://virtualenv.org/">virtualenv</a>.</p>
-<p><strong>Note:</strong> In the following we will use <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></tt> to mean any
-of the above options.</p>
+<dl class="docutils">
+<dt><strong>Note:</strong> In the following we will use <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></tt>. If</dt>
+<dd>you want either of the other options you should change the command
+appropriately.</dd>
+</dl>
 <p><strong>Note:</strong> Installing to the user site does not always give packages
 priority over system installed packages on your <tt class="docutils literal"><span class="pre">sys.path</span></tt>.</p>
 <div class="section" id="common">
@@ -161,7 +164,7 @@ using the package management system of your OS, or via <tt class="docutils liter
 (in particular the Cython version shipped with 12.04 is too old). You
 can selectively upgrade packages via <tt class="docutils literal"><span class="pre">pip</span></tt>, see below.</p>
 <p>Install dependencies via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install "Cython&gt;=0.17" decorator "numpy&gt;=1.6"</pre>
+<div class="highlight-python"><pre>sudo pip install "Cython&gt;=0.17" decorator "numpy&gt;=1.6"</pre>
 </div>
 <p>Additional Python 2.6 dependencies:</p>
 <ul class="simple">
@@ -169,7 +172,7 @@ can selectively upgrade packages via <tt class="docutils literal"><span class="p
 <li>ordereddict</li>
 </ul>
 <p>Install these via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install argparse ordereddict</pre>
+<div class="highlight-python"><pre>sudo pip install argparse ordereddict</pre>
 </div>
 </div>
 <div class="section" id="petsc">
@@ -188,18 +191,20 @@ compiler) are installed. On a Debian based system, run:</p>
 <div class="highlight-python"><pre>sudo apt-get install -y libopenmpi-dev openmpi-bin libblas-dev liblapack-dev gfortran</pre>
 </div>
 <p>Then install <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> via <tt class="docutils literal"><span class="pre">pip</span></tt></p>
-<div class="highlight-python"><pre>PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
-  pip install -U git+https://bitbucket.org/petsc/petsc.git
+<div class="highlight-python"><pre>sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
+  pip install git+https://bitbucket.org/petsc/petsc.git
 unset PETSC_DIR
 unset PETSC_ARCH</pre>
 </div>
-<p>The -U option forces the install in the case where you have a recent
-<a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> version already installed.</p>
 <p>If you built <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> using <tt class="docutils literal"><span class="pre">pip</span></tt>, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt>
 should be left unset when building <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>.</p>
 <p>Install <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install -U git+https://bitbucket.org/petsc/petsc4py.git</pre>
+<div class="highlight-python"><pre>sudo pip install git+https://bitbucket.org/petsc/petsc4py.git</pre>
 </div>
+<p>If you have previously installed and older version of <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> or <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>,
+<tt class="docutils literal"><span class="pre">pip</span></tt> might tell you that the requirements are already satisfied when running
+above commands. In that case, use <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-U</span> <span class="pre">--no-deps</span></tt> to upgrade
+(<tt class="docutils literal"><span class="pre">--no-deps</span></tt> prevents also recursively upgrading any dependencies).</p>
 </div>
 <div class="section" id="cuda-backend">
 <span id="cuda-installation"></span><h3>CUDA backend:<a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h3>
@@ -224,7 +229,7 @@ with CUDA 4.x.</p>
 <p><strong>Note:</strong> The version of pycparser available in the package repositories
 is too old, you will need to install it via <tt class="docutils literal"><span class="pre">pip</span></tt>, see below.</p>
 <p>Install dependencies via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install codepy Jinja2 mako pycparser&gt;=2.10</pre>
+<div class="highlight-python"><pre>sudo pip install codepy Jinja2 mako pycparser&gt;=2.10</pre>
 </div>
 <p>If a pycuda package is not available, it will be necessary to install it
 manually. Make sure <tt class="docutils literal"><span class="pre">nvcc</span></tt> is in your <tt class="docutils literal"><span class="pre">$PATH</span></tt> and <tt class="docutils literal"><span class="pre">libcuda.so</span></tt> in
@@ -268,7 +273,7 @@ python setup.py build
 sudo python setup.py install</pre>
 </div>
 <p>Otherwise, install dependencies via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>pip install Jinja2 mako pyopencl&gt;=2012.1 pycparser&gt;=2.10</pre>
+<div class="highlight-python"><pre>sudo pip install Jinja2 mako pyopencl&gt;=2012.1 pycparser&gt;=2.10</pre>
 </div>
 <p>Installing the Intel OpenCL toolkit (64bit systems only):</p>
 <div class="highlight-python"><pre>cd /tmp
@@ -301,7 +306,7 @@ files. To use this feature you need the optional dependency
 <p>On a Debian-based system, run:</p>
 <div class="highlight-python"><pre>sudo apt-get install libhdf5-mpi-dev python-h5py</pre>
 </div>
-<p>Alternatively, if the HDF5 library is available, <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">h5py</span></tt>.</p>
+<p>Alternatively, if the HDF5 library is available, <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">h5py</span></tt>.</p>
 </div>
 </div>
 <div class="section" id="building-pyop2">
@@ -321,19 +326,6 @@ in-place when using PyOP2 from the source tree:</p>
 modules will be built automatically and amending <tt class="docutils literal"><span class="pre">$PYTHONPATH</span></tt> is not
 necessary.</p>
 </div>
-<div class="section" id="ffc-interface">
-<h2>FFC Interface<a class="headerlink" href="#ffc-interface" title="Permalink to this headline">¶</a></h2>
-<p>Solving <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a> finite element equations requires a fork of <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a>, <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a>
-and <a class="reference external" href="https://bitbucket.org/mapdes/fiat">FIAT</a>.  Note that <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> requires a version of <a class="reference external" href="https://bitbucket.org/fenics-project/instant">Instant</a>.</p>
-<p>Install <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> and all dependencies via pip:</p>
-<div class="highlight-python"><pre>pip install \
-  git+https://bitbucket.org/mapdes/ffc.git#egg=ffc
-  git+https://bitbucket.org/mapdes/ufl.git#egg=ufl
-  git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
-  git+https://bitbucket.org/fenics-project/instant.git#egg=instant
-  hg+https://bitbucket.org/khinsen/scientificpython</pre>
-</div>
-</div>
 <div class="section" id="setting-up-the-environment">
 <h2>Setting up the environment<a class="headerlink" href="#setting-up-the-environment" title="Permalink to this headline">¶</a></h2>
 <p>To make sure PyOP2 finds all its dependencies, create a file <tt class="docutils literal"><span class="pre">.env</span></tt>
@@ -343,12 +335,6 @@ definitions as necessary:</p>
 <div class="highlight-python"><pre>#PETSc installation, not necessary when PETSc was installed via pip
 export PETSC_DIR=/path/to/petsc
 export PETSC_ARCH=linux-gnu-c-opt
-
-#Add UFL and FFC to PYTHONPATH if in non-standard location
-export UFL_DIR=/path/to/ufl
-export FFC_DIR=/path/to/ffc
-export PYTHONPATH=$UFL_DIR:$FFC_DIR:$PYTHONPATH
-# Add any other Python module in non-standard locations
 
 #Add PyOP2 to PYTHONPATH
 export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH</pre>
@@ -363,11 +349,11 @@ manager:</p>
 <div class="highlight-python"><pre>sudo apt-get install python-pytest</pre>
 </div>
 <p>or pip:</p>
-<div class="highlight-python"><pre>pip install "pytest&gt;=2.3"</pre>
+<div class="highlight-python"><pre>sudo pip install "pytest&gt;=2.3"</pre>
 </div>
 <p>The code linting test uses <a class="reference external" href="http://flake8.readthedocs.org">flake8</a>.
 Install via pip:</p>
-<div class="highlight-python"><pre>pip install "flake8&gt;=2.1.0"</pre>
+<div class="highlight-python"><pre>sudo pip install "flake8&gt;=2.1.0"</pre>
 </div>
 <p>If you install <em>pytest</em> and <em>flake8</em> using <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">--user</span></tt>, you should
 include the binary folder of your local site in your path by adding the
@@ -375,16 +361,11 @@ following to <tt class="docutils literal"><span class="pre">~/.bashrc</span></tt
 <div class="highlight-python"><pre># Add pytest binaries to the path
 export PATH=${PATH}:${HOME}/.local/bin</pre>
 </div>
-<p>The regression tests further require <em>gmsh</em> and <em>triangle</em>:</p>
-<div class="highlight-python"><pre>sudo apt-get install gmsh triangle-bin unzip</pre>
-</div>
 <p>If all tests in our test suite pass, you should be good to go:</p>
 <div class="highlight-python"><pre>make test</pre>
 </div>
-<p>This will run both unit and regression tests, the latter require <a class="reference external" href="https://bitbucket.org/mapdes/ufl">UFL</a> and <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a>.</p>
-<p>This will attempt to run tests for all backends and skip those for not
-available backends. If the <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> fork is not found, tests for the <a class="reference external" href="https://bitbucket.org/mapdes/ffc">FFC</a> interface
-are xfailed.</p>
+<p>This will run code linting and unit tests, attempting to run for all backends
+and skipping those for not available backends.</p>
 </div>
 <div class="section" id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
@@ -400,9 +381,6 @@ from. To print the module search path, run:</p>
 <p>Run the tests as follows, to abort after the first failed test:</p>
 <p>Start with the unit tests with the sequential backend</p>
 <div class="highlight-python"><pre>py.test test/unit -vsx --tb=short --backend=sequential</pre>
-</div>
-<p>Then move on to the regression tests with the sequential backend</p>
-<div class="highlight-python"><pre>py.test test/regression -vsx --tb=short --backend=sequential</pre>
 </div>
 <p>With all the sequential tests passing, move on to the next backend in the same
 manner as required.</p>
@@ -431,7 +409,6 @@ manner as required.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#building-pyop2">Building PyOP2</a></li>
-<li><a class="reference internal" href="#ffc-interface">FFC Interface</a></li>
 <li><a class="reference internal" href="#setting-up-the-environment">Setting up the environment</a></li>
 <li><a class="reference internal" href="#testing-your-installation">Testing your installation</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>

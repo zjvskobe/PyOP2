@@ -71,7 +71,7 @@ objects. Since PyOP2 has been primarily thought to be fed by higher layers
 of abstractions, rather than by users, no C-to-AST parser is currently provided.
 The advantage of providing an AST, instead of C code, is that it enables PyOP2
 to inspect and transform the kernel, which is aimed at achieving performance
-portability among different architectures and, more in general, better execution
+portability among different architectures and, more generally, better execution
 times.</p>
 <p>For the purposes of exposition, let us consider a simple
 kernel <tt class="docutils literal"><span class="pre">init</span></tt> which initialises the members of a <a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>
@@ -102,7 +102,7 @@ is</p>
 of code, which is not modified by the IR engine. A
 <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.FlatBlock" title="pyop2.ir.ast_base.FlatBlock"><tt class="xref py py-class docutils literal"><span class="pre">FlatBlock</span></tt></a> is used to represent (possibly large)
 fragments of code for which we are not interested in any kind of
-transformations, so it may be particularly useful to speed up code development
+transformation, so it may be particularly useful to speed up code development
 when writing, for example, test cases or non-expensive kernels.  On the other
 hand, time-demanding kernels should be properly represented using a &#8220;real&#8221;
 AST. For example, an useful AST for <tt class="docutils literal"><span class="pre">init</span></tt> could be the following</p>
@@ -119,7 +119,7 @@ AST. For example, an useful AST for <tt class="docutils literal"><span class="pr
 </div>
 <p>In this example, we first construct the body of the kernel function. We have
 an initial <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.FlatBlock" title="pyop2.ir.ast_base.FlatBlock"><tt class="xref py py-class docutils literal"><span class="pre">FlatBlock</span></tt></a> that contains, for instance,
-some sort of initializing code. <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_for" title="pyop2.ir.ast_base.c_for"><tt class="xref py py-func docutils literal"><span class="pre">c_for()</span></tt></a> is a shortcut
+some sort of initialization code. <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_for" title="pyop2.ir.ast_base.c_for"><tt class="xref py py-func docutils literal"><span class="pre">c_for()</span></tt></a> is a shortcut
 for building a <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.For" title="pyop2.ir.ast_base.For"><tt class="xref py py-class docutils literal"><span class="pre">for</span> <span class="pre">loop</span></tt></a>.  It takes an
 iteration variable (<tt class="docutils literal"><span class="pre">i</span></tt>), the extent of the loop and its body.  Multiple
 statements in the body can be passed in as a list.
@@ -129,7 +129,7 @@ iteration variables.</p>
 <p>We use <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.Symbol" title="pyop2.ir.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">Symbol</span></tt></a> instead of
 <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.c_sym" title="pyop2.ir.ast_base.c_sym"><tt class="xref py py-func docutils literal"><span class="pre">c_sym()</span></tt></a>,  when <tt class="docutils literal"><span class="pre">edge_weight</span></tt> accesses a specific
 element using the iteration variable <tt class="docutils literal"><span class="pre">i</span></tt>. This is fundamental to allow the
-IR engine performing many kind of transformations involving the kernel&#8217;s
+IR engine to perform many kind of transformations involving the kernel&#8217;s
 iteration space(s). Finally, the signature of the function is constructed
 using the <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.FunDecl" title="pyop2.ir.ast_base.FunDecl"><tt class="xref py py-class docutils literal"><span class="pre">FunDecl</span></tt></a>.</p>
 <p>Other examples on how to build ASTs can be found in the tests folder,
@@ -152,8 +152,8 @@ backend.</li>
 underlying backend.</li>
 </ul>
 <p>To maximize the outcome of the transformation process, it is important that
-kernels are written as simple as possible. That is, premature optimizations,
-possibly for a specific backend, might be harmful for performance.</p>
+kernels are written as simply as possible. That is, premature optimization,
+possibly for a specific backend, might harm performance.</p>
 <p>A minimal language, the so-called PyOP2 Kernel Domain-Specific Language, is
 used to trigger specific transformations. If we had had a parser from C
 code to AST, we would have embedded this DSL in C by means of <tt class="docutils literal"><span class="pre">pragmas</span></tt>.
@@ -169,8 +169,8 @@ parallel without any sort of synchronization.</li>
 to denote that we are performing a local assembly operation along to the
 <tt class="docutils literal"><span class="pre">itvar1</span></tt> and <tt class="docutils literal"><span class="pre">itvar2</span></tt> dimensions.</li>
 <li><tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">simd</span></tt>. This is added on top of the kernel signature. It is
-used to suggest PyOP2 to apply simd vectorization along the ParLoop&#8217;s
-iteration set dimension. Such kind of vectorization is also known as
+used to suggest PyOP2 to apply SIMD vectorization along the ParLoop&#8217;s
+iteration set dimension. This kind of vectorization is also known as
 <em>inter-kernel vectorization</em>. This feature is currently not supported
 by PyOP2, and will be added only in a future release.</li>
 </ul>
@@ -193,7 +193,7 @@ the same semantics of a for loop decorated with a <tt class="docutils literal"><
 Typically we want a single core to execute the entire kernel, because it is
 very likely that the kernel&#8217;s iteration space is small and its working set
 fits the L1 cache, and no benefit would be gained by splitting the computation
-among distinct cores. On the other end, if the backend is a GPU or an
+between distinct cores. On the other end, if the backend is a GPU or an
 accelerator, a different execution model might give better performance.
 There&#8217;s a huge amount of parallelism available, for example, in a GPU, so
 delegating the execution of an individual iteration (or a chunk of iterations)
@@ -237,10 +237,10 @@ for (int i = 0; i &lt; 3; i++)
 <p>Visiting the AST, PyOP2 finds a 2-dimensional iteration space and an assembly
 statement. Currently, <tt class="docutils literal"><span class="pre">#pragma</span> <span class="pre">pyop2</span> <span class="pre">itspace</span></tt> is ignored when the backend is
 a CPU. The <tt class="docutils literal"><span class="pre">#pragma</span> <span class="pre">pyop2</span> <span class="pre">assembly(i,</span> <span class="pre">j)</span></tt> can trigger multiple DSOs.
-PyOP2 currently lacks an autotuning system that finds out automatically the
-best possible kernel implementation, that is the optimizations that minimize
+PyOP2 currently lacks an autotuning system that automatically finds out the
+best possible kernel implementation; that is, the optimizations that minimize
 the kernel run-time. To drive the optimization process, the user (or the
-higher layer) can specifiy which optimizations should be applied. Currently,
+higher layer) can specify which optimizations should be applied. Currently,
 PyOP2 can automate:</p>
 <ul class="simple">
 <li>Alignment and padding of data structures: for issuing aligned loads and stores.</li>

@@ -82,6 +82,26 @@ Abstract Syntax Tree (ast).</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="pyop2.ir.ast_base.decr">
+<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">decr</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.decr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_base.decr_by_1">
+<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">decr_by_1</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.decr_by_1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_base.idiv">
+<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">idiv</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.idiv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_base.imul">
+<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">imul</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.imul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="pyop2.ir.ast_base.wrap">
 <tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">wrap</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.wrap" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -105,6 +125,24 @@ Abstract Syntax Tree (ast).</p>
 <dt id="pyop2.ir.ast_base.for_loop">
 <tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">for_loop</tt><big>(</big><em>s1</em>, <em>e</em>, <em>s2</em>, <em>s3</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.for_loop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_base.ternary">
+<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">ternary</tt><big>(</big><em>e</em>, <em>s1</em>, <em>s2</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.ternary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.ir.ast_base.as_symbol">
+<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">as_symbol</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.as_symbol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ir.ast_base.Perfect">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Perfect</tt><a class="headerlink" href="#pyop2.ir.ast_base.Perfect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Dummy mixin class used to decorate classes which can form part
+of a perfect loop nest.</p>
+</dd></dl>
 
 <dl class="class">
 <dt id="pyop2.ir.ast_base.Node">
@@ -154,6 +192,18 @@ Abstract Syntax Tree (ast).</p>
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">UnaryExpr</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.UnaryExpr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Expr" title="pyop2.ir.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Expr</span></tt></a></p>
 <p>Generic unary expression.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ir.ast_base.Neg">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Neg</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Neg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.UnaryExpr" title="pyop2.ir.ast_base.UnaryExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.UnaryExpr</span></tt></a></p>
+<p>Unary negation of an expression</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_base.Neg.gencode">
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Neg.gencode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -221,8 +271,32 @@ in as simple strings.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.ir.ast_base.FunCall">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">FunCall</tt><big>(</big><em>function_name</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunCall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Expr" title="pyop2.ir.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Expr</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
+<p>Function call.</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_base.FunCall.gencode">
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunCall.gencode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ir.ast_base.Ternary">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Ternary</tt><big>(</big><em>expr</em>, <em>true_stmt</em>, <em>false_stmt</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Ternary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Expr" title="pyop2.ir.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Expr</span></tt></a></p>
+<p>Ternary operator: expr ? true_stmt : false_stmt.</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_base.Ternary.gencode">
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Ternary.gencode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.ir.ast_base.Symbol">
-<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Symbol</tt><big>(</big><em>symbol</em>, <em>rank</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Symbol" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Symbol</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Symbol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Expr" title="pyop2.ir.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Expr</span></tt></a></p>
 <p>A generic symbol. The length of <tt class="docutils literal"><span class="pre">rank</span></tt> is the tensor rank:</p>
 <ul class="simple">
@@ -297,7 +371,7 @@ symbol is accessing, or the size of the tensor itself.</td>
 
 <dl class="class">
 <dt id="pyop2.ir.ast_base.AVXLoad">
-<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXLoad</tt><big>(</big><em>symbol</em>, <em>rank</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXLoad" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXLoad</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXLoad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Symbol" title="pyop2.ir.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Symbol</span></tt></a></p>
 <p>Load of values in a vector register using AVX intrinsics.</p>
 <dl class="method">
@@ -309,7 +383,7 @@ symbol is accessing, or the size of the tensor itself.</td>
 
 <dl class="class">
 <dt id="pyop2.ir.ast_base.AVXSet">
-<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXSet</tt><big>(</big><em>symbol</em>, <em>rank</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">AVXSet</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.AVXSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Symbol" title="pyop2.ir.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Symbol</span></tt></a></p>
 <p>Replicate the symbol&#8217;s value in all slots of a vector register
 using AVX intrinsics.</p>
@@ -330,7 +404,7 @@ using AVX intrinsics.</p>
 <dl class="class">
 <dt id="pyop2.ir.ast_base.EmptyStatement">
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">EmptyStatement</tt><big>(</big><em>children=None</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.EmptyStatement" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
 <p>Empty statement.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.EmptyStatement.gencode">
@@ -354,7 +428,7 @@ using AVX intrinsics.</p>
 <dl class="class">
 <dt id="pyop2.ir.ast_base.Assign">
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Assign</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Assign" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
 <p>Assign an expression to a symbol.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.Assign.gencode">
@@ -366,8 +440,8 @@ using AVX intrinsics.</p>
 <dl class="class">
 <dt id="pyop2.ir.ast_base.Incr">
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Incr</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Incr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
-<p>Increment a symbol by a certain amount.</p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
+<p>Increment a symbol by an expression.</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.Incr.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Incr.gencode" title="Permalink to this definition">¶</a></dt>
@@ -376,9 +450,45 @@ using AVX intrinsics.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pyop2.ir.ast_base.Decr">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Decr</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Decr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
+<p>Decrement a symbol by an expression.</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_base.Decr.gencode">
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Decr.gencode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ir.ast_base.IMul">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">IMul</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.IMul" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
+<p>In-place multiplication of a symbol by an expression.</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_base.IMul.gencode">
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.IMul.gencode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.ir.ast_base.IDiv">
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">IDiv</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.IDiv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
+<p>In-place division of a symbol by an expression.</p>
+<dl class="method">
+<dt id="pyop2.ir.ast_base.IDiv.gencode">
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.IDiv.gencode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pyop2.ir.ast_base.Decl">
 <em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">Decl</tt><big>(</big><em>typ</em>, <em>sym</em>, <em>init=None</em>, <em>qualifiers=None</em>, <em>attributes=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.Decl" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.ir.ast_base.Perfect" title="pyop2.ir.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Perfect</span></tt></a></p>
 <p>Declaration of a symbol.</p>
 <p>Syntax:</p>
 <div class="highlight-python"><pre>[qualifiers] typ sym [attributes] [= init];</pre>
@@ -407,7 +517,7 @@ using AVX intrinsics.</p>
 
 <dl class="class">
 <dt id="pyop2.ir.ast_base.For">
-<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">For</tt><big>(</big><em>init</em>, <em>cond</em>, <em>incr</em>, <em>body</em>, <em>pragma=''</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.For" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">For</tt><big>(</big><em>init</em>, <em>cond</em>, <em>incr</em>, <em>body</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.For" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
 <p>Represent the classic for loop of an imperative language, although
 some restrictions must be considered: only a single iteration variable
@@ -427,18 +537,6 @@ can be declared and modified (i.e. it is not supported something like</p>
 <dl class="method">
 <dt id="pyop2.ir.ast_base.For.gencode">
 <tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.For.gencode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="pyop2.ir.ast_base.FunCall">
-<em class="property">class </em><tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">FunCall</tt><big>(</big><em>funcall</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunCall" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyop2.ir.ast_base.Statement" title="pyop2.ir.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.ir.ast_base.Statement</span></tt></a></p>
-<p>Function call.</p>
-<dl class="method">
-<dt id="pyop2.ir.ast_base.FunCall.gencode">
-<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.FunCall.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -567,19 +665,13 @@ The intrinsic function used is <tt class="docutils literal"><span class="pre">_m
 
 <dl class="function">
 <dt id="pyop2.ir.ast_base.c_for">
-<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">c_for</tt><big>(</big><em>var</em>, <em>to</em>, <em>code</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.c_for" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">c_for</tt><big>(</big><em>var</em>, <em>to</em>, <em>code</em>, <em>pragma='#pragma pyop2 itspace'</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.c_for" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.ir.ast_base.c_flat_for">
 <tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">c_flat_for</tt><big>(</big><em>code</em>, <em>parent</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.c_flat_for" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="function">
-<dt id="pyop2.ir.ast_base.perf_stmt">
-<tt class="descclassname">pyop2.ir.ast_base.</tt><tt class="descname">perf_stmt</tt><big>(</big><em>node</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_base.perf_stmt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if the node is allowed to be in the perfect nest.</p>
-</dd></dl>
 
 </div>
 <div class="section" id="module-pyop2.ir.ast_optimizer">
@@ -634,6 +726,13 @@ suitable loop in order to exploit compiler autovectorization.</p>
 This function slices the iteration space, and relies on the backend
 compiler for unrolling and vector-promoting the tiled loops.
 By default, it slices the inner outer-product loop.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.ir.ast_optimizer.LoopOptimiser.op_split">
+<tt class="descname">op_split</tt><big>(</big><em>cut</em>, <em>length</em><big>)</big><a class="headerlink" href="#pyop2.ir.ast_optimizer.LoopOptimiser.op_split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split outer product RHS to improve resources utilization (e.g.
+vector registers).</p>
 </dd></dl>
 
 </dd></dl>

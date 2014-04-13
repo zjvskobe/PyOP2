@@ -87,13 +87,14 @@ On a Debian-based system (Ubuntu, Mint, etc.) install them by running::
 Dependencies
 ------------
 
-To install dependencies system-wide use ``sudo -E pip install ...``, to
+To install dependencies system-wide use ``sudo pip install ...``, to
 install to a user site use ``pip install --user ...``. If you don't want
 PyOP2 or its dependencies interfering with your existing Python environment,
 consider creating a `virtualenv <http://virtualenv.org/>`__.
 
-**Note:** In the following we will use ``pip install ...`` to mean any
-of the above options.
+**Note:** In the following we will use ``sudo pip install ...``. If
+ you want either of the other options you should change the command
+ appropriately.
 
 **Note:** Installing to the user site does not always give packages
 priority over system installed packages on your ``sys.path``.
@@ -129,7 +130,7 @@ can selectively upgrade packages via ``pip``, see below.
 
 Install dependencies via ``pip``::
 
-  pip install "Cython>=0.17" decorator "numpy>=1.6"
+  sudo pip install "Cython>=0.17" decorator "numpy>=1.6"
 
 Additional Python 2.6 dependencies: 
 
@@ -138,7 +139,7 @@ Additional Python 2.6 dependencies:
 
 Install these via ``pip``::
 
-  pip install argparse ordereddict
+  sudo pip install argparse ordereddict
 
 PETSc
 ~~~~~
@@ -160,20 +161,22 @@ compiler) are installed. On a Debian based system, run::
 
 Then install PETSc_ via ``pip`` ::
 
-  PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
-    pip install -U git+https://bitbucket.org/petsc/petsc.git
+  sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
+    pip install git+https://bitbucket.org/petsc/petsc.git
   unset PETSC_DIR
   unset PETSC_ARCH
-
-The -U option forces the install in the case where you have a recent
-PETSc_ version already installed.
 
 If you built PETSc_ using ``pip``, ``PETSC_DIR`` and ``PETSC_ARCH``
 should be left unset when building petsc4py_.
 
 Install petsc4py_ via ``pip``::
 
-  pip install -U git+https://bitbucket.org/petsc/petsc4py.git
+  sudo pip install git+https://bitbucket.org/petsc/petsc4py.git
+
+If you have previously installed and older version of PETSc_ or petsc4py_,
+``pip`` might tell you that the requirements are already satisfied when running
+above commands. In that case, use ``pip install -U --no-deps`` to upgrade
+(``--no-deps`` prevents also recursively upgrading any dependencies).
 
 .. _cuda-installation:
 
@@ -206,7 +209,7 @@ is too old, you will need to install it via ``pip``, see below.
 
 Install dependencies via ``pip``::
 
-  pip install codepy Jinja2 mako pycparser>=2.10
+  sudo pip install codepy Jinja2 mako pycparser>=2.10
 
 If a pycuda package is not available, it will be necessary to install it
 manually. Make sure ``nvcc`` is in your ``$PATH`` and ``libcuda.so`` in
@@ -256,7 +259,7 @@ location you need to configure pyopencl manually::
 
 Otherwise, install dependencies via ``pip``::
 
-  pip install Jinja2 mako pyopencl>=2012.1 pycparser>=2.10
+  sudo pip install Jinja2 mako pyopencl>=2012.1 pycparser>=2.10
 
 Installing the Intel OpenCL toolkit (64bit systems only)::
 
@@ -294,7 +297,7 @@ On a Debian-based system, run::
 
   sudo apt-get install libhdf5-mpi-dev python-h5py
 
-Alternatively, if the HDF5 library is available, ``pip install h5py``.
+Alternatively, if the HDF5 library is available, ``sudo pip install h5py``.
 
 Building PyOP2
 --------------
@@ -317,21 +320,6 @@ When installing PyOP2 via ``python setup.py install`` the extension
 modules will be built automatically and amending ``$PYTHONPATH`` is not
 necessary.
 
-FFC Interface
--------------
-
-Solving UFL_ finite element equations requires a fork of FFC_, UFL_
-and FIAT_.  Note that FFC_ requires a version of Instant_.
-
-Install FFC_ and all dependencies via pip::
-
-  pip install \
-    git+https://bitbucket.org/mapdes/ffc.git#egg=ffc
-    git+https://bitbucket.org/mapdes/ufl.git#egg=ufl
-    git+https://bitbucket.org/mapdes/fiat.git#egg=fiat
-    git+https://bitbucket.org/fenics-project/instant.git#egg=instant
-    hg+https://bitbucket.org/khinsen/scientificpython
-
 Setting up the environment
 --------------------------
 
@@ -343,12 +331,6 @@ definitions as necessary::
   #PETSc installation, not necessary when PETSc was installed via pip
   export PETSC_DIR=/path/to/petsc 
   export PETSC_ARCH=linux-gnu-c-opt
-
-  #Add UFL and FFC to PYTHONPATH if in non-standard location
-  export UFL_DIR=/path/to/ufl 
-  export FFC_DIR=/path/to/ffc 
-  export PYTHONPATH=$UFL_DIR:$FFC_DIR:$PYTHONPATH 
-  # Add any other Python module in non-standard locations
 
   #Add PyOP2 to PYTHONPATH
   export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH
@@ -366,12 +348,12 @@ manager::
 
 or pip::
 
-  pip install "pytest>=2.3"
+  sudo pip install "pytest>=2.3"
 
 The code linting test uses `flake8 <http://flake8.readthedocs.org>`__.
 Install via pip::
 
-  pip install "flake8>=2.1.0"
+  sudo pip install "flake8>=2.1.0"
 
 If you install *pytest* and *flake8* using ``pip --user``, you should
 include the binary folder of your local site in your path by adding the
@@ -380,19 +362,12 @@ following to ``~/.bashrc`` or ``.env``::
   # Add pytest binaries to the path
   export PATH=${PATH}:${HOME}/.local/bin
 
-The regression tests further require *gmsh* and *triangle*: ::
-
-  sudo apt-get install gmsh triangle-bin unzip
-
 If all tests in our test suite pass, you should be good to go::
 
   make test
 
-This will run both unit and regression tests, the latter require UFL_ and FFC_.
-
-This will attempt to run tests for all backends and skip those for not
-available backends. If the FFC_ fork is not found, tests for the FFC_ interface
-are xfailed.
+This will run code linting and unit tests, attempting to run for all backends
+and skipping those for not available backends.
 
 Troubleshooting
 ---------------
@@ -415,17 +390,10 @@ Start with the unit tests with the sequential backend ::
 
   py.test test/unit -vsx --tb=short --backend=sequential
 
-Then move on to the regression tests with the sequential backend ::
-
-  py.test test/regression -vsx --tb=short --backend=sequential
-
 With all the sequential tests passing, move on to the next backend in the same
 manner as required.
 
 .. _PPA: https://launchpad.net/~amcg/+archive/petsc3.4/
 .. _PETSc: http://www.mcs.anl.gov/petsc/
 .. _petsc4py: http://pythonhosted.org/petsc4py/
-.. _FFC: https://bitbucket.org/mapdes/ffc
-.. _FIAT: https://bitbucket.org/mapdes/fiat
-.. _UFL: https://bitbucket.org/mapdes/ufl
 .. _Instant: https://bitbucket.org/fenics-project/instant

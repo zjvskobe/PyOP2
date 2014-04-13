@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
     <link rel="next" title="pyop2 Package" href="pyop2.html" />
-    <link rel="prev" title="MPI" href="mpi.html" /> 
+    <link rel="prev" title="Caching in PyOP2" href="caching.html" /> 
   </head>
   <body>
     <div class="related">
@@ -41,7 +41,7 @@
           <a href="pyop2.html" title="pyop2 Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="mpi.html" title="MPI"
+          <a href="caching.html" title="Caching in PyOP2"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>
@@ -669,8 +669,8 @@ of same length as <cite>arg</cite></li>
 <dl class="attribute">
 <dt id="pyop2.MixedDataSet.cdim">
 <tt class="descname">cdim</tt><a class="headerlink" href="#pyop2.MixedDataSet.cdim" title="Permalink to this definition">¶</a></dt>
-<dd><p>The scalar number of values for each member of the sets. This is
-the product of the dim tuples.</p>
+<dd><p>The sum of the scalar number of values for each member of the sets.
+This is the sum of products of the dim tuples.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -763,6 +763,14 @@ iterset element.</p>
 <dt id="pyop2.Map.fromhdf5">
 <em class="property">classmethod </em><tt class="descname">fromhdf5</tt><big>(</big><em>iterset</em>, <em>toset</em>, <em>f</em>, <em>name</em><big>)</big><a class="headerlink" href="#pyop2.Map.fromhdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> from set named <tt class="docutils literal"><span class="pre">name</span></tt> in HDF5 data <tt class="docutils literal"><span class="pre">f</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.Map.iteration_region">
+<tt class="descname">iteration_region</tt><a class="headerlink" href="#pyop2.Map.iteration_region" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the iteration region for the current map. For a normal map it
+will always be ALL. For a class <cite>SparsityMap</cite> it will specify over which mesh
+region the iteration will take place.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -872,6 +880,14 @@ iterset element.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.MixedMap.iteration_region">
+<tt class="descname">iteration_region</tt><a class="headerlink" href="#pyop2.MixedMap.iteration_region" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the iteration region for the current map. For a normal map it
+will always be ALL. For a class <cite>SparsityMap</cite> it will specify over which mesh
+region the iteration will take place.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.MixedMap.iterset">
 <tt class="descname">iterset</tt><a class="headerlink" href="#pyop2.MixedMap.iterset" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#pyop2.MixedSet" title="pyop2.MixedSet"><tt class="xref py py-class docutils literal"><span class="pre">MixedSet</span></tt></a> mapped from.</p>
@@ -955,12 +971,6 @@ used as both a row map and a column map) &#8211; <a class="reference internal" h
 </tr>
 </tbody>
 </table>
-<dl class="attribute">
-<dt id="pyop2.Sparsity.cache_key">
-<tt class="descname">cache_key</tt><a class="headerlink" href="#pyop2.Sparsity.cache_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>Cache key.</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="pyop2.Sparsity.cmaps">
 <tt class="descname">cmaps</tt><a class="headerlink" href="#pyop2.Sparsity.cmaps" title="Permalink to this definition">¶</a></dt>
@@ -1330,13 +1340,17 @@ the product of the dim tuple.</p>
 
 <dl class="method">
 <dt id="pyop2.Dat.copy">
-<tt class="descclassname">Dat.</tt><tt class="descname">copy</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.Dat.copy" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Dat.</tt><tt class="descname">copy</tt><big>(</big><em>other</em>, <em>subset=None</em><big>)</big><a class="headerlink" href="#pyop2.Dat.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy the data in this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> into another.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; The destination <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; The destination <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></li>
+<li><strong>subset</strong> &#8211; A <a class="reference internal" href="#pyop2.Subset" title="pyop2.Subset"><tt class="xref py py-class docutils literal"><span class="pre">Subset</span></tt></a> of elements to copy (optional)</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1360,7 +1374,15 @@ method will return a full duplicate object.</p>
 <dl class="attribute">
 <dt id="pyop2.Dat.data">
 <tt class="descclassname">Dat.</tt><tt class="descname">data</tt><a class="headerlink" href="#pyop2.Dat.data" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Numpy array containing the data values.</p>
+<p>With this accessor you are claiming that you will modify
+the values you get back.  If you only need to look at the
+values, use <a class="reference internal" href="#pyop2.Dat.data_ro" title="pyop2.Dat.data_ro"><tt class="xref py py-meth docutils literal"><span class="pre">data_ro()</span></tt></a> instead.</p>
+<p>This only shows local values, to see the halo values too use
+<a class="reference internal" href="#pyop2.Dat.data_with_halos" title="pyop2.Dat.data_with_halos"><tt class="xref py py-meth docutils literal"><span class="pre">data_with_halos()</span></tt></a>.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="pyop2.Dat.data_ro">
@@ -1445,6 +1467,21 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.Dat.inner">
+<tt class="descclassname">Dat.</tt><tt class="descname">inner</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.Dat.inner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the l2 inner product of the flattened <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; the other <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> to compute the inner product against</td>
+</tr>
+</tbody>
+</table>
+<p>Returns a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Dat.name">
 <tt class="descclassname">Dat.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.Dat.name" title="Permalink to this definition">¶</a></dt>
@@ -1471,7 +1508,11 @@ over all MPI processes.</p>
 <dl class="attribute">
 <dt id="pyop2.Dat.norm">
 <tt class="descclassname">Dat.</tt><tt class="descname">norm</tt><a class="headerlink" href="#pyop2.Dat.norm" title="Permalink to this definition">¶</a></dt>
-<dd><p>The L2-norm on the flattened vector.</p>
+<dd><p>Compute the l2 norm of this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This acts on the flattened data (see also <a class="reference internal" href="#pyop2.Dat.inner" title="pyop2.Dat.inner"><tt class="xref py py-meth docutils literal"><span class="pre">inner()</span></tt></a>).</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1543,13 +1584,17 @@ the product of the dim tuple.</p>
 
 <dl class="method">
 <dt id="pyop2.MixedDat.copy">
-<tt class="descclassname">MixedDat.</tt><tt class="descname">copy</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copy the data in this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> into another.</p>
+<tt class="descclassname">MixedDat.</tt><tt class="descname">copy</tt><big>(</big><em>other</em>, <em>subset=None</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the data in this <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a> into another.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; The destination <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> &#8211; The destination <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a></li>
+<li><strong>subset</strong> &#8211; Subsets are not supported, this must be <tt class="xref py py-class docutils literal"><span class="pre">None</span></tt></li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1645,6 +1690,20 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.MixedDat.inner">
+<tt class="descclassname">MixedDat.</tt><tt class="descname">inner</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.inner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the l2 inner product.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; the other <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a> to compute the inner product against</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.MixedDat.name">
 <tt class="descclassname">MixedDat.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.MixedDat.name" title="Permalink to this definition">¶</a></dt>
@@ -1655,7 +1714,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <dt id="pyop2.MixedDat.nbytes">
 <tt class="descclassname">MixedDat.</tt><tt class="descname">nbytes</tt><a class="headerlink" href="#pyop2.MixedDat.nbytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return an estimate of the size of the data associated with this
-<a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> in bytes. This will be the correct size of the data
+<a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a> in bytes. This will be the correct size of the data
 payload, but does not take into account the (presumably small)
 overhead of the object and its metadata.</p>
 <p>Note that this is the process local memory usage, not the sum
@@ -1671,7 +1730,11 @@ over all MPI processes.</p>
 <dl class="attribute">
 <dt id="pyop2.MixedDat.norm">
 <tt class="descclassname">MixedDat.</tt><tt class="descname">norm</tt><a class="headerlink" href="#pyop2.MixedDat.norm" title="Permalink to this definition">¶</a></dt>
-<dd><p>The L2-norm on the flattened vector.</p>
+<dd><p>Compute the l2 norm of this <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This acts on the flattened data (see also <a class="reference internal" href="#pyop2.MixedDat.inner" title="pyop2.MixedDat.inner"><tt class="xref py py-meth docutils literal"><span class="pre">inner()</span></tt></a>).</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1701,6 +1764,8 @@ over all MPI processes.</p>
 <dt id="pyop2.MixedDat.zero">
 <tt class="descclassname">MixedDat.</tt><tt class="descname">zero</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.MixedDat.zero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Zero the data associated with this <a class="reference internal" href="#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a>.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1721,6 +1786,12 @@ named <tt class="docutils literal"><span class="pre">R</span></tt> and a column 
 <p>Notice that it is <cite>always</cite> necessary to index the indirection maps
 for a <tt class="docutils literal"><span class="pre">Mat</span></tt>. See the <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> documentation for more
 details.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">After executing <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a>s that write to a <tt class="docutils literal"><span class="pre">Mat</span></tt> and
+before using it (for example to view its values), you must call
+<a class="reference internal" href="#pyop2.Mat.assemble" title="pyop2.Mat.assemble"><tt class="xref py py-meth docutils literal"><span class="pre">assemble()</span></tt></a> to finalise the writes.</p>
+</div>
 <dl class="class">
 <dt id="pyop2.Mat.Snapshot">
 <em class="property">class </em><tt class="descname">Snapshot</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#pyop2.Mat.Snapshot" title="Permalink to this definition">¶</a></dt>
@@ -1731,6 +1802,14 @@ version is the same as the current version of the object</p>
 <tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Mat.Snapshot.is_valid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.Mat.assemble">
+<tt class="descclassname">Mat.</tt><tt class="descname">assemble</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Mat.assemble" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalise this <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> ready for use.</p>
+<p>Call this /after/ executing all the par_loops that write to
+the matrix before you want to look at it.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1817,8 +1896,83 @@ matrix has more than around 10000 degrees of freedom.</p>
 <h3>Parallel loops, kernels and linear solves<a class="headerlink" href="#parallel-loops-kernels-and-linear-solves" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="pyop2.par_loop">
-<tt class="descclassname">pyop2.</tt><tt class="descname">par_loop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.par_loop" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">pyop2.</tt><tt class="descname">par_loop</tt><big>(</big><em>kernel</em>, <em>iterset</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pyop2.par_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invocation of an OP2 kernel</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>kernel</strong> &#8211; The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> to be executed.</li>
+<li><strong>iterset</strong> &#8211; The iteration <a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> over which the kernel should be
+executed.</li>
+<li><strong>*args</strong> &#8211; One or more <a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a>s constructed from a
+<a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>, <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> or <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> using the call
+syntax and passing in an optionally indexed <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>
+through which this <a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a> is accessed and the
+<a class="reference internal" href="pyop2.html#pyop2.base.Access" title="pyop2.base.Access"><tt class="xref py py-class docutils literal"><span class="pre">base.Access</span></tt></a> descriptor indicating how the
+<a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> is going to access this data (see the example
+below). These are the global data structures from and to
+which the kernel will read and write.</li>
+<li><strong>iterate</strong> &#8211; <p>Optionally specify which region of an
+<a class="reference internal" href="#pyop2.ExtrudedSet" title="pyop2.ExtrudedSet"><tt class="xref py py-class docutils literal"><span class="pre">ExtrudedSet</span></tt></a> to iterate over.
+Valid values are:</p>
+<blockquote>
+<div><ul>
+<li><tt class="docutils literal"><span class="pre">ON_BOTTOM</span></tt>: iterate over the bottom layer of cells.</li>
+<li><tt class="docutils literal"><span class="pre">ON_TOP</span></tt> iterate over the top layer of cells.</li>
+<li><tt class="docutils literal"><span class="pre">ALL</span></tt> iterate over all cells (the default if unspecified)</li>
+<li><dl class="first docutils">
+<dt><tt class="docutils literal"><span class="pre">ON_INTERIOR_FACETS</span></tt> iterate over all the layers</dt>
+<dd>except the top layer, accessing data two adjacent (in
+the extruded direction) cells at a time.</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is the caller&#8217;s responsibility that the number and type of all
+<a class="reference internal" href="pyop2.html#pyop2.base.Arg" title="pyop2.base.Arg"><tt class="xref py py-class docutils literal"><span class="pre">base.Arg</span></tt></a>s passed to the <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> match those expected
+by the <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a>. No runtime check is performed to ensure this!</p>
+</div>
+<p>If a <a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> argument indexes into a <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> using an
+<a class="reference internal" href="pyop2.html#pyop2.base.IterationIndex" title="pyop2.base.IterationIndex"><tt class="xref py py-class docutils literal"><span class="pre">base.IterationIndex</span></tt></a>, this implies the use of a local
+<a class="reference internal" href="pyop2.html#pyop2.base.IterationSpace" title="pyop2.base.IterationSpace"><tt class="xref py py-class docutils literal"><span class="pre">base.IterationSpace</span></tt></a> of a size given by the arity of the
+<a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>. It is an error to have several arguments using local
+iteration spaces of different size.</p>
+<p><a class="reference internal" href="#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> invocation is illustrated by the following example</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pyop2</span><span class="o">.</span><span class="n">par_loop</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">elements</span><span class="p">,</span>
+               <span class="n">mat</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">INC</span><span class="p">,</span> <span class="p">(</span><span class="n">elem_node</span><span class="p">[</span><span class="n">pyop2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span> <span class="n">elem_node</span><span class="p">[</span><span class="n">pyop2</span><span class="o">.</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span>
+               <span class="n">coords</span><span class="p">(</span><span class="n">pyop2</span><span class="o">.</span><span class="n">READ</span><span class="p">,</span> <span class="n">elem_node</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This example will execute the <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> <tt class="docutils literal"><span class="pre">mass</span></tt> over the
+<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> <tt class="docutils literal"><span class="pre">elements</span></tt> executing 3x3 times for each
+<a class="reference internal" href="#pyop2.Set" title="pyop2.Set"><tt class="xref py py-class docutils literal"><span class="pre">Set</span></tt></a> member, assuming the <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> <tt class="docutils literal"><span class="pre">elem_node</span></tt> is of arity 3.
+The <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> takes four arguments, the first is a <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> named
+<tt class="docutils literal"><span class="pre">mat</span></tt>, the second is a field named <tt class="docutils literal"><span class="pre">coords</span></tt>. The remaining two arguments
+indicate which local iteration space point the kernel is to execute.</p>
+<p>A <a class="reference internal" href="#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a> requires a pair of <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> objects, one each
+for the row and column spaces. In this case both are the same
+<tt class="docutils literal"><span class="pre">elem_node</span></tt> map. The row <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a> is indexed by the first
+index in the local iteration space, indicated by the <tt class="docutils literal"><span class="pre">0</span></tt> index
+to <a class="reference internal" href="#pyop2.i" title="pyop2.i"><tt class="xref py py-data docutils literal"><span class="pre">pyop2.i</span></tt></a>, while the column space is indexed by
+the second local index.  The matrix is accessed to increment
+values using the <tt class="docutils literal"><span class="pre">pyop2.INC</span></tt> access descriptor.</p>
+<p>The <tt class="docutils literal"><span class="pre">coords</span></tt> <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> is also accessed via the <tt class="docutils literal"><span class="pre">elem_node</span></tt>
+<a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>, however no indices are passed so all entries of
+<tt class="docutils literal"><span class="pre">elem_node</span></tt> for the relevant member of <tt class="docutils literal"><span class="pre">elements</span></tt> will be
+passed to the kernel as a vector.</p>
+<p>This function is logically collective over MPI ranks, it is an
+error to call it on fewer than all the ranks in MPI communicator.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="pyop2.solve">
@@ -2015,8 +2169,8 @@ invocations.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="mpi.html"
-                        title="previous chapter">MPI</a></p>
+  <p class="topless"><a href="caching.html"
+                        title="previous chapter">Caching in PyOP2</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pyop2.html"
                         title="next chapter">pyop2 Package</a></p>
@@ -2055,7 +2209,7 @@ invocations.</p>
           <a href="pyop2.html" title="pyop2 Package"
              >next</a> |</li>
         <li class="right" >
-          <a href="mpi.html" title="MPI"
+          <a href="caching.html" title="Caching in PyOP2"
              >previous</a> |</li>
         <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
       </ul>

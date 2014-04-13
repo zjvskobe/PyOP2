@@ -81,14 +81,6 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`ffc_interface` Module
----------------------------
-
-.. automodule:: pyop2.ffc_interface
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`finalised` Module
 -----------------------
 

@@ -175,7 +175,7 @@ class DeviceDataMixin(op2.DeviceDataMixin):
                 shape = tuple(reversed(self.shape))
             else:
                 shape = self.shape
-            self._device_data = gpuarray.empty(shape=shape, dtype=self.dtype)
+            self._device_data = gpuarray.zeros(shape=shape, dtype=self.dtype)
             self.state = DeviceDataMixin.HOST
 
     def _to_device(self):
@@ -191,18 +191,10 @@ class DeviceDataMixin(op2.DeviceDataMixin):
             self.state = DeviceDataMixin.BOTH
 
 
+# Needs to be here to pick up correct mixin
 class Dat(DeviceDataMixin, op2.Dat):
 
-    @property
-    def norm(self):
-        """The L2-norm on the flattened vector."""
-        if self.state is DeviceDataMixin.DEVICE:
-            return np.sqrt(gpuarray.dot(self.array, self.array).get())
-        elif self.state in [DeviceDataMixin.DEVICE_UNALLOCATED,
-                            DeviceDataMixin.HOST, DeviceDataMixin.BOTH]:
-            return np.sqrt(np.dot(self.data_ro, self.data_ro))
-        else:
-            raise RuntimeError('Data neither on host nor device, oops!')
+    pass
 
 
 class Sparsity(op2.Sparsity):
@@ -272,7 +264,14 @@ class Mat(DeviceDataMixin, op2.Mat):
                                    dtype=self.dtype))
         return getattr(self, '__csrdata')
 
-    def _assemble(self, rowmap, colmap):
+    def __call__(self, *args, **kwargs):
+        self._assembled = False
+        return super(Mat, self).__call__(*args, **kwargs)
+
+    def _assemble(self):
+        if self._assembled:
+            return
+        self._assembled = True
         mod, sfun, vfun = Mat._lma2csr_cache.get(self.dtype,
                                                  (None, None, None))
         if mod is None:
@@ -287,34 +286,35 @@ class Mat(DeviceDataMixin, op2.Mat):
             vfun.prepare('PPPPPiiPiii')
             Mat._lma2csr_cache[self.dtype] = mod, sfun, vfun
 
-        assert rowmap.iterset is colmap.iterset
-        nelems = rowmap.iterset.size
-        nthread = 128
-        nblock = (nelems * rowmap.arity * colmap.arity) / nthread + 1
+        for rowmap, colmap in self.sparsity.maps:
+            assert rowmap.iterset is colmap.iterset
+            nelems = rowmap.iterset.size
+            nthread = 128
+            nblock = (nelems * rowmap.arity * colmap.arity) / nthread + 1
 
-        rowmap._to_device()
-        colmap._to_device()
-        offset = self._lmaoffset(rowmap.iterset) * self.dtype.itemsize
-        arglist = [np.intp(self._lmadata.gpudata) + offset,
-                   self._csrdata.gpudata,
-                   self._rowptr.gpudata,
-                   self._colidx.gpudata,
-                   rowmap._device_values.gpudata,
-                   np.int32(rowmap.arity)]
-        if self._is_scalar_field:
-            arglist.extend([colmap._device_values.gpudata,
-                            np.int32(colmap.arity),
-                            np.int32(nelems)])
-            fun = sfun
-        else:
-            arglist.extend([np.int32(self.dims[0]),
-                            colmap._device_values.gpudata,
-                            np.int32(colmap.arity),
-                            np.int32(self.dims[1]),
-                            np.int32(nelems)])
-            fun = vfun
-        _stream.synchronize()
-        fun.prepared_async_call((int(nblock), 1, 1), (nthread, 1, 1), _stream, *arglist)
+            rowmap._to_device()
+            colmap._to_device()
+            offset = self._lmaoffset(rowmap.iterset) * self.dtype.itemsize
+            arglist = [np.intp(self._lmadata.gpudata) + offset,
+                       self._csrdata.gpudata,
+                       self._rowptr.gpudata,
+                       self._colidx.gpudata,
+                       rowmap._device_values.gpudata,
+                       np.int32(rowmap.arity)]
+            if self._is_scalar_field:
+                arglist.extend([colmap._device_values.gpudata,
+                                np.int32(colmap.arity),
+                                np.int32(nelems)])
+                fun = sfun
+            else:
+                arglist.extend([np.int32(self.dims[0]),
+                                colmap._device_values.gpudata,
+                                np.int32(colmap.arity),
+                                np.int32(self.dims[1]),
+                                np.int32(nelems)])
+                fun = vfun
+            _stream.synchronize()
+            fun.prepared_async_call((int(nblock), 1, 1), (nthread, 1, 1), _stream, *arglist)
 
     @property
     def values(self):
@@ -909,10 +909,6 @@ class ParLoop(op2.ParLoop):
                     arg.data.state = DeviceDataMixin.DEVICE
         self.maybe_set_dat_dirty()
 
-    def assemble(self):
-        for arg in self.args:
-            if arg._is_mat:
-                arg.data._assemble(rowmap=arg.map[0], colmap=arg.map[1])
 
 _device = None
 _context = None

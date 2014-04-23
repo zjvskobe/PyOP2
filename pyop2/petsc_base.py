@@ -215,7 +215,6 @@ class Mat(base.Mat, CopyOnWrite):
             self._init_nest()
         else:
             self._init_block()
-        self._ever_assembled = False
 
     def _init_nest(self):
         mat = PETSc.Mat()
@@ -281,6 +280,9 @@ class Mat(base.Mat, CopyOnWrite):
         # the nonzero structure of the matrix. Otherwise PETSc would compact
         # the sparsity and render our sparsity caching useless.
         mat.setOption(mat.Option.KEEP_NONZERO_PATTERN, True)
+        # Do not raise an error when non-zero entries in a pre-allocated
+        # sparsity remains unused (e.g. due to applying boundary conditions)
+        mat.setOption(mat.Option.UNUSED_NONZERO_LOCATION_ERR, False)
         self._handle = mat
         # Matrices start zeroed.
         self._version_set_zero()
@@ -374,27 +376,19 @@ class Mat(base.Mat, CopyOnWrite):
         base._trace.evaluate(set([self]), set([self]))
         vec = self.handle.createVecLeft()
         vec.setOption(vec.Option.IGNORE_OFF_PROC_ENTRIES, True)
+        rows = np.asarray(rows)
+        rows = rows[rows < self.sparsity.rmaps[0].toset.size]
+        # If the row DataSet has dimension > 1 we need to treat the given rows
+        # as block indices and set all rows in each block
+        rdim = self.sparsity.dsets[0].cdim
+        if rdim > 1:
+            rows = np.dstack([rdim*rows + i for i in range(rdim)]).flatten()
         with vec as array:
-            rows = rows[rows < self.sparsity.rmaps[0].toset.size]
             array[rows] = diag_val
         self.handle.setDiagonal(vec, addv=PETSc.InsertMode.ADD_VALUES)
 
     @collective
     def _assemble(self):
-        if not self._ever_assembled and MPI.parallel:
-            # add zero to diagonal entries (so they're not compressed out
-            # in the assembly).  This is necessary for parallel where we
-            # currently don't give an exact sparsity pattern.
-            rows, cols = self.sparsity.shape
-            for i in range(rows):
-                if i < cols:
-                    v = self[i, i].handle.createVecLeft()
-                    self[i, i].handle.setDiagonal(v, addv=PETSc.InsertMode.ADD_VALUES)
-            self._ever_assembled = True
-        # Now that we've filled up the sparsity pattern, we can ignore
-        # zero entries for MatSetValues calls.
-        # Do not create a zero location when adding a zero value
-        self._handle.setOption(self._handle.Option.IGNORE_ZERO_ENTRIES, True)
         self.handle.assemble()
 
     @property
@@ -411,12 +405,14 @@ class Mat(base.Mat, CopyOnWrite):
         if not hasattr(self, '_array'):
             self._init()
         base._trace.evaluate(set([self]), set())
+        self._assemble()
         return self._array
 
     @property
     @modifies
     def values(self):
         base._trace.evaluate(set([self]), set())
+        self._assemble()
         return self.handle[:, :]
 
     @property

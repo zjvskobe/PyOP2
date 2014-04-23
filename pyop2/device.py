@@ -50,6 +50,12 @@ class Kernel(base.Kernel):
         ast_handler.plan_gpu()
         return ast.gencode()
 
+    def __init__(self, code, name, opts={}, include_dirs=[]):
+        if self._initialized:
+            return
+        self._code = preprocess(self._ast_to_c(code, opts), include_dirs)
+        super(Kernel, self).__init__(self._code, name, opts=opts, include_dirs=include_dirs)
+
 
 class Arg(base.Arg):
 
@@ -291,6 +297,10 @@ class Global(DeviceDataMixin, base.Global):
         base.Global.__init__(self, dim, data, dtype, name)
         self.state = DeviceDataMixin.DEVICE_UNALLOCATED
 
+    @property
+    def data_ro(self):
+        return self.data
+
 
 class Map(base.Map):
 
@@ -451,6 +461,12 @@ class ParLoop(base.ParLoop):
         keep = lambda x: x._is_dat
         return self._get_arg_list('__unique_dat_args',
                                   '_unique_args', keep)
+
+    @property
+    def _aliased_dat_args(self):
+        keep = lambda x: x._is_dat and all(x is not y for y in self._unique_dat_args)
+        return self._get_arg_list('__aliased_dat_args',
+                                  '_unwound_args', keep)
 
     @property
     def _unique_vec_map_args(self):

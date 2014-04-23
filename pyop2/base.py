@@ -52,6 +52,7 @@ from sparsity import build_sparsity
 from version import __version__ as version
 
 from ir.ast_base import Node
+from ir import ast_base as ast
 
 
 class LazyComputation(object):
@@ -249,11 +250,6 @@ class Arg(object):
         self._position = None
         self._indirect_position = None
 
-        if self._is_mixed_mat and flatten:
-            raise MatTypeError("A Mat Arg on a mixed space cannot be flattened!")
-        if self._is_mixed_dat and flatten:
-            raise DatTypeError("A MixedDat Arg cannot be flattened!")
-
         # Check arguments for consistency
         if not (self._is_global or map is None):
             for j, m in enumerate(map):
@@ -268,22 +264,21 @@ class Arg(object):
 
         # Determine the iteration space extents, if any
         if self._is_mat and flatten:
-            self._block_shape = (((map[0].arity * data.dims[0], map[1].arity * data.dims[1]),),)
-            self._offsets = (((0, 0),),)
+            rdims = tuple(d.cdim for d in data.sparsity.dsets[0])
+            cdims = tuple(d.cdim for d in data.sparsity.dsets[1])
+            self._block_shape = tuple(tuple((mr.arity * dr, mc.arity * dc)
+                                      for mc, dc in zip(map[1], cdims))
+                                      for mr, dr in zip(map[0], rdims))
         elif self._is_mat:
-            self._block_shape = tuple(tuple((mr.arity, mc.arity) for mc in map[1])
+            self._block_shape = tuple(tuple((mr.arity, mc.arity)
+                                      for mc in map[1])
                                       for mr in map[0])
-            self._offsets = tuple(tuple((i, j) for j in map[1].arange)
-                                  for i in map[0].arange)
         elif self._uses_itspace and flatten:
-            self._block_shape = (((map.arity * data.cdim,),),)
-            self._offsets = None
+            self._block_shape = tuple(((m.arity * d.cdim,),) for m, d in zip(map, data))
         elif self._uses_itspace:
             self._block_shape = tuple(((m.arity,),) for m in map)
-            self._offsets = tuple(((o,),) for o in map.arange)
         else:
             self._block_shape = None
-            self._offsets = None
 
     def __eq__(self, other):
         """:class:`Arg`\s compare equal of they are defined on the same data,
@@ -1119,9 +1114,9 @@ class MixedDataSet(DataSet, ObjectCached):
 
     @property
     def cdim(self):
-        """The scalar number of values for each member of the sets. This is
-        the product of the dim tuples."""
-        return tuple(s.cdim for s in self._dsets)
+        """The sum of the scalar number of values for each member of the sets.
+        This is the sum of products of the dim tuples."""
+        return sum(s.cdim for s in self._dsets)
 
     @property
     def name(self):
@@ -1294,7 +1289,7 @@ class IterationSpace(object):
         :func:`pyop2.op2.par_loop`."""
 
     @validate_type(('iterset', Set, SetTypeError))
-    def __init__(self, iterset, block_shape=None, offsets=None):
+    def __init__(self, iterset, block_shape=None):
         self._iterset = iterset
         if block_shape:
             # Try the Mat case first
@@ -1307,7 +1302,6 @@ class IterationSpace(object):
         else:
             self._extents = ()
         self._block_shape = block_shape or ((self._extents,),)
-        self._offsets = offsets or (((0,),),)
 
     @property
     def iterset(self):
@@ -1372,9 +1366,15 @@ class IterationSpace(object):
     def __iter__(self):
         """Yield all block shapes with their indices as i, j, shape, offsets
         tuples."""
+        roffset = 0
         for i, row in enumerate(self._block_shape):
+            coffset = 0
             for j, shape in enumerate(row):
-                yield i, j, shape, self._offsets[i][j]
+                yield i, j, shape, (roffset, coffset)
+                if len(shape) > 1:
+                    coffset += shape[1]
+            if len(shape) > 0:
+                roffset += shape[0]
 
     def __eq__(self, other):
         """:class:`IterationSpace`s compare equal if they are defined on the
@@ -1780,11 +1780,13 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
     def zero(self):
         """Zero the data associated with this :class:`Dat`"""
         if not hasattr(self, '_zero_kernel'):
-            k = """void zero(%(t)s *dat) {
-                for (int n = 0; n < %(dim)s; ++n) {
-                    dat[n] = (%(t)s)0;
-                }
-            }""" % {'t': self.ctype, 'dim': self.cdim}
+            k = ast.FunDecl("void", "zero",
+                            [ast.Decl(self.ctype, ast.Symbol("*self"))],
+                            body=ast.c_for("n", self.cdim,
+                                           ast.Assign(ast.Symbol("self", ("n", )),
+                                                      ast.FlatBlock("(%s)0" % self.ctype)),
+                                           pragma=None),
+                            pred=["static", "inline"])
             self._zero_kernel = _make_object('Kernel', k, 'zero')
         _make_object('ParLoop', self._zero_kernel, self.dataset.set,
                      self(WRITE)).enqueue()
@@ -1792,24 +1794,30 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         self._version_set_zero()
 
     @collective
-    def copy(self, other):
+    def copy(self, other, subset=None):
         """Copy the data in this :class:`Dat` into another.
 
-        :arg other: The destination :class:`Dat`"""
+        :arg other: The destination :class:`Dat`
+        :arg subset: A :class:`Subset` of elements to copy (optional)"""
 
-        self._copy_parloop(other).enqueue()
+        self._copy_parloop(other, subset=subset).enqueue()
 
     @collective
-    def _copy_parloop(self, other):
+    def _copy_parloop(self, other, subset=None):
         """Create the :class:`ParLoop` implementing copy."""
         if not hasattr(self, '_copy_kernel'):
-            k = """void copy(%(t)s *self, %(t)s *other) {
-                for (int n = 0; n < %(dim)s; ++n) {
-                    other[n] = self[n];
-                }
-            }""" % {'t': self.ctype, 'dim': self.cdim}
+            k = ast.FunDecl("void", "copy",
+                            [ast.Decl(self.ctype, ast.Symbol("*self"),
+                                      qualifiers=["const"]),
+                             ast.Decl(other.ctype, ast.Symbol("*other"))],
+                            body=ast.c_for("n", self.cdim,
+                                           ast.Assign(ast.Symbol("other", ("n", )),
+                                                      ast.Symbol("self", ("n", ))),
+                                           pragma=None),
+                            pred=["static", "inline"])
             self._copy_kernel = _make_object('Kernel', k, 'copy')
-        return _make_object('ParLoop', self._copy_kernel, self.dataset.set,
+        return _make_object('ParLoop', self._copy_kernel,
+                            subset or self.dataset.set,
                             self(READ), other(WRITE))
 
     def __iter__(self):
@@ -1852,7 +1860,10 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
 
         if configuration['lazy_evaluation']:
             _trace.evaluate(self._cow_parloop.reads, self._cow_parloop.writes)
-            _trace._trace.remove(self._cow_parloop)
+            try:
+                _trace._trace.remove(self._cow_parloop)
+            except ValueError:
+                return
 
         self._cow_parloop._run()
 
@@ -1892,70 +1903,128 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
                operator.mul: '*',
                operator.div: '/'}
         ret = _make_object('Dat', self.dataset, None, self.dtype)
+        name = "binop_%s" % op.__name__
         if np.isscalar(other):
             other = _make_object('Global', 1, data=other)
-            k = _make_object('Kernel',
-                             """void k(%(t)s *self, %(to)s *other, %(t)s *ret) {
-                                for ( int n = 0; n < %(dim)s; ++n ) {
-                                    ret[n] = self[n] %(op)s (*other);
-                                }
-                             }""" % {'t': self.ctype, 'to': other.ctype,
-                                     'op': ops[op], 'dim': self.cdim},
-                             "k")
+            k = ast.FunDecl("void", name,
+                            [ast.Decl(self.ctype, ast.Symbol("*self"),
+                                      qualifiers=["const"]),
+                             ast.Decl(other.ctype, ast.Symbol("*other"),
+                                      qualifiers=["const"]),
+                             ast.Decl(self.ctype, ast.Symbol("*ret"))],
+                            ast.c_for("n", self.cdim,
+                                      ast.Assign(ast.Symbol("ret", ("n", )),
+                                                 ast.BinExpr(ast.Symbol("self", ("n", )),
+                                                             ast.Symbol("other", ("0", )),
+                                                             op=ops[op])),
+                                      pragma=None),
+                            pred=["static", "inline"])
+
+            k = _make_object('Kernel', k, name)
         else:
             self._check_shape(other)
-            k = _make_object('Kernel',
-                             """void k(%(t)s *self, %(to)s *other, %(t)s *ret) {
-                                for ( int n = 0; n < %(dim)s; ++n ) {
-                                    ret[n] = self[n] %(op)s other[n];
-                                }
-                             }""" % {'t': self.ctype, 'to': other.ctype,
-                                     'op': ops[op], 'dim': self.cdim},
-                             "k")
+            k = ast.FunDecl("void", name,
+                            [ast.Decl(self.ctype, ast.Symbol("*self"),
+                                      qualifiers=["const"]),
+                             ast.Decl(other.ctype, ast.Symbol("*other"),
+                                      qualifiers=["const"]),
+                             ast.Decl(self.ctype, ast.Symbol("*ret"))],
+                            ast.c_for("n", self.cdim,
+                                      ast.Assign(ast.Symbol("ret", ("n", )),
+                                                 ast.BinExpr(ast.Symbol("self", ("n", )),
+                                                             ast.Symbol("other", ("n", )),
+                                                             op=ops[op])),
+                                      pragma=None),
+                            pred=["static", "inline"])
+
+            k = _make_object('Kernel', k, name)
         par_loop(k, self.dataset.set, self(READ), other(READ), ret(WRITE))
         return ret
 
     @modifies
     def _iop(self, other, op):
-        ops = {operator.iadd: '+=',
-               operator.isub: '-=',
-               operator.imul: '*=',
-               operator.idiv: '/='}
+        ops = {operator.iadd: ast.Incr,
+               operator.isub: ast.Decr,
+               operator.imul: ast.IMul,
+               operator.idiv: ast.IDiv}
+        name = "iop_%s" % op.__name__
         if np.isscalar(other):
             other = _make_object('Global', 1, data=other)
-            k = _make_object('Kernel',
-                             """void k(%(t)s *self, %(to)s *other) {
-                                for ( int n = 0; n < %(dim)s; ++n ) {
-                                    self[n] %(op)s (*other);
-                                }
-                             }""" % {'t': self.ctype, 'to': other.ctype,
-                                     'op': ops[op], 'dim': self.cdim},
-                             "k")
+            k = ast.FunDecl("void", name,
+                            [ast.Decl(self.ctype, ast.Symbol("*self")),
+                             ast.Decl(other.ctype, ast.Symbol("*other"),
+                                      qualifiers=["const"])],
+                            ast.c_for("n", self.cdim,
+                                      ops[op](ast.Symbol("self", ("n", )),
+                                              ast.Symbol("other", ("0", ))),
+                                      pragma=None),
+                            pred=["static", "inline"])
+            k = _make_object('Kernel', k, name)
         else:
             self._check_shape(other)
-            k = _make_object('Kernel',
-                             """void k(%(t)s *self, %(to)s *other) {
-                                for ( int n = 0; n < %(dim)s; ++n ) {
-                                    self[n] %(op)s other[n];
-                                }
-                             }""" % {'t': self.ctype, 'to': other.ctype,
-                                     'op': ops[op], 'dim': self.cdim},
-                             "k")
+            quals = ["const"] if self is not other else []
+            k = ast.FunDecl("void", name,
+                            [ast.Decl(self.ctype, ast.Symbol("*self")),
+                             ast.Decl(other.ctype, ast.Symbol("*other"),
+                                      qualifiers=quals)],
+                            ast.c_for("n", self.cdim,
+                                      ops[op](ast.Symbol("self", ("n", )),
+                                              ast.Symbol("other", ("n", ))),
+                                      pragma=None),
+                            pred=["static", "inline"])
+            k = _make_object('Kernel', k, name)
         par_loop(k, self.dataset.set, self(INC), other(READ))
         return self
 
     def _uop(self, op):
-        ops = {operator.sub: '-'}
-        k = _make_object('Kernel',
-                         """void k(%(t)s *self) {
-                            for ( int n = 0; n < %(dim)s; ++n ) {
-                                self[n] = %(op)s self[n];
-                            }
-                         }""" % {'t': self.ctype, 'op': ops[op],
-                                 'dim': self.cdim},
-                         "k")
+        ops = {operator.sub: ast.Neg}
+        name = "uop_%s" % op.__name__
+        k = ast.FunDecl("void", name,
+                        [ast.Decl(self.ctype, ast.Symbol("*self"))],
+                        ast.c_for("n", self.cdim,
+                                  ast.Assign(ast.Symbol("self", ("n", )),
+                                             ops[op](ast.Symbol("self", ("n", )))),
+                                  pragma=None),
+                        pred=["static", "inline"])
+        k = _make_object('Kernel', k, name)
         par_loop(k, self.dataset.set, self(RW))
         return self
+
+    def inner(self, other):
+        """Compute the l2 inner product of the flattened :class:`Dat`
+
+        :arg other: the other :class:`Dat` to compute the inner
+             product against.
+
+        """
+        self._check_shape(other)
+        ret = _make_object('Global', 1, data=0, dtype=self.dtype)
+
+        k = ast.FunDecl("void", "inner",
+                        [ast.Decl(self.ctype, ast.Symbol("*self"),
+                                  qualifiers=["const"]),
+                         ast.Decl(other.ctype, ast.Symbol("*other"),
+                                  qualifiers=["const"]),
+                         ast.Decl(self.ctype, ast.Symbol("*ret"))],
+                        ast.c_for("n", self.cdim,
+                                  ast.Incr(ast.Symbol("ret", (0, )),
+                                           ast.Prod(ast.Symbol("self", ("n", )),
+                                                    ast.Symbol("other", ("n", )))),
+                                  pragma=None),
+                        pred=["static", "inline"])
+        k = _make_object('Kernel', k, "inner")
+        par_loop(k, self.dataset.set, self(READ), other(READ), ret(INC))
+        return ret.data_ro[0]
+
+    @property
+    def norm(self):
+        """Compute the l2 norm of this :class:`Dat`
+
+        .. note::
+
+           This acts on the flattened data (see also :meth:`inner`)."""
+        from math import sqrt
+        return sqrt(self.inner(self))
 
     def __pos__(self):
         pos = _make_object('Dat', self)
@@ -2050,11 +2119,6 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         maybe_setflags(self._data, write=False)
         self._recv_buf.clear()
 
-    @property
-    def norm(self):
-        """The L2-norm on the flattened vector."""
-        return np.linalg.norm(self._data)
-
     @classmethod
     def fromhdf5(cls, dataset, f, name):
         """Construct a :class:`Dat` from a Dat named ``name`` in HDF5 data ``f``"""
@@ -2081,6 +2145,9 @@ class MixedDat(Dat):
     """
 
     def __init__(self, mdset_or_dats):
+        if isinstance(mdset_or_dats, MixedDat):
+            self._dats = tuple(_make_object('Dat', d) for d in mdset_or_dats)
+            return
         self._dats = tuple(d if isinstance(d, Dat) else _make_object('Dat', d)
                            for d in mdset_or_dats)
         if not all(d.dtype == self._dats[0].dtype for d in self._dats):
@@ -2181,12 +2248,16 @@ class MixedDat(Dat):
         return np.sum([d.nbytes for d in self._dats])
 
     @collective
-    def copy(self, other):
+    def copy(self, other, subset=None):
         """Copy the data in this :class:`MixedDat` into another.
 
-        :arg other: The destination :class:`MixedDat`"""
+        :arg other: The destination :class:`MixedDat`
+        :arg subset: Subsets are not supported, this must be :class:`None`"""
 
-        self._copy_parloop(other).enqueue()
+        if subset is not None:
+            raise NotImplementedError("MixedDat.copy with a Subset is not supported")
+        for s, o in zip(self, other):
+            s._copy_parloop(o).enqueue()
 
     @collective
     def _cow_actual_copy(self, src):
@@ -2232,6 +2303,98 @@ class MixedDat(Dat):
 
     def __repr__(self):
         return "MixedDat(%r)" % (self._dats,)
+
+    def inner(self, other):
+        """Compute the l2 inner product.
+
+        :arg other: the other :class:`MixedDat` to compute the inner product against"""
+        ret = 0
+        for s, o in zip(self, other):
+            ret += s.inner(o)
+        return ret
+
+    def _op(self, other, op):
+        ret = []
+        if np.isscalar(other):
+            for s in self:
+                ret.append(op(s, other))
+        else:
+            self._check_shape(other)
+            for s, o in zip(self, other):
+                ret.append(op(s, o))
+        return _make_object('MixedDat', ret)
+
+    def _iop(self, other, op):
+        if np.isscalar(other):
+            for s in self:
+                op(s, other)
+        else:
+            self._check_shape(other)
+            for s, o in zip(self, other):
+                op(s, o)
+        return self
+
+    def __pos__(self):
+        ret = []
+        for s in self:
+            ret.append(s.__pos__())
+        return _make_object('MixedDat', ret)
+
+    def __neg__(self):
+        ret = []
+        for s in self:
+            ret.append(s.__neg__())
+        return _make_object('MixedDat', ret)
+
+    def __add__(self, other):
+        """Pointwise addition of fields."""
+        return self._op(other, operator.add)
+
+    def __radd__(self, other):
+        """Pointwise addition of fields.
+
+        self.__radd__(other) <==> other + self."""
+        return self._op(other, operator.add)
+
+    def __sub__(self, other):
+        """Pointwise subtraction of fields."""
+        return self._op(other, operator.sub)
+
+    def __rsub__(self, other):
+        """Pointwise subtraction of fields.
+
+        self.__rsub__(other) <==> other - self."""
+        return self._op(other, operator.sub)
+
+    def __mul__(self, other):
+        """Pointwise multiplication or scaling of fields."""
+        return self._op(other, operator.mul)
+
+    def __rmul__(self, other):
+        """Pointwise multiplication or scaling of fields.
+
+        self.__rmul__(other) <==> other * self."""
+        return self._op(other, operator.mul)
+
+    def __div__(self, other):
+        """Pointwise division or scaling of fields."""
+        return self._op(other, operator.div)
+
+    def __iadd__(self, other):
+        """Pointwise addition of fields."""
+        return self._iop(other, operator.iadd)
+
+    def __isub__(self, other):
+        """Pointwise subtraction of fields."""
+        return self._iop(other, operator.isub)
+
+    def __imul__(self, other):
+        """Pointwise multiplication or scaling of fields."""
+        return self._iop(other, operator.imul)
+
+    def __idiv__(self, other):
+        """Pointwise division or scaling of fields."""
+        return self._iop(other, operator.idiv)
 
 
 class Const(DataCarrier):
@@ -3123,7 +3286,14 @@ class Mat(SetAssociated):
 
     Notice that it is `always` necessary to index the indirection maps
     for a ``Mat``. See the :class:`Mat` documentation for more
-    details."""
+    details.
+
+    .. note ::
+
+       After executing :func:`par_loop`\s that write to a ``Mat`` and
+       before using it (for example to view its values), you must call
+       :meth:`assemble` to finalise the writes.
+    """
 
     _globalcount = 0
     _modes = [WRITE, INC]
@@ -3145,6 +3315,28 @@ class Mat(SetAssociated):
             raise MapValueError("Path maps not in sparsity maps")
         return _make_object('Arg', data=self, map=path_maps, access=access,
                             idx=path_idxs, flatten=flatten)
+
+    class _Assembly(LazyComputation):
+        """Finalise assembly of this matrix.
+
+        Called lazily after user calls :meth:`assemble`"""
+        def __init__(self, mat):
+            super(Mat._Assembly, self).__init__(reads=mat, writes=mat)
+            self._mat = mat
+
+        def _run(self):
+            self._mat._assemble()
+
+    def assemble(self):
+        """Finalise this :class:`Mat` ready for use.
+
+        Call this /after/ executing all the par_loops that write to
+        the matrix before you want to look at it.
+        """
+        Mat._Assembly(self).enqueue()
+
+    def _assemble(self):
+        raise NotImplementedError("Abstract Mat base class doesn't know how to assemble itself")
 
     @property
     def _argtype(self):
@@ -3203,7 +3395,7 @@ class Mat(SetAssociated):
         """
 
         return (self._sparsity.nz + self._sparsity.onz) \
-            * self.dtype.itemsize * np.prod(self._sparsity.dims)
+            * self.dtype.itemsize * np.sum(np.prod(self._sparsity.dims))
 
     def __iter__(self):
         """Yield self when iterated over."""
@@ -3237,6 +3429,10 @@ class Kernel(Cached):
         # Both code and name are relevant since there might be multiple kernels
         # extracting different functions from the same code
         # Also include the PyOP2 version, since the Kernel class might change
+
+        # HACK: Temporary fix!
+        if isinstance(code, Node):
+            code = code.gencode()
         return md5(str(hash(code)) + name + str(opts) + str(include_dirs) +
                    version).hexdigest()
 
@@ -3253,7 +3449,7 @@ class Kernel(Cached):
         if self._initialized:
             return
         self._name = name or "kernel_%d" % Kernel._globalcount
-        self._code = preprocess(self._ast_to_c(code, opts), include_dirs)
+        self._code = self._ast_to_c(code, opts)
         Kernel._globalcount += 1
         # Record used optimisations
         self._opt_is_padded = opts.get('ap', False)
@@ -3440,7 +3636,6 @@ class ParLoop(LazyComputation):
             self._compute(self.it_space.iterset.exec_part)
         self.reduction_end()
         self.maybe_set_halo_update_needed()
-        self.assemble()
 
     @collective
     def _compute(self, part):
@@ -3494,11 +3689,6 @@ class ParLoop(LazyComputation):
             if arg._is_dat and arg.access in [INC, WRITE, RW]:
                 arg.data.needs_halo_update = True
 
-    def assemble(self):
-        for arg in self.args:
-            if arg._is_mat:
-                arg.data._assemble()
-
     def build_itspace(self, iterset):
         """Checks that the iteration set of the :class:`ParLoop` matches the
         iteration set of all its arguments. A :class:`MapValueError` is raised
@@ -3510,8 +3700,9 @@ class ParLoop(LazyComputation):
         :return: class:`IterationSpace` for this :class:`ParLoop`"""
 
         _iterset = iterset.superset if isinstance(iterset, Subset) else iterset
+        if isinstance(_iterset, MixedSet):
+            raise SetTypeError("Cannot iterate over MixedSets")
         block_shape = None
-        offsets = None
         for i, arg in enumerate(self._actual_args):
             if arg._is_global:
                 continue
@@ -3533,8 +3724,7 @@ class ParLoop(LazyComputation):
                 if block_shape and block_shape != _block_shape:
                     raise IndexValueError("Mismatching iteration space size for argument %d" % i)
                 block_shape = _block_shape
-                offsets = arg._offsets
-        return IterationSpace(iterset, block_shape, offsets)
+        return IterationSpace(iterset, block_shape)
 
     @property
     def offset_args(self):
@@ -3674,6 +3864,9 @@ class Solver(object):
         :arg x: The :class:`Dat` to receive the solution.
         :arg b: The :class:`Dat` containing the RHS.
         """
+        # Finalise assembly of the matrix, we know we need to this
+        # because we're about to look at it.
+        A.assemble()
         _trace.evaluate(set([A, b]), set([x]))
         self._solve(A, x, b)
 

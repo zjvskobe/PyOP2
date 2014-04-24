@@ -1,7 +1,7 @@
 from pyop2 import op2, utils
 import numpy as np
 
-# Increments the value of an array using LLVM backend.
+# RESULT: Each node should have a value 10 higher than its index.
 
 parser = utils.parser(group=True, description=__doc__)
 
@@ -17,20 +17,19 @@ nnode = 10
 nodes = op2.Set(nnode, "nodes")
 p_nodes = op2.Dat(nodes, data=A, name="p_nodes")
 
+# Constant declarations
+#op2.Const(2, [0, 4], 'k', dtype=np.int)
+op2.Const(1, 4, 'j', dtype=np.int)
+
+# Globals
+p_global = op2.Global(2, data=[0, 6], name="p_global", dtype=np.int)
+
 # Create kernel
-kernel_opts = {'llvm_kernel': True}
 kernel = op2.Kernel("""
-define void @direct_inc(i32* %x) nounwind {
-  %1 = alloca i32*, align 4
-  store i32* %x, i32** %1, align 4
-  %2 = load i32** %1, align 4
-  %3 = load i32* %2, align 4
-  %4 = add nsw i32 %3, 1
-  %5 = load i32** %1, align 4
-  store i32 %4, i32* %5, align 4
-  ret void
+void add_values(int *x, int *p_global) {
+    (*x) = (*x) + j + p_global[1];
 }
-""", "direct_inc", kernel_opts)
+""", "add_values")
 
 # Print values before kernel invocation
 print "--- Values before running kernel ---"
@@ -38,7 +37,7 @@ for i in range(0, nnode):
     print "Value at node", i, p_nodes.data[i]
 
 # Execute kernel on each node
-op2.par_loop(kernel, nodes, p_nodes(op2.RW))
+op2.par_loop(kernel, nodes, p_nodes(op2.RW), p_global(op2.READ))
 
 # Print values after kernel invocation
 print "--- Values after running kernel ---"

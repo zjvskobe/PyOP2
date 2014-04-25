@@ -1475,11 +1475,11 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; the other <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> to compute the inner product against</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> &#8211; the other <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> to compute the inner
+product against.</td>
 </tr>
 </tbody>
 </table>
-<p>Returns a <a class="reference internal" href="#pyop2.Global" title="pyop2.Global"><tt class="xref py py-class docutils literal"><span class="pre">Global</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1997,8 +1997,38 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 
 <dl class="class">
 <dt id="pyop2.Kernel">
-<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.Kernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.</tt><tt class="descname">Kernel</tt><big>(</big><em>code</em>, <em>name</em>, <em>opts={}</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span>, <em>headers=</em><span class="optional">[</span><span class="optional">]</span>, <em>user_code=''</em><big>)</big><a class="headerlink" href="#pyop2.Kernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>OP2 kernel type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>code</strong> &#8211; kernel function definition, including signature; either a
+string or an AST <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.Node" title="pyop2.ir.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">Node</span></tt></a></li>
+<li><strong>name</strong> &#8211; kernel function name; must match the name of the kernel
+function given in <cite>code</cite></li>
+<li><strong>opts</strong> &#8211; options dictionary for <a class="reference internal" href="ir.html"><em>PyOP2 IR optimisations</em></a>
+(optional, ignored if <cite>code</cite> is a string)</li>
+<li><strong>include_dirs</strong> &#8211; list of additional include directories to be searched
+when compiling the kernel (optional, defaults to empty)</li>
+<li><strong>headers</strong> &#8211; list of system headers to include when compiling the kernel
+in the form <tt class="docutils literal"><span class="pre">#include</span> <span class="pre">&lt;header.h&gt;</span></tt> (optional, defaults to empty)</li>
+<li><strong>user_code</strong> &#8211; code snippet to be executed once at the very start of
+the generated kernel wrapper code (optional, defaults to empty)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Consider the case of initialising a <a class="reference internal" href="#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> with seeded random
+values in the interval 0 to 1. The corresponding <a class="reference internal" href="#pyop2.Kernel" title="pyop2.Kernel"><tt class="xref py py-class docutils literal"><span class="pre">Kernel</span></tt></a> is
+constructed as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">op2</span><span class="o">.</span><span class="n">Kernel</span><span class="p">(</span><span class="s">&quot;void setrand(double *x) { x[0] = (double)random()/RAND_MAX); }&quot;</span><span class="p">,</span>
+           <span class="n">name</span><span class="o">=</span><span class="s">&quot;setrand&quot;</span><span class="p">,</span>
+           <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;#include &lt;stdlib.h&gt;&quot;</span><span class="p">],</span> <span class="n">user_code</span><span class="o">=</span><span class="s">&quot;srandom(10001);&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="attribute">
 <dt id="pyop2.Kernel.cache_key">
 <tt class="descname">cache_key</tt><a class="headerlink" href="#pyop2.Kernel.cache_key" title="Permalink to this definition">¶</a></dt>

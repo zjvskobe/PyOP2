@@ -89,14 +89,6 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`find_op2` Module
-----------------------
-
-.. automodule:: pyop2.find_op2
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`host` Module
 ------------------
 

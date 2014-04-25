@@ -145,7 +145,7 @@ priority over system installed packages on your <tt class="docutils literal"><sp
 <li>Cython &gt;= 0.17</li>
 <li>decorator</li>
 <li>numpy &gt;= 1.6</li>
-<li><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> current git master (see below)</li>
+<li><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> current git next (see below)</li>
 <li><a class="reference external" href="http://pythonhosted.org/petsc4py/">PETSc4py</a> current git master (see below)</li>
 </ul>
 <p>Testing dependencies (optional, required to run the tests):</p>
@@ -181,7 +181,7 @@ can selectively upgrade packages via <tt class="docutils literal"><span class="p
 library and requires:</p>
 <ul class="simple">
 <li>an MPI implementation built with <em>shared libraries</em></li>
-<li>The current <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> master branch built with <em>shared libraries</em></li>
+<li>The current <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> next branch built with <em>shared libraries</em></li>
 </ul>
 <p>If you have a suitable <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> installed on your system, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt>
 and <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt> need to be set for the <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> installer to find
@@ -192,9 +192,17 @@ compiler) are installed. On a Debian based system, run:</p>
 </div>
 <p>Then install <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> via <tt class="docutils literal"><span class="pre">pip</span></tt></p>
 <div class="highlight-python"><pre>sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
-  pip install git+https://bitbucket.org/petsc/petsc.git
+  pip install git+https://bitbucket.org/petsc/petsc.git@next#egg=petsc
 unset PETSC_DIR
 unset PETSC_ARCH</pre>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>If you intend to run PyOP2&#8217;s OpenMP backend, you should
+additionally pass the following options to the PETSc configure
+stage</p>
+<div class="last highlight-python"><pre>--with-threadcomm --with-openmp --with-pthreadclasses</pre>
+</div>
 </div>
 <p>If you built <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> using <tt class="docutils literal"><span class="pre">pip</span></tt>, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt>
 should be left unset when building <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>.</p>

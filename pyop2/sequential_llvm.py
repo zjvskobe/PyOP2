@@ -53,12 +53,13 @@ class JITModule(host.JITModule):
 
         vars = {}
         for c in Const._definitions():
-            if c.cdim != 1:
-                raise NotImplementedError("Multidimensional constants are not "
-                                          "yet supported in sequential_llvm.")
-            type = nptype_to_llvm(c.dtype.type)
-            var = llvm_module.add_global_variable(type, c.name)
-            var.initializer = Constant.undef(type)
+            dtype = nptype_to_llvm(c.dtype.type)
+            if c.cdim > 1:
+                dtype = Type.array(dtype, c.cdim)
+
+            var = llvm_module.add_global_variable(dtype, c.name)
+            var.initializer = Constant.undef(dtype)
+            var.global_constant = True
             vars[c.name] = var
 
         # Create module for kernel code, verify, and link to main wrapper
@@ -134,6 +135,7 @@ class JITModule(host.JITModule):
 
         # Constant initialisers
         const_index = len(self._args) + 2
+        zero = Constant.int(Type.int(), 0)
         for i, c in enumerate(Const._definitions(), const_index):
             func.args[i].name = c.name + '_'
             const_var = llvm_module.get_global_variable_named(c.name)
@@ -141,8 +143,13 @@ class JITModule(host.JITModule):
                 val = cb.builder.load(func.args[i])
                 cb.builder.store(val, const_var)
             else:
-                raise NotImplementedError("Multidimensional constants are not "
-                                          "yet supported in sequential_llvm.")
+                for j in range(c.cdim):
+                    idx = Constant.int(Type.int(), j)
+                    arg_ptr = cb.builder.gep(func.args[i], [idx])
+                    const_ptr = cb.builder.gep(const_var, [zero, idx])
+                    val = cb.builder.load(arg_ptr)
+                    cb.builder.store(val, const_ptr)
+
         # Wrapper declarations
         for i, arg in enumerate(self._args, 2):
             arg.llvm_wrapper_dec(cb, vars, i)

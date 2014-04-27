@@ -18,16 +18,16 @@ nodes = op2.Set(nnode, "nodes")
 p_nodes = op2.Dat(nodes, data=A, name="p_nodes")
 
 # Constant declarations
-#op2.Const(2, [0, 4], 'k', dtype=np.int)
-op2.Const(1, 4, 'j', dtype=np.int)
+op2.Const(6, [[0, 1], [9, 2], [0, 3]], 'k', dtype=np.int)
+op2.Const(1, 5, 'j', dtype=np.int)
 
 # Globals
-p_global = op2.Global(2, data=[0, 6], name="p_global", dtype=np.int)
+p_global = op2.Global(2, data=[0, 2], name="p_global", dtype=np.int)
 
 # Create kernel
 kernel = op2.Kernel("""
 void add_values(int *x, int *p_global) {
-    (*x) = (*x) + j + p_global[1];
+    (*x) = (*x) + j + k[5] + p_global[1];
 }
 """, "add_values")
 

@@ -150,13 +150,14 @@ class JITModule(host.JITModule):
                     val = cb.builder.load(arg_ptr)
                     cb.builder.store(val, const_ptr)
 
-        # Wrapper declarations
         for i, arg in enumerate(self._args, 2):
             arg.llvm_wrapper_dec(cb, vars, i)
 
-        if any(arg._is_global_reduction for arg in self._args):
-            raise NotImplementedError("Global reductions not yet supported "
-                                      "in sequential_llvm.")
+            if arg._is_global_reduction:
+                pass
+                # intermediate global decl
+                # intermediate global init
+                # intermediate global writeback
 
         if any(arg._is_mat or arg._is_vec_map for arg in self._args):
             raise NotImplementedError("Matrices and maps not yet supported "
@@ -209,6 +210,9 @@ class Arg(host.Arg):
     def llvm_arg_name(self, i=0, j=None):
         return self.c_arg_name(i, j)
 
+    def llvm_global_reduction_name(self, count=None):
+        return self.c_arg_name()
+
     def llvm_wrapper_dec(self, cb, vars, argnum):
         if self._is_mixed_mat or self._is_mat or self._is_indirect or\
                 self._is_vec_map:
@@ -216,9 +220,11 @@ class Arg(host.Arg):
                                       "supported in sequential_llvm.")
 
     def llvm_kernel_arg(self, cb, vars, i=0, j=0, shape=(0,)):
-        if self._uses_itspace or self._is_indirect\
-                or self._is_global_reduction:
+        if self._uses_itspace or self._is_indirect:
             raise NotImplementedError("Unsupported kernel arg")
+
+        if self._is_global_reduction:
+            return vars[self.llvm_global_reduction_name(i)]
 
         if isinstance(self.data, Global):
             return vars[self.llvm_arg_name(i)]

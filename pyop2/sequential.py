@@ -55,9 +55,11 @@ void %(wrapper_name)s(int start, int end,
                       %(const_args)s
                       %(off_args)s
                       %(layer_arg)s) {
+  %(user_code)s
   %(wrapper_decs)s;
   %(const_inits)s;
   %(map_decl)s
+  %(vec_decs)s;
   for ( int n = start; n < end; n++ ) {
     int i = %(index_expr)s;
     %(vec_inits)s;

@@ -120,8 +120,6 @@ class Arg(base.Arg):
         elif self._is_mat:
             val += "Mat %(iname)s = %(name)s_;\n" % {'name': self.c_arg_name(),
                                                      'iname': self.c_arg_name(0, 0)}
-        if self._is_vec_map:
-            val += self.c_vec_dec(is_facet=is_facet)
         return val
 
     def c_ind_data(self, idx, i, j=0, is_top=False, layers=1, offset=None):
@@ -585,7 +583,6 @@ for ( int i = 0; i < %(dim)s; i++ ) %(combine)s;
 class JITModule(base.JITModule):
 
     _cppargs = []
-    _system_headers = []
     _libraries = []
 
     def __init__(self, kernel, itspace, *args, **kwargs):
@@ -674,7 +671,7 @@ class JITModule(base.JITModule):
         %(wrapper)s
         """ % {'consts': _const_decs, 'kernel': kernel_code,
                'wrapper': code_to_compile,
-               'sys_headers': '\n'.join(self._system_headers)}
+               'sys_headers': '\n'.join(self._kernel._headers)}
 
         self._dump_generated_code(code_to_compile)
         if configuration["debug"]:
@@ -737,6 +734,8 @@ class JITModule(base.JITModule):
         # Pass in the is_facet flag to mark the case when it's an interior horizontal facet in
         # an extruded mesh.
         _wrapper_decs = ';\n'.join([arg.c_wrapper_dec(is_facet=is_facet) for arg in self._args])
+
+        _vec_decs = ';\n'.join([arg.c_vec_dec(is_facet=is_facet) for arg in self._args if arg._is_vec_map])
 
         if len(Const._defs) > 0:
             _const_args = ', '
@@ -901,6 +900,7 @@ class JITModule(base.JITModule):
                 'ssinds_arg': _ssinds_arg,
                 'index_expr': _index_expr,
                 'wrapper_args': _wrapper_args,
+                'user_code': self._kernel._user_code,
                 'wrapper_decs': indent(_wrapper_decs, 1),
                 'const_args': _const_args,
                 'const_inits': indent(_const_inits, 1),
@@ -908,6 +908,7 @@ class JITModule(base.JITModule):
                 'off_args': _off_args,
                 'layer_arg': _layer_arg,
                 'map_decl': indent(_map_decl, 2),
+                'vec_decs': indent(_vec_decs, 2),
                 'map_init': indent(_map_init, 5),
                 'apply_offset': indent(_apply_offset, 3),
                 'extr_loop': indent(_extr_loop, 5),

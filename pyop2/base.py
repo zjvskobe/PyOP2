@@ -43,7 +43,7 @@ from hashlib import md5
 
 from configuration import configuration
 from caching import Cached, ObjectCached
-from versioning import Versioned, modifies, CopyOnWrite, shallow_copy
+from versioning import Versioned, modifies, modifies_argn, CopyOnWrite, shallow_copy
 from exceptions import *
 from utils import *
 from backends import _make_object
@@ -782,9 +782,9 @@ class Subset(ExtrudedSet):
                 'Out of bounds indices in Subset construction: [%d, %d) not [0, %d)' %
                 (self._indices[0], self._indices[-1], self._superset.total_size))
 
-        self._core_size = sum(self._indices < superset._core_size)
-        self._size = sum(self._indices < superset._size)
-        self._ieh_size = sum(self._indices < superset._ieh_size)
+        self._core_size = (self._indices < superset._core_size).sum()
+        self._size = (self._indices < superset._size).sum()
+        self._ieh_size = (self._indices < superset._ieh_size).sum()
         self._inh_size = len(self._indices)
 
     # Look up any unspecified attributes on the _set.
@@ -1788,11 +1788,11 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
                                            pragma=None),
                             pred=["static", "inline"])
             self._zero_kernel = _make_object('Kernel', k, 'zero')
-        _make_object('ParLoop', self._zero_kernel, self.dataset.set,
-                     self(WRITE)).enqueue()
+        par_loop(self._zero_kernel, self.dataset.set, self(WRITE))
 
         self._version_set_zero()
 
+    @modifies_argn(0)
     @collective
     def copy(self, other, subset=None):
         """Copy the data in this :class:`Dat` into another.
@@ -3418,14 +3418,41 @@ class Mat(SetAssociated):
 
 class Kernel(Cached):
 
-    """OP2 kernel type."""
+    """OP2 kernel type.
+
+    :param code: kernel function definition, including signature; either a
+        string or an AST :class:`.Node`
+    :param name: kernel function name; must match the name of the kernel
+        function given in `code`
+    :param opts: options dictionary for :doc:`PyOP2 IR optimisations <ir>`
+        (optional, ignored if `code` is a string)
+    :param include_dirs: list of additional include directories to be searched
+        when compiling the kernel (optional, defaults to empty)
+    :param headers: list of system headers to include when compiling the kernel
+        in the form ``#include <header.h>`` (optional, defaults to empty)
+    :param user_code: code snippet to be executed once at the very start of
+        the generated kernel wrapper code (optional, defaults to empty)
+
+    Consider the case of initialising a :class:`~pyop2.Dat` with seeded random
+    values in the interval 0 to 1. The corresponding :class:`~pyop2.Kernel` is
+    constructed as follows: ::
+
+      op2.Kernel("void setrand(double *x) { x[0] = (double)random()/RAND_MAX); }",
+                 name="setrand",
+                 headers=["#include <stdlib.h>"], user_code="srandom(10001);")
+
+    .. note::
+        When running in parallel with MPI the generated code must be the same
+        on all ranks.
+    """
 
     _globalcount = 0
     _cache = {}
 
     @classmethod
     @validate_type(('name', str, NameTypeError))
-    def _cache_key(cls, code, name, opts={}, include_dirs=[]):
+    def _cache_key(cls, code, name, opts={}, include_dirs=[], headers=[],
+                   user_code=""):
         # Both code and name are relevant since there might be multiple kernels
         # extracting different functions from the same code
         # Also include the PyOP2 version, since the Kernel class might change
@@ -3434,7 +3461,7 @@ class Kernel(Cached):
         if isinstance(code, Node):
             code = code.gencode()
         return md5(str(hash(code)) + name + str(opts) + str(include_dirs) +
-                   version).hexdigest()
+                   str(headers) + version).hexdigest()
 
     def _ast_to_c(self, ast, opts={}):
         """Transform an Abstract Syntax Tree representing the kernel into a
@@ -3444,7 +3471,8 @@ class Kernel(Cached):
             return ast.gencode()
         return ast
 
-    def __init__(self, code, name, opts={}, include_dirs=[]):
+    def __init__(self, code, name, opts={}, include_dirs=[], headers=[],
+                 user_code=""):
         # Protect against re-initialization when retrieved from cache
         if self._initialized:
             return
@@ -3454,6 +3482,8 @@ class Kernel(Cached):
         # Record used optimisations
         self._opt_is_padded = opts.get('ap', False)
         self._include_dirs = include_dirs
+        self._headers = headers
+        self._user_code = user_code
         self._initialized = True
         self._is_llvm_kernel = opts.get('llvm_kernel', False)
 
@@ -3600,6 +3630,19 @@ class ParLoop(LazyComputation):
         LazyComputation.__init__(self,
                                  set([a.data for a in args if a.access in [READ, RW]]) | Const._defs,
                                  set([a.data for a in args if a.access in [RW, WRITE, MIN, MAX, INC]]))
+        # INCs into globals need to start with zero and then sum back
+        # into the input global at the end.  This has the same number
+        # of reductions but means that successive par_loops
+        # incrementing into a global get the "right" value in
+        # parallel.
+        # Don't care about MIN and MAX because they commute with the reduction
+        self._reduced_globals = {}
+        for i, arg in enumerate(args):
+            if arg._is_global_reduction and arg.access == INC:
+                glob = arg.data
+                self._reduced_globals[i] = glob
+                args[i]._dat = _make_object('Global', glob.dim, data=np.zeros_like(glob.data_ro), dtype=glob.dtype)
+
         # Always use the current arguments, also when we hit cache
         self._actual_args = args
         self._kernel = kernel
@@ -3680,6 +3723,16 @@ class ParLoop(LazyComputation):
         for arg in self.args:
             if arg._is_global_reduction:
                 arg.reduction_end()
+        # Finalise global increments
+        for i, glob in self._reduced_globals.iteritems():
+            # These can safely access the _data member directly
+            # because lazy evaluation has ensured that any pending
+            # updates to glob happened before this par_loop started
+            # and the reduction_end on the temporary global pulled
+            # data back from the device if necessary.
+            # In fact we can't access the properties directly because
+            # that forces an infinite loop.
+            glob._data += self.args[i].data._data
 
     @collective
     def maybe_set_halo_update_needed(self):
@@ -3856,6 +3909,7 @@ class Solver(object):
         """
         self.parameters.update(parameters)
 
+    @modifies_argn(1)
     @collective
     def solve(self, A, x, b):
         """Solve a matrix equation.

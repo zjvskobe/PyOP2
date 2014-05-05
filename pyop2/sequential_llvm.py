@@ -14,17 +14,28 @@ import llvm_cbuilder.shortnames as C
 def ctype_to_llvm(dtype):
     map = {ctypes.c_long: C.int,
            ctypes.c_int: C.int,
+           ctypes.c_uint: C.int,
            ctypes.c_float: C.float,
            ctypes.c_double: C.double}
-    return map.get(dtype)
+
+    llvm_type = map.get(dtype)
+    if llvm_type is None:
+        raise NotImplementedError("Unsupported ctypes type %s" % (dtype))
+    return llvm_type
 
 
 def nptype_to_llvm(dtype):
     map = {np.int16: C.int16,
            np.int32: C.int32,
+           np.uint16: C.int16,
+           np.uint32: C.int32,
            np.float32: C.float,
            np.float64: C.double}
-    return map.get(dtype)
+
+    llvm_type = map.get(dtype)
+    if llvm_type is None:
+        raise NotImplementedError("Unsupported NumPy type %s" % (dtype))
+    return llvm_type
 
 
 class JITModule(host.JITModule):
@@ -33,6 +44,7 @@ class JITModule(host.JITModule):
         self._itspace = itspace
         self._args = args
         self._direct = kwargs.get('direct', False)
+        self._iteration_region = kwargs.get('iterate', ALL)
 
     def __call__(self, *args, **kwargs):
         argtypes = kwargs.get('argtypes')
@@ -88,7 +100,11 @@ class JITModule(host.JITModule):
 
         # Const declarations in the C kernel -> unreferenced variable
         # -> Clang error. Add these Const items as extern variables.
-        code = ""
+        code = """
+        #include <stdbool.h>
+        #include <math.h>
+        """
+
         for c in Const._definitions():
             d = {'type': c.ctype,
                  'name': c.name,
@@ -117,6 +133,8 @@ class JITModule(host.JITModule):
 
     def generate_wrapper(self, llvm_module, argtypes, vars={}):
         _index_expr = "n"
+        is_top = (self._iteration_region == ON_TOP)
+        is_facet = (self._iteration_region == ON_INTERIOR_FACETS)
 
         llvm_argtypes = [self.llvm_argtype(type) for type in argtypes]
         functype = Type.function(C.void, llvm_argtypes)
@@ -128,44 +146,46 @@ class JITModule(host.JITModule):
         end = cb.args[1]
         func.args[0].name = 'start'
         func.args[1].name = 'end'
-        for i, arg in enumerate(self._args, 2):
-            name = arg.llvm_arg_name()
-            func.args[i].name = name
-            vars[name] = cb.args[i]
+        count = 2
+        for arg in self._args:
+            count = arg.llvm_wrapper_arg(cb, func, vars, count)
 
         # Constant initialisers
-        const_index = len(self._args) + 2
         zero = Constant.int(Type.int(), 0)
-        for i, c in enumerate(Const._definitions(), const_index):
-            func.args[i].name = c.name + '_'
+        for c in Const._definitions():
+            func.args[count].name = c.name + '_'
             const_var = llvm_module.get_global_variable_named(c.name)
             if c.cdim == 1:
-                val = cb.builder.load(func.args[i])
+                val = cb.builder.load(func.args[count])
                 cb.builder.store(val, const_var)
             else:
                 for j in range(c.cdim):
                     idx = Constant.int(Type.int(), j)
-                    arg_ptr = cb.builder.gep(func.args[i], [idx])
+                    arg_ptr = cb.builder.gep(func.args[count], [idx])
                     const_ptr = cb.builder.gep(const_var, [zero, idx])
                     val = cb.builder.load(arg_ptr)
                     cb.builder.store(val, const_ptr)
+            count += 1
 
         for i, arg in enumerate(self._args, 2):
-            arg.llvm_wrapper_dec(cb, vars, i)
+            arg.llvm_wrapper_dec(cb, vars, i, is_facet)
 
-            if arg._is_global_reduction:
-                pass
-                # intermediate global decl
-                # intermediate global init
-                # intermediate global writeback
+        for arg in self._args:
+            if not arg._is_mat and arg._is_vec_map:
+                arg.llvm_vec_init(is_top, self._itspace.layers, cb, vars,
+                                  is_facet=is_facet)
 
-        if any(arg._is_mat or arg._is_vec_map for arg in self._args):
-            raise NotImplementedError("Matrices and maps not yet supported "
-                                      "in sequential_llvm.")
-
-        if self._itspace.layers > 1:
-            raise NotImplementedError("Layers/extruded meshes not yet "
+        if any(arg._is_soa for arg in self._args):
+            raise NotImplementedError("Structure of Arrays arguments not yet "
                                       "supported in sequential_llvm.")
+
+        if any(arg._is_mat for arg in self._args):
+            raise NotImplementedError("Matrices not yet supported in "
+                                      "sequential_llvm.")
+
+        if self._itspace._extruded:
+            raise NotImplementedError("Extruded meshes not yet supported in "
+                                      "sequential_llvm")
 
         if any(arg._uses_itspace for arg in self._args):
             raise NotImplementedError("Arguments that use the iteration space "
@@ -186,6 +206,7 @@ class JITModule(host.JITModule):
                 i = cb.var_copy(loop_idx, name='i')
                 vars['i'] = i
 
+                # TODO in case of _itspace_args, use buffer decl instead
                 _kernel_args = [arg.llvm_kernel_arg(cb, vars, count)
                                 for count, arg in enumerate(self._args)]
 
@@ -210,29 +231,85 @@ class Arg(host.Arg):
     def llvm_arg_name(self, i=0, j=None):
         return self.c_arg_name(i, j)
 
+    def llvm_vec_name(self):
+        return self.c_arg_name() + "_vec"
+
+    def llvm_map_name(self, i, j):
+        return self.llvm_arg_name() + "_map%d_%d" % (i, j)
+
     def llvm_global_reduction_name(self, count=None):
         return self.c_arg_name()
 
-    def llvm_wrapper_dec(self, cb, vars, argnum):
-        if self._is_mixed_mat or self._is_mat or self._is_indirect or\
-                self._is_vec_map:
-            raise NotImplementedError("Matrices, indirection and maps not yet "
-                                      "supported in sequential_llvm.")
+    # Returns the new argnum. Kind of a hack, but needed due to how code
+    # generation works... TODO FIXME
+    def llvm_wrapper_arg(self, cb, func, vars, argnum):
+        if self._is_mat:
+            raise NotImplementedError("Matrices not yet supported in "
+                                      "sequential_llvm")
+        else:
+            name = self.llvm_arg_name()
+            func.args[argnum].name = name
+            vars[name] = cb.args[argnum]
+            argnum += 1
+        if self._is_indirect or self._is_mat:
+            for i, map in enumerate(as_tuple(self.map, Map)):
+                for j, m in enumerate(map):
+                    map_name = self.llvm_map_name(i, j)
+                    func.args[argnum].name = map_name
+                    vars[map_name] = cb.args[argnum]
+                    argnum += 1
 
-    def llvm_kernel_arg(self, cb, vars, i=0, j=0, shape=(0,)):
-        if self._uses_itspace or self._is_indirect:
+        return argnum
+
+    def llvm_vec_dec(self, cb, vars, is_facet=False):
+        cdim = self.data.dataset.cdim if self._flatten else 1
+        vec_name = self.llvm_vec_name()
+        arity = self.map.arity * cdim * (2 if is_facet else 1)
+        dtype = C.pointer(Type.array(ctype_to_llvm(self.ctype), arity))
+        vars[vec_name] = cb.var(dtype, value=None, name=vec_name)
+
+    def llvm_wrapper_dec(self, cb, vars, argnum, is_facet=False):
+        if self._is_mixed_mat or self._is_mat:
+            raise NotImplementedError("Matrices not yet supported in "
+                                      "sequential_llvm.")
+        if self._is_vec_map:
+            raise NotImplementedError("Vector maps not yet supported in "
+                                      "sequential_llvm")
+            #self.llvm_vec_dec(is_facet)
+
+    def llvm_kernel_arg(self, cb, vars, count, i=0, j=0, shape=(0,)):
+        if self._uses_itspace:
             raise NotImplementedError("Unsupported kernel arg")
-
-        if self._is_global_reduction:
+        elif self._is_indirect:
+            if self._is_vec_map:
+                return vars[self.llvm_vec_name()]
+            return self.llvm_ind_data(self.idx, i, cb, vars)
+        elif self._is_global_reduction:
             return vars[self.llvm_global_reduction_name(i)]
-
-        if isinstance(self.data, Global):
+        elif isinstance(self.data, Global):
             return vars[self.llvm_arg_name(i)]
         else:
             # <argname> + i * <argdim>
             dim = cb.constant(C.int32, self.data.cdim)
-            i = vars['i']
-            return vars[self.llvm_arg_name()][i * dim].ref
+            i_var = vars['i']
+            return vars[self.llvm_arg_name()][i_var * dim].ref
+
+    def llvm_ind_data(self, idx, i, cb, vars, j=0, is_top=False, layers=1,
+                      offset=None):
+        if is_top or offset:
+            raise NotImplementedError("'top' arg and map offsets not yet "
+                                      "supported in sequential_llvm")
+        name = self.llvm_arg_name(i)
+        map_name = self.llvm_map_name(i, 0)
+        arity = cb.constant(C.int32, self.map.split[i].arity)
+        idx_const = cb.constant(C.int32, idx)
+        dim = cb.constant(C.int32, self.data[i].cdim)
+
+        map_idx = vars['i'] * arity + idx_const
+        map_data = vars[map_name][map_idx]
+        arg_offs = map_data * dim
+        ptr = cb.builder.gep(vars[name].value, [arg_offs.value])
+        return CTemp(cb, ptr)
 
 
 class ParLoop(host.ParLoop):
@@ -248,12 +325,20 @@ class ParLoop(host.ParLoop):
             if isinstance(self._it_space._iterset, Subset):
                 pass  # TODO
             for arg in self.args:
-                for d in arg.data:
-                    self._argtypes.append(d._argtype)
-                    self._jit_args.append(d._data)
+                if arg._is_mat:
+                    self._argtypes.append(arg.data._argtype)
+                    self._jit_args.append(arg.data.handle.handle)
+                else:
+                    for d in arg.data:
+                        self._argtypes.append(d._argtype)
+                        self._jit_args.append(d._data)
 
-            if arg._is_indirect or arg._is_mat:
-                pass  # TODO
+                if arg._is_indirect or arg._is_mat:
+                    maps = as_tuple(arg.map, Map)
+                    for map in maps:
+                        for m in map:
+                            self._argtypes.append(m._argtype)
+                            self._jit_args.append(m.values_with_halo)
 
             for c in Const._definitions():
                 self._argtypes.append(c._argtype)

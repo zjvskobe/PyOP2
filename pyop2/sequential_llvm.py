@@ -57,10 +57,6 @@ class JITModule(host.JITModule):
         self._func(*args)
 
     def translate(self, argtypes):
-        if any(arg._is_soa for arg in self._args):
-            raise NotImplementedError("SoA arguments not yet supported in "
-                                      "sequential_llvm")
-
         llvm_module = Module.new('mod_' + self._kernel.name)
 
         vars = {}
@@ -81,6 +77,12 @@ class JITModule(host.JITModule):
         else:
             kernel_module = Module.from_assembly(self.c_kernel_to_llvm())
 
+        # Ensure kernel function is externally accessible. This may not be the
+        # case in the case of, for instance, a C kernel declared as "static
+        # inline"
+        kernel_func = kernel_module.get_function_named(self._kernel.name)
+        kernel_func.linkage = LINKAGE_EXTERNAL
+
         kernel_module.verify()
         llvm_module.link_in(kernel_module)
 
@@ -98,8 +100,6 @@ class JITModule(host.JITModule):
         # temporarily to aid debugging (easier to write C test cases than raw
         # LLVM).
 
-        # Const declarations in the C kernel -> unreferenced variable
-        # -> Clang error. Add these Const items as extern variables.
         code = """
         #include <stdbool.h>
         #include <math.h>
@@ -117,11 +117,20 @@ class JITModule(host.JITModule):
 
         code += self._kernel.code
 
+        if any(arg._is_soa for arg in self._args):
+            code = """
+            #define OP2_STRIDE(a, idx) a[idx]
+            %s
+            #undef OP2_STRIDE
+            """ % (code)
+
         file = open('/tmp/kernel.c', "w")
         file.write(code)
         file.close()
-        output = subprocess.check_output(['clang', '/tmp/kernel.c', '-S',
-                                          '-emit-llvm', '-o', '-'])
+        output = subprocess.check_output(['clang', '/tmp/kernel.c',
+                                          '-femit-all-decls', '-O0',
+                                          '-S', '-emit-llvm', '-o',
+                                          '-'])
         return output
 
     def llvm_argtype(self, argtype):
@@ -174,10 +183,6 @@ class JITModule(host.JITModule):
             if not arg._is_mat and arg._is_vec_map:
                 arg.llvm_vec_init(is_top, self._itspace.layers, cb, vars,
                                   is_facet=is_facet)
-
-        if any(arg._is_soa for arg in self._args):
-            raise NotImplementedError("Structure of Arrays arguments not yet "
-                                      "supported in sequential_llvm.")
 
         if any(arg._is_mat for arg in self._args):
             raise NotImplementedError("Matrices not yet supported in "

@@ -25,12 +25,12 @@ def ctype_to_llvm(dtype):
 
 
 def nptype_to_llvm(dtype):
-    map = {np.int16: C.int16,
-           np.int32: C.int32,
-           np.uint16: C.int16,
-           np.uint32: C.int32,
-           np.float32: C.float,
-           np.float64: C.double}
+    map = {'int16': C.int16,
+           'int32': C.int32,
+           'uint16': C.int16,
+           'uint32': C.int32,
+           'float32': C.float,
+           'float64': C.double}
 
     llvm_type = map.get(dtype)
     if llvm_type is None:
@@ -61,7 +61,7 @@ class JITModule(host.JITModule):
 
         vars = {}
         for c in Const._definitions():
-            dtype = nptype_to_llvm(c.dtype.type)
+            dtype = nptype_to_llvm(c.dtype.name)
             if c.cdim > 1:
                 dtype = Type.array(dtype, c.cdim)
 
@@ -135,7 +135,7 @@ class JITModule(host.JITModule):
 
     def llvm_argtype(self, argtype):
         if issubclass(argtype, np.ctypeslib._ndptr):
-            inner_type = argtype._dtype_.type
+            inner_type = argtype._dtype_.name
             return C.pointer(nptype_to_llvm(inner_type))
         else:
             return ctype_to_llvm(argtype)
@@ -177,12 +177,12 @@ class JITModule(host.JITModule):
             count += 1
 
         for i, arg in enumerate(self._args, 2):
-            arg.llvm_wrapper_dec(cb, vars, i, is_facet)
+            arg.llvm_wrapper_dec(cb, vars, i, is_facet=is_facet)
 
         for arg in self._args:
-            if not arg._is_mat and arg._is_vec_map:
-                arg.llvm_vec_init(is_top, self._itspace.layers, cb, vars,
-                                  is_facet=is_facet)
+            if arg._is_vec_map:
+                arg.llvm_vec_dec(cb, vars, is_facet=is_facet)
+
 
         if any(arg._is_mat for arg in self._args):
             raise NotImplementedError("Matrices not yet supported in "
@@ -210,6 +210,11 @@ class JITModule(host.JITModule):
             with loop.body():
                 i = cb.var_copy(loop_idx, name='i')
                 vars['i'] = i
+
+                for arg in self._args:
+                    if not arg._is_mat and arg._is_vec_map:
+                        arg.llvm_vec_init(is_top, self._itspace.layers, cb,
+                                          vars, is_facet=is_facet)
 
                 # TODO in case of _itspace_args, use buffer decl instead
                 _kernel_args = [arg.llvm_kernel_arg(cb, vars, count)
@@ -246,7 +251,7 @@ class Arg(host.Arg):
         return self.c_arg_name()
 
     # Returns the new argnum. Kind of a hack, but needed due to how code
-    # generation works... TODO FIXME
+    # generation works...
     def llvm_wrapper_arg(self, cb, func, vars, argnum):
         if self._is_mat:
             raise NotImplementedError("Matrices not yet supported in "
@@ -266,21 +271,38 @@ class Arg(host.Arg):
 
         return argnum
 
+    def llvm_vec_init(self, is_top, layers, cb, vars, is_facet=False):
+        vec_idx = 0
+        for i, (m, d) in enumerate(zip(self.map, self.data)):
+            if self._flatten:
+                raise NotImplementedError("Flattened maps not yet supported "
+                                          "in sequential_llvm.")
+            else:
+                for idx in range(m.arity):
+                    name = self.llvm_vec_name()
+                    data = self.llvm_ind_data(vec_idx, i, cb, vars,
+                                              is_top=is_top, layers=layers,
+                                              offset=m.offset[idx] if is_top
+                                              else None)
+                    vars[name][vec_idx] = data
+                    vec_idx += 1
+
+                if is_facet:
+                    raise NotImplementedError("Interior horizontal facets not "
+                                              "yet supported in "
+                                              "sequential_llvm")
+
     def llvm_vec_dec(self, cb, vars, is_facet=False):
         cdim = self.data.dataset.cdim if self._flatten else 1
         vec_name = self.llvm_vec_name()
         arity = self.map.arity * cdim * (2 if is_facet else 1)
-        dtype = C.pointer(Type.array(ctype_to_llvm(self.ctype), arity))
-        vars[vec_name] = cb.var(dtype, value=None, name=vec_name)
+        dtype = C.pointer(nptype_to_llvm(self.dtype.name))
+        vars[vec_name] = cb.array(dtype, arity, name=vec_name)
 
     def llvm_wrapper_dec(self, cb, vars, argnum, is_facet=False):
         if self._is_mixed_mat or self._is_mat:
             raise NotImplementedError("Matrices not yet supported in "
                                       "sequential_llvm.")
-        if self._is_vec_map:
-            raise NotImplementedError("Vector maps not yet supported in "
-                                      "sequential_llvm")
-            #self.llvm_vec_dec(is_facet)
 
     def llvm_kernel_arg(self, cb, vars, count, i=0, j=0, shape=(0,)):
         if self._uses_itspace:
@@ -313,6 +335,10 @@ class Arg(host.Arg):
         map_idx = vars['i'] * arity + idx_const
         map_data = vars[map_name][map_idx]
         arg_offs = map_data * dim
+        if j != 0:
+            off = cb.constant(C.int32, j)
+            arg_offs += off
+
         ptr = cb.builder.gep(vars[name].value, [arg_offs.value])
         return CTemp(cb, ptr)
 
@@ -328,11 +354,12 @@ class ParLoop(host.ParLoop):
             self._argtypes = [ctypes.c_int, ctypes.c_int]
             self._jit_args = [0, 0]
             if isinstance(self._it_space._iterset, Subset):
-                pass  # TODO
+                raise NotImplementedError("Subsets not yet supported in "
+                                          "sequential_llvm")
             for arg in self.args:
                 if arg._is_mat:
-                    self._argtypes.append(arg.data._argtype)
-                    self._jit_args.append(arg.data.handle.handle)
+                    raise NotImplementedError("Matrices not yet supported in "
+                                              "sequential_llvm")
                 else:
                     for d in arg.data:
                         self._argtypes.append(d._argtype)
@@ -348,6 +375,17 @@ class ParLoop(host.ParLoop):
             for c in Const._definitions():
                 self._argtypes.append(c._argtype)
                 self._jit_args.append(c.data)
+
+            if len(self.offset_args) > 0:
+                raise NotImplementedError("Offset args not yet supported in "
+                                          "sequential_llvm")
+
+            if self.iteration_region is not None:
+                raise NotImplementedError("Iteration regions not yet "
+                                          "supported in sequential_llvm")
+            if self._it_space._extruded:
+                raise NotImplementedError("Extruded iteration spaces not yet "
+                                          "supported in sequential_llvm")
 
         self._jit_args[0] = part.offset
         self._jit_args[1] = part.offset + part.size

@@ -2005,7 +2005,7 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>code</strong> &#8211; kernel function definition, including signature; either a
-string or an AST <a class="reference internal" href="pyop2.ir.html#pyop2.ir.ast_base.Node" title="pyop2.ir.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">Node</span></tt></a></li>
+string or an AST <a class="reference internal" href="pyop2.coffee.html#pyop2.coffee.ast_base.Node" title="pyop2.coffee.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">Node</span></tt></a></li>
 <li><strong>name</strong> &#8211; kernel function name; must match the name of the kernel
 function given in <cite>code</cite></li>
 <li><strong>opts</strong> &#8211; options dictionary for <a class="reference internal" href="ir.html"><em>PyOP2 IR optimisations</em></a>
@@ -2028,6 +2028,11 @@ constructed as follows:</p>
            <span class="n">name</span><span class="o">=</span><span class="s">&quot;setrand&quot;</span><span class="p">,</span>
            <span class="n">headers</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;#include &lt;stdlib.h&gt;&quot;</span><span class="p">],</span> <span class="n">user_code</span><span class="o">=</span><span class="s">&quot;srandom(10001);&quot;</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When running in parallel with MPI the generated code must be the same
+on all ranks.</p>
 </div>
 <dl class="attribute">
 <dt id="pyop2.Kernel.cache_key">

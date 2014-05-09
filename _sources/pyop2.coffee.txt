@@ -1,0 +1,35 @@
+coffee Package
+==============
+
+:mod:`ast_base` Module
+----------------------
+
+.. automodule:: pyop2.coffee.ast_base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ast_optimizer` Module
+---------------------------
+
+.. automodule:: pyop2.coffee.ast_optimizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ast_plan` Module
+----------------------
+
+.. automodule:: pyop2.coffee.ast_plan
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ast_vectorizer` Module
+----------------------------
+
+.. automodule:: pyop2.coffee.ast_vectorizer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

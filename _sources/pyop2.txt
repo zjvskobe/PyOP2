@@ -177,6 +177,14 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`sparsity_new` Module
+--------------------------
+
+.. automodule:: pyop2.sparsity_new
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`utils` Module
 -------------------
 
@@ -214,5 +222,5 @@ Subpackages
 
 .. toctree::
 
-    pyop2.ir
+    pyop2.coffee
 

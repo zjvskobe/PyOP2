@@ -293,6 +293,41 @@ toolkit <http://developer.amd.com/tools/heterogeneous-computing/amd-accelerated-
   # Install to /usr/local instead of /opt 
   sed -ie 's:/opt:/usr/local:g' default-install_lnx*.pl
   sudo ./Install-AMD-APP.sh
+  
+Sequential LLVM Backend:
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Dependencies:
+
+* LLVM 3.3
+* llvmpy 0.12.4
+* Clang >= 3.3
+
+First, install LLVM 3.3. It is recommended you keep this seperate
+from your system installation of LLVM::
+
+  wget http://llvm.org/releases/3.3/llvm-3.3.src.tar.gz
+  tar xzf llvm-3.3.src.tar.gz
+  cd llvm-3.3.src
+  ./configure --enable-optimized --prefix=LLVM_INSTALL_PATH
+  REQUIRES_RTTI=1 make
+
+Install llvmpy::
+
+  git clone git@github.com:llvmpy/llvmpy.git
+  cd llvmpy
+  LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
+  
+Now test your llvmpy installation::
+
+  python -c "import llvm; llvm.test()"
+  
+Finally, for translation of C kernels to LLVM kernels, Clang is required.
+This can be your system version of Clang, using any modern version (>=3.3).
+
+If Clang is not installed on your machine, you can install it via apt-get::
+
+  sudo apt-get install clang-3.4
 
 HDF5
 ~~~~

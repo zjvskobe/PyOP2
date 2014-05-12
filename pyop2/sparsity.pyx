@@ -32,7 +32,7 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from libcpp.vector cimport vector
-from libcpp.set cimport set
+from vecset cimport vecset
 from cython.operator cimport dereference as deref, preincrement as inc
 from cpython cimport bool
 import numpy as np
@@ -70,25 +70,29 @@ cdef cmap init_map(omap):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef build_sparsity_pattern_seq(int rmult, int cmult, int nrows, list maps):
     """Create and populate auxiliary data structure: for each element of the
     from set, for each row pointed to by the row map, add all columns pointed
     to by the col map."""
     cdef:
-        int e, i, r, d, c, layer
+        int e, i, r, d, c, layer, l
         int lsize, rsize, row
         cmap rowmap, colmap
-        vector[set[int]] s_diag
-        set[int].iterator it
+        vector[vecset[int]] s_diag
+        vecset[int].const_iterator it
 
     lsize = nrows*rmult
-    s_diag = vector[set[int]](lsize)
-    iterate = None
+    s_diag = vector[vecset[int]](lsize)
 
     for ind, (rmap, cmap) in enumerate(maps):
         rowmap = init_map(rmap)
         colmap = init_map(cmap)
         rsize = rowmap.from_size
+        if not s_diag[0].capacity():
+            # Preallocate set entries heuristically based on arity
+            for i in range(lsize):
+                s_diag[i].reserve(4*rowmap.arity+1)
         # In the case of extruded meshes, in particular, when iterating over
         # horizontal facets, the iteration region determines which part of the
         # mesh the sparsity should be constructed for.
@@ -164,6 +168,7 @@ cdef build_sparsity_pattern_seq(int rmult, int cmult, int nrows, list maps):
     cdef np.ndarray[DTYPE_t, ndim=1] colidx = np.empty(rowptr[lsize], dtype=np.int32)
     # Note: elements in a set are always sorted, so no need to sort colidx
     for row in range(lsize):
+        s_diag[row].sort()
         i = rowptr[row]
         it = s_diag[row].begin()
         while it != s_diag[row].end():
@@ -175,25 +180,31 @@ cdef build_sparsity_pattern_seq(int rmult, int cmult, int nrows, list maps):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef build_sparsity_pattern_mpi(int rmult, int cmult, int nrows, int ncols, list maps):
     """Create and populate auxiliary data structure: for each element of the
     from set, for each row pointed to by the row map, add all columns pointed
     to by the col map."""
     cdef:
         int lrsize, lcsize, rsize, row, entry
-        int e, i, r, d, c
+        int e, i, r, d, c, l
         cmap rowmap, colmap
-        vector[set[int]] s_diag, s_odiag
+        vector[vecset[int]] s_diag, s_odiag
 
     lrsize = nrows*rmult
     lcsize = ncols*cmult
-    s_diag = vector[set[int]](lrsize)
-    s_odiag = vector[set[int]](lrsize)
+    s_diag = vector[vecset[int]](lrsize)
+    s_odiag = vector[vecset[int]](lrsize)
 
     for rmap, cmap in maps:
         rowmap = init_map(rmap)
         colmap = init_map(cmap)
         rsize = rowmap.from_exec_size;
+        if not s_diag[0].capacity():
+            # Preallocate set entries heuristically based on arity
+            for i in range(lrsize):
+                s_diag[i].reserve(4*rowmap.arity+1)
+                s_odiag[i].reserve(4*rowmap.arity+1)
         if rowmap.layers > 1:
             for e in range (rsize):
                 for i in range(rowmap.arity):

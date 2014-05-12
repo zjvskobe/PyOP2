@@ -44,7 +44,7 @@ class Configuration(object):
     """PyOP2 configuration parameters
 
     :param backend: Select the PyOP2 backend (one of `cuda`,
-        `opencl`, `openmp` or `sequential`).
+        `opencl`, `openmp`, `sequential` or `sequential_llvm`).
     :param debug: Turn on debugging for generated code (turns off
         compiler optimisations).
     :param log_level: How chatty should PyOP2 be?  Valid values
@@ -59,6 +59,9 @@ class Configuration(object):
         written to?
     :param print_cache_size: Should PyOP2 print the size of caches at
         program exit?
+    :param llvm_opts: Optional dictionary containing optimisation flags for use
+        with the sequential_llvm backend. See :method:`_setup()` in
+        sequential_llvm for more info.
     """
     # name, env variable, type, default, write once
     DEFAULTS = {
@@ -76,6 +79,7 @@ class Configuration(object):
         "print_cache_size": ("PYOP2_PRINT_CACHE_SIZE", bool, False),
         "dump_gencode_path": ("PYOP2_DUMP_GENCODE_PATH", str,
                               os.path.join(gettempdir(), "pyop2-gencode")),
+        "llvm_opts": ("", dict, {}),
     }
     """Default values for PyOP2 configuration parameters"""
     READONLY = ['backend']

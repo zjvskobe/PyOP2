@@ -2,6 +2,7 @@
 
 from llvm.core import *
 from llvm.ee import *
+from llvm.passes import *
 from llvm_cbuilder import *
 from petsc_base import *
 import host
@@ -87,19 +88,16 @@ class JITModule(host.JITModule):
         llvm_module.link_in(kernel_module)
 
         self.generate_wrapper(llvm_module, argtypes, vars)
+        if not configuration["debug"]:
+            self.optimise(llvm_module)
+        llvm_module.verify()
 
         if configuration["debug"]:
             self._wrapper_code = str(llvm_module)
 
         self._dump_generated_code(str(llvm_module))
 
-        # TODO - Handle optimisation flags depending on debug level etc
-
     def c_kernel_to_llvm(self):
-        # TODO - Remove this before merge in to master, this is just here
-        # temporarily to aid debugging (easier to write C test cases than raw
-        # LLVM).
-
         code = """
         #include <stdbool.h>
         #include <math.h>
@@ -183,7 +181,6 @@ class JITModule(host.JITModule):
             if arg._is_vec_map:
                 arg.llvm_vec_dec(cb, vars, is_facet=is_facet)
 
-
         if any(arg._is_mat for arg in self._args):
             raise NotImplementedError("Matrices not yet supported in "
                                       "sequential_llvm.")
@@ -226,15 +223,27 @@ class JITModule(host.JITModule):
 
         cb.ret()
         cb.close()
-        llvm_module.verify()
 
-        # Create CExecutor and set up params. This all needs to go in self, as
-        # otherwise garbage collection may occur leading to PETSc segfaults
-        self._llvm_module = llvm_module
-        self._exe = CExecutor(self._llvm_module)
-        self._ctype_args = argtypes
-        self._func = self._exe.get_ctype_function(func, None,
-                                                  *self._ctype_args)
+        self._exe = CExecutor(llvm_module)
+        self._func = self._exe.get_ctype_function(func, None, *argtypes)
+
+    def optimise(self, llvm_module, **kwargs):
+        tm = TargetMachine.new()
+        passes = build_pass_managers(tm, mod=llvm_module,
+                                     opt=_llvm_opts['opt_level'],
+                                     size=_llvm_opts['size_level'],
+                                     loop_vectorize=_llvm_opts['loop_vectorise'],
+                                     slp_vectorize=_llvm_opts['slp_vectorise'],
+                                     vectorize=_llvm_opts['block_vectorise'],
+                                     pm=_llvm_opts['mod_pass'],
+                                     fpm=_llvm_opts['func_pass'])
+
+        if _llvm_opts['func_pass']:
+            for func in llvm_module.functions:
+                passes.fpm.run(func)
+
+        if _llvm_opts['mod_pass']:
+            passes.pm.run(llvm_module)
 
 
 class Arg(host.Arg):
@@ -242,13 +251,13 @@ class Arg(host.Arg):
         return self.c_arg_name(i, j)
 
     def llvm_vec_name(self):
-        return self.c_arg_name() + "_vec"
+        return self.llvm_arg_name() + "_vec"
 
     def llvm_map_name(self, i, j):
         return self.llvm_arg_name() + "_map%d_%d" % (i, j)
 
     def llvm_global_reduction_name(self, count=None):
-        return self.c_arg_name()
+        return self.llvm_arg_name()
 
     # Returns the new argnum. Kind of a hack, but needed due to how code
     # generation works...
@@ -393,4 +402,22 @@ class ParLoop(host.ParLoop):
 
 
 def _setup():
-    pass
+    global _llvm_opts
+
+    if configuration["debug"]:
+        return
+
+    default_opts = {'opt_level': 3,
+                    'size_level': 0,
+                    'loop_vectorise': True,
+                    'slp_vectorise': True,
+                    'block_vectorise': True,
+                    'mod_pass': False,
+                    'func_pass': True}
+
+    _llvm_opts = default_opts
+
+    for k, v in configuration["llvm_opts"].items():
+        _llvm_opts[k] = v
+
+_llvm_opts = None

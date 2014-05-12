@@ -311,16 +311,13 @@ from your system installation of LLVM::
   cd llvm-3.3.src
   ./configure --enable-optimized --prefix=LLVM_INSTALL_PATH
   REQUIRES_RTTI=1 make
+  make install
 
 Install llvmpy::
 
   git clone git@github.com:llvmpy/llvmpy.git
   cd llvmpy
   LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
-  
-Now test your llvmpy installation::
-
-  python -c "import llvm; llvm.test()"
   
 Finally, for translation of C kernels to LLVM kernels, Clang is required.
 This can be your system version of Clang, using any modern version (>=3.3).

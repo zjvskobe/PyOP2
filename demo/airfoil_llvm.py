@@ -40,7 +40,7 @@ from pyop2 import op2, utils
 
 
 def main(opt):
-    from airfoil_direct_kernels import save_soln, dummy, update
+    from airfoil_kernels_llvm import save_soln, adt_calc, res_calc, bres_calc, update
 
     try:
         with h5py.File(opt['mesh'], 'r') as f:
@@ -51,6 +51,14 @@ def main(opt):
             edges = op2.Set.fromhdf5(f, "edges")
             bedges = op2.Set.fromhdf5(f, "bedges")
             cells = op2.Set.fromhdf5(f, "cells")
+
+            pedge = op2.Map.fromhdf5(edges, nodes, f, "pedge")
+            pecell = op2.Map.fromhdf5(edges, cells, f, "pecell")
+            pevcell = op2.Map.fromhdf5(edges, cells, f, "pecell")
+            pbedge = op2.Map.fromhdf5(bedges, nodes, f, "pbedge")
+            pbecell = op2.Map.fromhdf5(bedges, cells, f, "pbecell")
+            pbevcell = op2.Map.fromhdf5(bedges, cells, f, "pbecell")
+            pcell = op2.Map.fromhdf5(cells, nodes, f, "pcell")
 
             p_bound = op2.Dat.fromhdf5(bedges, f, "p_bound")
             p_x = op2.Dat.fromhdf5(nodes ** 2, f, "p_x")
@@ -77,7 +85,7 @@ def main(opt):
 
     for i in range(1, niter + 1):
 
-        # Save old flow solution - DIRECT
+        # Save old flow solution
         op2.par_loop(save_soln, cells,
                      p_q(op2.READ),
                      p_qold(op2.WRITE))
@@ -85,12 +93,35 @@ def main(opt):
         # Predictor/corrector update loop
         for k in range(2):
 
-            # Dummy data...
-            op2.par_loop(dummy, cells,
-                         p_res(op2.WRITE),
+            # Calculate area/timestep
+            op2.par_loop(adt_calc, cells,
+                         p_x(op2.READ, pcell[0]),
+                         p_x(op2.READ, pcell[1]),
+                         p_x(op2.READ, pcell[2]),
+                         p_x(op2.READ, pcell[3]),
+                         p_q(op2.READ),
                          p_adt(op2.WRITE))
 
-            # Update flow field - DIRECT
+            # Calculate flux residual
+            op2.par_loop(res_calc, edges,
+                         p_x(op2.READ, pedge[0]),
+                         p_x(op2.READ, pedge[1]),
+                         p_q(op2.READ, pevcell[0]),
+                         p_q(op2.READ, pevcell[1]),
+                         p_adt(op2.READ, pecell[0]),
+                         p_adt(op2.READ, pecell[1]),
+                         p_res(op2.INC, pevcell[0]),
+                         p_res(op2.INC, pevcell[1]))
+
+            op2.par_loop(bres_calc, bedges,
+                         p_x(op2.READ, pbedge[0]),
+                         p_x(op2.READ, pbedge[1]),
+                         p_q(op2.READ, pbevcell[0]),
+                         p_adt(op2.READ, pbecell[0]),
+                         p_res(op2.INC, pbevcell[0]),
+                         p_bound(op2.READ))
+
+            # Update flow field
             rms = op2.Global(1, 0.0, np.double, "rms")
             op2.par_loop(update, cells,
                          p_qold(op2.READ),
@@ -110,8 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--profile', action='store_true',
                         help='Create a cProfile for the run')
     opt = vars(parser.parse_args())
-
-    # pass arg "-b sequential_llvm" for llvm
-    print "--- BACKEND: " + opt["backend"] + " ---"
+    opt["backend"] = "sequential_llvm"
     op2.init(**opt)
+
     main(opt)

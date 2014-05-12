@@ -41,11 +41,14 @@ def nptype_to_llvm(dtype):
 
 class JITModule(host.JITModule):
     def __init__(self, kernel, itspace, *args, **kwargs):
+        if self._initialized:
+            return
         self._kernel = kernel
         self._itspace = itspace
         self._args = args
         self._direct = kwargs.get('direct', False)
         self._iteration_region = kwargs.get('iterate', ALL)
+        self._initialized = True
 
     def __call__(self, *args, **kwargs):
         argtypes = kwargs.get('argtypes')

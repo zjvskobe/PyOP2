@@ -53,13 +53,41 @@
           <div class="body">
             
   <a class="reference external image-reference" href="https://travis-ci.org/OP2/PyOP2"><img alt="build status" src="https://travis-ci.org/OP2/PyOP2.png?branch=master" /></a>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#installing-pyop2" id="id2">Installing PyOP2</a><ul>
+<li><a class="reference internal" href="#quick-start" id="id3">Quick start</a></li>
+<li><a class="reference internal" href="#provisioning-a-virtual-machine" id="id4">Provisioning a virtual machine</a></li>
+<li><a class="reference internal" href="#preparing-the-system" id="id5">Preparing the system</a></li>
+<li><a class="reference internal" href="#obtaining-a-build-environment-on-mac-os" id="id6">Obtaining a build environment on Mac OS</a></li>
+<li><a class="reference internal" href="#dependencies" id="id7">Dependencies</a><ul>
+<li><a class="reference internal" href="#common" id="id8">Common</a></li>
+<li><a class="reference internal" href="#petsc" id="id9">PETSc</a></li>
+<li><a class="reference internal" href="#cuda-backend" id="id10">CUDA backend:</a></li>
+<li><a class="reference internal" href="#opencl-backend" id="id11">OpenCL backend:</a></li>
+<li><a class="reference internal" href="#hdf5" id="id12">HDF5</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-pyop2" id="id13">Building PyOP2</a></li>
+<li><a class="reference internal" href="#setting-up-the-environment" id="id14">Setting up the environment</a></li>
+<li><a class="reference internal" href="#testing-your-installation" id="id15">Testing your installation</a></li>
+<li><a class="reference internal" href="#troubleshooting" id="id16">Troubleshooting</a><ul>
+<li><a class="reference internal" href="#troubleshooting-test-failures" id="id17">Troubleshooting test failures</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
 <div class="section" id="installing-pyop2">
-<h1>Installing PyOP2<a class="headerlink" href="#installing-pyop2" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id2">Installing PyOP2</a><a class="headerlink" href="#installing-pyop2" title="Permalink to this headline">¶</a></h1>
 <p>The main testing platform for PyOP2 is Ubuntu 12.04 64-bit with Python
-2.7.3. Other UNIX-like systems may or may not work. Microsoft Windows is
-not supported.</p>
+2.7.3. Other UNIX-like systems may or may not work. Mac OS X 10.7 and
+10.9 are also known to work. Microsoft Windows may work, but is not a
+supported platform.</p>
 <div class="section" id="quick-start">
-<h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id3">Quick start</a><a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
 <p>For the impatient there is a script for the unattended installation of
 PyOP2 and its dependencies on a Ubuntu 12.04 or compatible platform.
 Only the sequential and OpenMP backends are covered at the moment.</p>
@@ -100,7 +128,7 @@ it</a>.</p>
 instructions follow for virtual machine and native installations.</p>
 </div>
 <div class="section" id="provisioning-a-virtual-machine">
-<h2>Provisioning a virtual machine<a class="headerlink" href="#provisioning-a-virtual-machine" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Provisioning a virtual machine</a><a class="headerlink" href="#provisioning-a-virtual-machine" title="Permalink to this headline">¶</a></h2>
 <p>A <tt class="docutils literal"><span class="pre">Vagrantfile</span></tt> is provided for automatic provisioning of a Ubuntu
 12.04 64bit virtual machine with PyOP2 preinstalled. It requires
 <a class="reference external" href="https://www.virtualbox.org/wiki/Linux_Downloads">VirtualBox 4.2</a> and
@@ -112,25 +140,67 @@ for use with VirtualBox, boot the VM and install PyOP2 and all
 dependencies using the above install script.</p>
 </div>
 <div class="section" id="preparing-the-system">
-<h2>Preparing the system<a class="headerlink" href="#preparing-the-system" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Preparing the system</a><a class="headerlink" href="#preparing-the-system" title="Permalink to this headline">¶</a></h2>
 <p>PyOP2 requires a number of tools and libraries to be available:</p>
 <ul class="simple">
-<li>gcc, make, CMake</li>
+<li>A C compiler (for example gcc or clang), make</li>
 <li>Git, Mercurial</li>
 <li>pip and the Python headers</li>
-<li>boost 1.48 or newer</li>
 </ul>
 <p>On a Debian-based system (Ubuntu, Mint, etc.) install them by running:</p>
 <div class="highlight-python"><pre>sudo apt-get install -y build-essential python-dev git-core mercurial \
-cmake cmake-curses-gui python-pip libboost-dev</pre>
+  python-pip</pre>
 </div>
-<p><strong>Note:</strong> On Ubuntu 12.04, the default boost version is 1.46, which is too
-old. Please install boost 1.48:</p>
-<div class="highlight-python"><pre>sudo apt-get install -y libboost1.48-dev</pre>
 </div>
+<div class="section" id="obtaining-a-build-environment-on-mac-os">
+<span id="mac-install"></span><h2><a class="toc-backref" href="#id6">Obtaining a build environment on Mac OS</a><a class="headerlink" href="#obtaining-a-build-environment-on-mac-os" title="Permalink to this headline">¶</a></h2>
+<p>We recommend using <a class="reference external" href="http://brew.sh">Homebrew</a> as a package manager
+for the required packages on Mac OS systems.  Obtaining a build
+environment for PyOP2 consists of the following:</p>
+<ol class="arabic">
+<li><p class="first">Install Xcode.  For OS X 10.9 (Mavericks) this is possible through
+the App Store.  For earlier versions, try
+<a class="reference external" href="https://developer.apple.com/downloads">https://developer.apple.com/downloads</a> (note that on OS X 10.7
+(Lion) you will need to obtain Xcode 4.6 rather than Xcode 5)</p>
+</li>
+<li><p class="first">If you did not install Xcode 5, you will need to additionally
+install the Xcode command line tools through the downloads section
+of Xcode&#8217;s preferences</p>
+</li>
+<li><p class="first">Install homebrew, following the instructions at <a class="reference external" href="http://brew.sh">http://brew.sh</a></p>
+</li>
+<li><p class="first">Install an MPI library (PyOP2 is tested with openmpi):</p>
+<div class="highlight-python"><pre>brew install openmpi</pre>
+</div>
+</li>
+<li><p class="first">Install an up-to-date Python via homebrew:</p>
+<div class="highlight-python"><pre>brew install python</pre>
+</div>
+<p><strong>Note:</strong> Do not follow the instructions to update pip, since they
+currently result in a broken pip installation (see
+<a class="reference external" href="https://github.com/Homebrew/homebrew/issues/26900">https://github.com/Homebrew/homebrew/issues/26900</a>)</p>
+</li>
+<li><p class="first">Install numpy via homebrew:</p>
+<div class="highlight-python"><pre>brew tap homebrew/python
+brew install numpy</pre>
+</div>
+</li>
+<li><p class="first">Install python dependencies via pip:</p>
+<div class="highlight-python"><pre>pip install decorator
+pip install cython
+pip install mpi4py
+pip install pytest
+pip install flake8</pre>
+</div>
+</li>
+</ol>
+<p>Your system is now ready to move on to installation of <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> and
+<a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> described below.  Note that on Mac OS we do not recommend
+using sudo when installing, as such when following instructions below
+to install with pip just remove the <tt class="docutils literal"><span class="pre">sudo</span></tt> portion of the command.</p>
 </div>
 <div class="section" id="dependencies">
-<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id7">Dependencies</a><a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <p>To install dependencies system-wide use <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">...</span></tt>, to
 install to a user site use <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--user</span> <span class="pre">...</span></tt>. If you don&#8217;t want
 PyOP2 or its dependencies interfering with your existing Python environment,
@@ -143,7 +213,7 @@ appropriately.</dd>
 <p><strong>Note:</strong> Installing to the user site does not always give packages
 priority over system installed packages on your <tt class="docutils literal"><span class="pre">sys.path</span></tt>.</p>
 <div class="section" id="common">
-<h3>Common<a class="headerlink" href="#common" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">Common</a><a class="headerlink" href="#common" title="Permalink to this headline">¶</a></h3>
 <p>Common dependencies:</p>
 <ul class="simple">
 <li>Cython &gt;= 0.17</li>
@@ -180,7 +250,7 @@ can selectively upgrade packages via <tt class="docutils literal"><span class="p
 </div>
 </div>
 <div class="section" id="petsc">
-<h3>PETSc<a class="headerlink" href="#petsc" title="Permalink to this headline">¶</a></h3>
+<span id="petsc-install"></span><h3><a class="toc-backref" href="#id9">PETSc</a><a class="headerlink" href="#petsc" title="Permalink to this headline">¶</a></h3>
 <p>PyOP2 uses <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>, the Python bindings for the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> linear algebra
 library and requires:</p>
 <ul class="simple">
@@ -194,9 +264,15 @@ it. Note that no current packaged version for any OS will suffice.</p>
 compiler) are installed. On a Debian based system, run:</p>
 <div class="highlight-python"><pre>sudo apt-get install -y libopenmpi-dev openmpi-bin libblas-dev liblapack-dev gfortran</pre>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you followed the instructions above for installation of
+dependencies on Mac OS X, you should be ready to build <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>
+without installing any additional packages at this point.</p>
+</div>
 <p>Then install <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> via <tt class="docutils literal"><span class="pre">pip</span></tt></p>
 <div class="highlight-python"><pre>sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
-  pip install git+https://bitbucket.org/petsc/petsc.git@next#egg=petsc
+  pip install -e git+https://bitbucket.org/petsc/petsc.git@next#egg=petsc
 unset PETSC_DIR
 unset PETSC_ARCH</pre>
 </div>
@@ -211,15 +287,20 @@ stage</p>
 <p>If you built <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> using <tt class="docutils literal"><span class="pre">pip</span></tt>, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt> and <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt>
 should be left unset when building <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>.</p>
 <p>Install <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>sudo pip install git+https://bitbucket.org/petsc/petsc4py.git</pre>
+<div class="highlight-python"><pre>sudo pip install -e git+https://bitbucket.org/petsc/petsc4py.git</pre>
 </div>
 <p>If you have previously installed and older version of <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> or <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a>,
 <tt class="docutils literal"><span class="pre">pip</span></tt> might tell you that the requirements are already satisfied when running
 above commands. In that case, use <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-U</span> <span class="pre">--no-deps</span></tt> to upgrade
 (<tt class="docutils literal"><span class="pre">--no-deps</span></tt> prevents also recursively upgrading any dependencies).</p>
+<p>The <tt class="docutils literal"><span class="pre">-e</span></tt> flag instructs <tt class="docutils literal"><span class="pre">pip</span></tt> to not delete the Git clone after the
+installation and saves you having to clone fresh for each upgrade.</p>
+<p>If you only intend to run PyOP2 on CPUs (not GPUs) you can now skip
+straight to building PyOP2, otherwise read on for additional
+dependencies.</p>
 </div>
 <div class="section" id="cuda-backend">
-<span id="cuda-installation"></span><h3>CUDA backend:<a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h3>
+<span id="cuda-installation"></span><h3><a class="toc-backref" href="#id10">CUDA backend:</a><a class="headerlink" href="#cuda-backend" title="Permalink to this headline">¶</a></h3>
 <p>Dependencies:</p>
 <ul class="simple">
 <li>boost-python</li>
@@ -260,7 +341,7 @@ sudo cp siteconf.py /etc/aksetup-defaults.py</pre>
 </div>
 </div>
 <div class="section" id="opencl-backend">
-<span id="opencl-installation"></span><h3>OpenCL backend:<a class="headerlink" href="#opencl-backend" title="Permalink to this headline">¶</a></h3>
+<span id="opencl-installation"></span><h3><a class="toc-backref" href="#id11">OpenCL backend:</a><a class="headerlink" href="#opencl-backend" title="Permalink to this headline">¶</a></h3>
 <p>Dependencies:</p>
 <ul class="simple">
 <li>Jinja2</li>
@@ -311,7 +392,7 @@ sudo ./Install-AMD-APP.sh</pre>
 </div>
 </div>
 <div class="section" id="hdf5">
-<h3>HDF5<a class="headerlink" href="#hdf5" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">HDF5</a><a class="headerlink" href="#hdf5" title="Permalink to this headline">¶</a></h3>
 <p>PyOP2 allows initializing data structures using data stored in HDF5
 files. To use this feature you need the optional dependency
 <a class="reference external" href="http://h5py.org">h5py</a>.</p>
@@ -322,7 +403,7 @@ files. To use this feature you need the optional dependency
 </div>
 </div>
 <div class="section" id="building-pyop2">
-<h2>Building PyOP2<a class="headerlink" href="#building-pyop2" title="Permalink to this headline">¶</a></h2>
+<span id="pyop2-install"></span><h2><a class="toc-backref" href="#id13">Building PyOP2</a><a class="headerlink" href="#building-pyop2" title="Permalink to this headline">¶</a></h2>
 <p>Clone the PyOP2 repository:</p>
 <div class="highlight-python"><pre>git clone git://github.com/OP2/PyOP2.git</pre>
 </div>
@@ -339,7 +420,7 @@ modules will be built automatically and amending <tt class="docutils literal"><s
 necessary.</p>
 </div>
 <div class="section" id="setting-up-the-environment">
-<h2>Setting up the environment<a class="headerlink" href="#setting-up-the-environment" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id14">Setting up the environment</a><a class="headerlink" href="#setting-up-the-environment" title="Permalink to this headline">¶</a></h2>
 <p>To make sure PyOP2 finds all its dependencies, create a file <tt class="docutils literal"><span class="pre">.env</span></tt>
 e.g. in your PyOP2 root directory and source it via <tt class="docutils literal"><span class="pre">.</span> <span class="pre">.env</span></tt> when
 using PyOP2. Use the template below, adjusting paths and removing
@@ -355,7 +436,7 @@ export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH</pre>
 module</a>.</p>
 </div>
 <div class="section" id="testing-your-installation">
-<h2>Testing your installation<a class="headerlink" href="#testing-your-installation" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id15">Testing your installation</a><a class="headerlink" href="#testing-your-installation" title="Permalink to this headline">¶</a></h2>
 <p>PyOP2 unit tests use <a class="reference external" href="http://pytest.org">pytest</a> &gt;= 2.3. Install via package
 manager:</p>
 <div class="highlight-python"><pre>sudo apt-get install python-pytest</pre>
@@ -380,7 +461,7 @@ export PATH=${PATH}:${HOME}/.local/bin</pre>
 and skipping those for not available backends.</p>
 </div>
 <div class="section" id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id16">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
 <p>Start by verifying that PyOP2 picks up the &#8220;correct&#8221; dependencies, in
 particular if you have several versions of a Python package installed in
 different places on the system.</p>
@@ -389,7 +470,7 @@ from. To print the module search path, run:</p>
 <div class="highlight-python"><pre>python -c 'from pprint import pprint; import sys; pprint(sys.path)'</pre>
 </div>
 <div class="section" id="troubleshooting-test-failures">
-<h3>Troubleshooting test failures<a class="headerlink" href="#troubleshooting-test-failures" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id17">Troubleshooting test failures</a><a class="headerlink" href="#troubleshooting-test-failures" title="Permalink to this headline">¶</a></h3>
 <p>Run the tests as follows, to abort after the first failed test:</p>
 <p>Start with the unit tests with the sequential backend</p>
 <div class="highlight-python"><pre>py.test test/unit -vsx --tb=short --backend=sequential</pre>
@@ -412,6 +493,7 @@ manner as required.</p>
 <li><a class="reference internal" href="#quick-start">Quick start</a></li>
 <li><a class="reference internal" href="#provisioning-a-virtual-machine">Provisioning a virtual machine</a></li>
 <li><a class="reference internal" href="#preparing-the-system">Preparing the system</a></li>
+<li><a class="reference internal" href="#obtaining-a-build-environment-on-mac-os">Obtaining a build environment on Mac OS</a></li>
 <li><a class="reference internal" href="#dependencies">Dependencies</a><ul>
 <li><a class="reference internal" href="#common">Common</a></li>
 <li><a class="reference internal" href="#petsc">PETSc</a></li>

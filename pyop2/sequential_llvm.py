@@ -13,8 +13,8 @@ import llvm_cbuilder.shortnames as C
 
 
 def ctype_to_llvm(dtype):
-    map = {ctypes.c_long: C.int,
-           ctypes.c_int: C.int,
+    map = {ctypes.c_int: C.int,
+           ctypes.c_long: C.int,
            ctypes.c_uint: C.int,
            ctypes.c_float: C.float,
            ctypes.c_double: C.double}
@@ -28,8 +28,10 @@ def ctype_to_llvm(dtype):
 def nptype_to_llvm(dtype):
     map = {'int16': C.int16,
            'int32': C.int32,
+           'int64': C.int64,
            'uint16': C.int16,
            'uint32': C.int32,
+           'uint64': C.int64,
            'float32': C.float,
            'float64': C.double}
 
@@ -71,7 +73,6 @@ class JITModule(host.JITModule):
 
             var = llvm_module.add_global_variable(dtype, c.name)
             var.initializer = Constant.undef(dtype)
-            var.global_constant = True
             vars[c.name] = var
 
         # Create module for kernel code, verify, and link to main wrapper
@@ -86,14 +87,15 @@ class JITModule(host.JITModule):
         # inline"
         kernel_func = kernel_module.get_function_named(self._kernel.name)
         kernel_func.linkage = LINKAGE_EXTERNAL
-
-        kernel_module.verify()
         llvm_module.link_in(kernel_module)
 
         self.generate_wrapper(llvm_module, argtypes, vars)
         if not configuration["debug"]:
             self.optimise(llvm_module)
-        llvm_module.verify()
+
+        func = llvm_module.get_function_named('wrap_' + self._kernel.name)
+        self._exe = CExecutor(llvm_module)
+        self._func = self._exe.get_ctype_function(func, None, *argtypes)
 
         if configuration["debug"]:
             self._wrapper_code = str(llvm_module)
@@ -220,33 +222,29 @@ class JITModule(host.JITModule):
                 _kernel_args = [arg.llvm_kernel_arg(cb, vars, count)
                                 for count, arg in enumerate(self._args)]
 
-                kernel_handle(*_kernel_args)
-
+                kernel_handle(*_kernel_args, inline=_llvm_inline)
                 loop_idx += one
 
         cb.ret()
         cb.close()
 
-        self._exe = CExecutor(llvm_module)
-        self._func = self._exe.get_ctype_function(func, None, *argtypes)
+        # Remove inlined function to save time during optimisation passes.
+        if _llvm_inline:
+            llvm_module.get_function_named(self._kernel.name).delete()
 
-    def optimise(self, llvm_module, **kwargs):
+    def optimise(self, llvm_module):
+        pm = PassManager.new()
         tm = TargetMachine.new()
-        passes = build_pass_managers(tm, mod=llvm_module,
-                                     opt=_llvm_opts['opt_level'],
-                                     size=_llvm_opts['size_level'],
-                                     loop_vectorize=_llvm_opts['loop_vectorise'],
-                                     slp_vectorize=_llvm_opts['slp_vectorise'],
-                                     vectorize=_llvm_opts['block_vectorise'],
-                                     pm=_llvm_opts['mod_pass'],
-                                     fpm=_llvm_opts['func_pass'])
 
-        if _llvm_opts['func_pass']:
-            for func in llvm_module.functions:
-                passes.fpm.run(func)
+        pm.add(tm.target_data.clone())
+        pm.add(TargetLibraryInfo.new(tm.triple))
+        tm.add_analysis_passes(pm)
 
-        if _llvm_opts['mod_pass']:
-            passes.pm.run(llvm_module)
+        for opt in _llvm_opts:
+            print "adding", opt
+            pm.add(opt)
+
+        pm.run(llvm_module)
 
 
 class Arg(host.Arg):
@@ -406,21 +404,17 @@ class ParLoop(host.ParLoop):
 
 def _setup():
     global _llvm_opts
+    global _llvm_inline
 
-    if configuration["debug"]:
-        return
+    if not llvm.version >= (3, 3):
+        raise LLVMException("Unsupported LLVM version. Only LLVM >= 3.3 "
+                            "supported")
 
-    default_opts = {'opt_level': 3,
-                    'size_level': 0,
-                    'loop_vectorise': True,
-                    'slp_vectorise': True,
-                    'block_vectorise': True,
-                    'mod_pass': False,
-                    'func_pass': True}
+    if not configuration["debug"]:
+        _llvm_opts = configuration["llvm_opts"].split()
+        if 'inline' in _llvm_opts:
+            _llvm_inline = True
+            _llvm_opts.remove('inline')
 
-    _llvm_opts = default_opts
-
-    for k, v in configuration["llvm_opts"].items():
-        _llvm_opts[k] = v
-
-_llvm_opts = None
+_llvm_opts = []
+_llvm_inline = False

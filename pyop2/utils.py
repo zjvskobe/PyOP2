@@ -251,6 +251,8 @@ def parser(description=None, group=False):
                    choices=['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG'],
                    help='set logging level (default=WARN)' if group else
                    'set pyop2 logging level (default=WARN)')
+    g.add_argument('-opts', '--llvm-opts', default='', type=str,
+                   help='LLVM optimisation passes (default is none)')
 
     return parser
 

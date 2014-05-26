@@ -59,9 +59,9 @@ class Configuration(object):
         written to?
     :param print_cache_size: Should PyOP2 print the size of caches at
         program exit?
-    :param llvm_opts: Optional dictionary containing optimisation flags for use
-        with the sequential_llvm backend. See :method:`_setup()` in
-        sequential_llvm for more info.
+    :param llvm_opts: Optional string containing LLVM optimisation pass flags.
+        See http://llvm.org/docs/Passes.html for a partial list of flags that
+        are supported. (e.g. "bb-vectorize instcombine loop-reduce")
     """
     # name, env variable, type, default, write once
     DEFAULTS = {
@@ -79,7 +79,7 @@ class Configuration(object):
         "print_cache_size": ("PYOP2_PRINT_CACHE_SIZE", bool, False),
         "dump_gencode_path": ("PYOP2_DUMP_GENCODE_PATH", str,
                               os.path.join(gettempdir(), "pyop2-gencode")),
-        "llvm_opts": ("", dict, {}),
+        "llvm_opts": ("PYOP2_LLVM_OPT_FLAGS", str, ""),
     }
     """Default values for PyOP2 configuration parameters"""
     READONLY = ['backend']

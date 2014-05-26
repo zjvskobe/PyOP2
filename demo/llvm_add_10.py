@@ -10,7 +10,7 @@ opt["backend"] = "sequential_llvm"
 op2.init(**opt)
 
 # Create sample data
-A = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+A = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.int32)
 
 # Create set of nodes.
 nnode = 10
@@ -18,11 +18,11 @@ nodes = op2.Set(nnode, "nodes")
 p_nodes = op2.Dat(nodes, data=A, name="p_nodes")
 
 # Constant declarations
-op2.Const(6, [[0, 1], [9, 2], [0, 3]], 'k', dtype=np.int)
-op2.Const(1, 5, 'j', dtype=np.int)
+op2.Const(6, [[0, 1], [9, 2], [0, 3]], 'k', dtype=np.int32)
+op2.Const(1, 5, 'j', dtype=np.int32)
 
 # Globals
-p_global = op2.Global(2, data=[0, 2], name="p_global", dtype=np.int)
+p_global = op2.Global(2, data=[0, 2], name="p_global", dtype=np.int32)
 
 # Create kernel
 kernel = op2.Kernel("""

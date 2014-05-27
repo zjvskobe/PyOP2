@@ -241,7 +241,6 @@ class JITModule(host.JITModule):
         tm.add_analysis_passes(pm)
 
         for opt in _llvm_opts:
-            print "adding", opt
             pm.add(opt)
 
         pm.run(llvm_module)

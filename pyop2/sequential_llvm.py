@@ -130,6 +130,7 @@ class JITModule(host.JITModule):
         file = open('/tmp/kernel.c', "w")
         file.write(code)
         file.close()
+
         output = subprocess.check_output(['clang', '/tmp/kernel.c',
                                           '-femit-all-decls', '-O0',
                                           '-S', '-emit-llvm', '-o',
@@ -240,9 +241,24 @@ class JITModule(host.JITModule):
         pm.add(TargetLibraryInfo.new(tm.triple))
         tm.add_analysis_passes(pm)
 
-        for opt in _llvm_opts:
-            pm.add(opt)
+        # Pass manager builder: set vectorisation and/or numerical opt levels.
+        pmb = PassManagerBuilder.new()
+        opt_levels = {'O0': 0,
+                      'O1': 1,
+                      'O2': 2,
+                      'O3': 3}
 
+        pmb.opt_level = 0
+
+        for opt in _llvm_opts:
+            if opt in opt_levels.keys():
+                pmb.opt_level = opt_levels[opt]
+            elif opt == 'bb-vectorize':
+                pmb.bbvectorize = True
+            else:
+                pm.add(opt)
+
+        pmb.populate(pm)
         pm.run(llvm_module)
 
 

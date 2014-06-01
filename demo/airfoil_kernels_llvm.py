@@ -64,7 +64,7 @@ from pyop2.op2 import Kernel
 llvm_kernel_opt = {'llvm_kernel': True}
 
 save_soln_code = """
-define void @save_soln(double* %q, double* %qold) {
+define void @save_soln(double* %q, double* %qold) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %n = alloca i32, align 4
@@ -107,8 +107,7 @@ adt_calc_code = """
 @gm1 = external global double
 @cfl = external global double
 
-; Function Attrs: nounwind uwtable
-define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double* %q, double* %adt) {
+define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double* %q, double* %adt) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -162,7 +161,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %36 = fmul double 5.000000e-01, %35
   %37 = fsub double %28, %36
   %38 = fmul double %23, %37
-  %39 = call double @sqrt(double %38) #3
+  %39 = call double @sqrt(double %38) nounwind
   store double %39, double* %c, align 8
   %40 = load double** %2, align 8
   %41 = getelementptr inbounds double* %40, i64 0
@@ -187,7 +186,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %58 = load double* %dx, align 8
   %59 = fmul double %57, %58
   %60 = fsub double %56, %59
-  %61 = call double @fabs(double %60) #4
+  %61 = call double @fabs(double %60) nounwind readnone
   %62 = load double* %c, align 8
   %63 = load double* %dx, align 8
   %64 = load double* %dx, align 8
@@ -196,7 +195,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %67 = load double* %dy, align 8
   %68 = fmul double %66, %67
   %69 = fadd double %65, %68
-  %70 = call double @sqrt(double %69) #3
+  %70 = call double @sqrt(double %69) nounwind
   %71 = fmul double %62, %70
   %72 = fadd double %61, %71
   %73 = load double** %6, align 8
@@ -224,7 +223,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %92 = load double* %dx, align 8
   %93 = fmul double %91, %92
   %94 = fsub double %90, %93
-  %95 = call double @fabs(double %94) #4
+  %95 = call double @fabs(double %94) nounwind readnone
   %96 = load double* %c, align 8
   %97 = load double* %dx, align 8
   %98 = load double* %dx, align 8
@@ -233,7 +232,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %101 = load double* %dy, align 8
   %102 = fmul double %100, %101
   %103 = fadd double %99, %102
-  %104 = call double @sqrt(double %103) #3
+  %104 = call double @sqrt(double %103) nounwind
   %105 = fmul double %96, %104
   %106 = fadd double %95, %105
   %107 = load double** %6, align 8
@@ -263,7 +262,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %128 = load double* %dx, align 8
   %129 = fmul double %127, %128
   %130 = fsub double %126, %129
-  %131 = call double @fabs(double %130) #4
+  %131 = call double @fabs(double %130) nounwind readnone
   %132 = load double* %c, align 8
   %133 = load double* %dx, align 8
   %134 = load double* %dx, align 8
@@ -272,7 +271,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %137 = load double* %dy, align 8
   %138 = fmul double %136, %137
   %139 = fadd double %135, %138
-  %140 = call double @sqrt(double %139) #3
+  %140 = call double @sqrt(double %139) nounwind
   %141 = fmul double %132, %140
   %142 = fadd double %131, %141
   %143 = load double** %6, align 8
@@ -302,7 +301,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %164 = load double* %dx, align 8
   %165 = fmul double %163, %164
   %166 = fsub double %162, %165
-  %167 = call double @fabs(double %166) #4
+  %167 = call double @fabs(double %166) nounwind readnone
   %168 = load double* %c, align 8
   %169 = load double* %dx, align 8
   %170 = load double* %dx, align 8
@@ -311,7 +310,7 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   %173 = load double* %dy, align 8
   %174 = fmul double %172, %173
   %175 = fadd double %171, %174
-  %176 = call double @sqrt(double %175) #3
+  %176 = call double @sqrt(double %175) nounwind
   %177 = fmul double %168, %176
   %178 = fadd double %167, %177
   %179 = load double** %6, align 8
@@ -327,19 +326,16 @@ define void @adt_calc(double* %x1, double* %x2, double* %x3, double* %x4, double
   ret void
 }
 
-; Function Attrs: nounwind
-declare double @sqrt(double)
+declare double @sqrt(double) nounwind
 
-; Function Attrs: nounwind readnone
-declare double @fabs(double)
+declare double @fabs(double) nounwind readnone
 """
 
 res_calc_code = """
 @gm1 = external global double
 @eps = external global double
 
-; Function Attrs: nounwind uwtable
-define void @res_calc(double* %x1, double* %x2, double* %q1, double* %q2, double* %adt1, double* %adt2, double* %res1, double* %res2) {
+define void @res_calc(double* %x1, double* %x2, double* %q1, double* %q2, double* %adt1, double* %adt2, double* %res1, double* %res2) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -647,8 +643,7 @@ bres_calc_code = """
 @qinf = external global [4 x double]
 @eps = external global double
 
-; Function Attrs: nounwind uwtable
-define void @bres_calc(double* %x1, double* %x2, double* %q1, double* %adt1, double* %res1, i32* %bound) {
+define void @bres_calc(double* %x1, double* %x2, double* %q1, double* %adt1, double* %res1, i32* %bound) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -917,7 +912,7 @@ define void @bres_calc(double* %x1, double* %x2, double* %q1, double* %adt1, dou
 """
 
 update_code = """
-define void @update(double* %qold, double* %q, double* %res, double* %adt, double* %rms) {
+define void @update(double* %qold, double* %q, double* %res, double* %adt, double* %rms) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8

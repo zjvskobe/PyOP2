@@ -68,7 +68,7 @@ res_calc_code = """
 @m2 = external global double
 @gm1i = external global double
 
-define void @res_calc(double** %x, double** %phim, double* %K, double** %res) {
+define void @res_calc(double** %x, double** %phim, double* %K, double** %res) nounwind uwtable {
   %1 = alloca double**, align 8
   %2 = alloca double**, align 8
   %3 = alloca double*, align 8
@@ -553,7 +553,7 @@ define void @res_calc(double** %x, double** %phim, double* %K, double** %res) {
   store double %306, double* %Dk, align 8
   %307 = load double* %Dk, align 8
   %308 = load double* @gm1i, align 8
-  %309 = call double @pow(double %307, double %308) #1
+  %309 = call double @pow(double %307, double %308) nounwind
   store double %309, double* %rho, align 8
   %310 = load double* %rho, align 8
   %311 = load double* %Dk, align 8
@@ -727,15 +727,13 @@ define void @res_calc(double** %x, double** %phim, double* %K, double** %res) {
   ret void
 }
 
-; Function Attrs: nounwind
-declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1)
+declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) nounwind
 
-; Function Attrs: nounwind
-declare double @pow(double, double)
+declare double @pow(double, double) nounwind
 """
 
 dirichlet_code = """
-define void @dirichlet(double* %res) {
+define void @dirichlet(double* %res) nounwind uwtable {
   %1 = alloca double*, align 8
   store double* %res, double** %1, align 8
   %2 = load double** %1, align 8
@@ -745,7 +743,7 @@ define void @dirichlet(double* %res) {
 """
 
 init_cg_code = """
-define void @init_cg(double* %r, double* %c, double* %u, double* %v, double* %p) {
+define void @init_cg(double* %r, double* %c, double* %u, double* %v, double* %p) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -778,7 +776,7 @@ define void @init_cg(double* %r, double* %c, double* %u, double* %v, double* %p)
 """
 
 spMV_code = """
-define void @spMV(double** %v, double* %K, double** %p) {
+define void @spMV(double** %v, double* %K, double** %p) nounwind uwtable {
   %1 = alloca double**, align 8
   %2 = alloca double*, align 8
   %3 = alloca double**, align 8
@@ -1046,7 +1044,7 @@ define void @spMV(double** %v, double* %K, double** %p) {
 """
 
 dotPV_code = """
-define void @dotPV(double* %p, double* %v, double* %c) {
+define void @dotPV(double* %p, double* %v, double* %c) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -1067,7 +1065,7 @@ define void @dotPV(double* %p, double* %v, double* %c) {
 """
 
 updateUR_code = """
-define void @updateUR(double* %u, double* %r, double* %p, double* %v, double* %alpha) {
+define void @updateUR(double* %u, double* %r, double* %p, double* %v, double* %alpha) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -1103,7 +1101,7 @@ define void @updateUR(double* %u, double* %r, double* %p, double* %v, double* %a
 """
 
 dotR_code = """
-define void @dotR(double* %r, double* %c) #0 {
+define void @dotR(double* %r, double* %c) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   store double* %r, double** %1, align 8
@@ -1122,7 +1120,7 @@ define void @dotR(double* %r, double* %c) #0 {
 """
 
 updateP_code = """
-define void @updateP(double* %r, double* %p, double* %beta) {
+define void @updateP(double* %r, double* %p, double* %beta) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -1144,7 +1142,7 @@ define void @updateP(double* %r, double* %p, double* %beta) {
 """
 
 update_code = """
-define void @update(double* %phim, double* %res, double* %u, double* %rms) {
+define void @update(double* %phim, double* %res, double* %u, double* %rms) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -1173,6 +1171,7 @@ define void @update(double* %phim, double* %res, double* %u, double* %rms) {
   ret void
 }
 """
+
 
 llvm_kernel_opt = {'llvm_kernel': True}
 

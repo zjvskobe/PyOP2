@@ -145,7 +145,7 @@ beta = op2.Global(1, data=1.0, name="beta", dtype=fp_type)
 llvm_kernel_opt = {'llvm_kernel': True}
 
 res = op2.Kernel("""
-define void @res(double* %A, double* %u, double* %du, double* %beta) {
+define void @res(double* %A, double* %u, double* %du, double* %beta) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8
@@ -172,8 +172,7 @@ define void @res(double* %A, double* %u, double* %du, double* %beta) {
 update = op2.Kernel("""
 @alpha = external global double
 
-; Function Attrs: nounwind uwtable
-define void @update(double* %r, double* %du, double* %u, double* %u_sum, double* %u_max) {
+define void @update(double* %r, double* %du, double* %u, double* %u_sum, double* %u_max) nounwind uwtable {
   %1 = alloca double*, align 8
   %2 = alloca double*, align 8
   %3 = alloca double*, align 8

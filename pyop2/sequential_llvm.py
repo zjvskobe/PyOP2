@@ -93,8 +93,9 @@ class JITModule(host.JITModule):
         if not configuration["debug"]:
             self.optimise(llvm_module)
 
+        engine = EngineBuilder.new(llvm_module).force_jit().opt(0).create()
         func = llvm_module.get_function_named('wrap_' + self._kernel.name)
-        self._exe = CExecutor(llvm_module)
+        self._exe = CExecutor(engine)
         self._func = self._exe.get_ctype_function(func, None, *argtypes)
 
         if configuration["debug"]:
@@ -234,14 +235,8 @@ class JITModule(host.JITModule):
             llvm_module.get_function_named(self._kernel.name).delete()
 
     def optimise(self, llvm_module):
-        pm = PassManager.new()
-        tm = TargetMachine.new()
-
-        pm.add(tm.target_data.clone())
-        pm.add(TargetLibraryInfo.new(tm.triple))
-        tm.add_analysis_passes(pm)
-
         # Pass manager builder: set vectorisation and/or numerical opt levels.
+        pm = PassManager.new()
         pmb = PassManagerBuilder.new()
         opt_levels = {'O0': 0,
                       'O1': 1,
@@ -249,6 +244,7 @@ class JITModule(host.JITModule):
                       'O3': 3}
 
         pmb.opt_level = 0
+        opts = []
 
         for opt in _llvm_opts:
             if opt in opt_levels.keys():
@@ -256,7 +252,16 @@ class JITModule(host.JITModule):
             elif opt == 'bb-vectorize':
                 pmb.bbvectorize = True
             else:
-                pm.add(opt)
+                opts += [opt]
+
+        tm = TargetMachine.new(opt=pmb.opt_level)
+
+        pm.add(tm.target_data.clone())
+        pm.add(TargetLibraryInfo.new(tm.triple))
+        tm.add_analysis_passes(pm)
+
+        for opt in opts:
+            pm.add(opt)
 
         pmb.populate(pm)
         pm.run(llvm_module)

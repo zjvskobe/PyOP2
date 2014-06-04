@@ -368,7 +368,8 @@ Dependencies:
 
 * LLVM 3.3
 * llvmpy 0.12.4
-* Clang >= 3.3
+* Clang >= 3.2 (this should be unnecessary once C kernel strings are removed
+from PyOP2)
 
 First, install LLVM 3.3. It is recommended you keep this seperate
 from your system installation of LLVM::
@@ -377,8 +378,7 @@ from your system installation of LLVM::
   tar xzf llvm-3.3.src.tar.gz
   cd llvm-3.3.src
   ./configure --enable-optimized --prefix=LLVM_INSTALL_PATH
-  REQUIRES_RTTI=1 make
-  make install
+  REQUIRES_RTTI=1 make install
 
 Install llvmpy::
 
@@ -387,11 +387,12 @@ Install llvmpy::
   LLVM_CONFIG_PATH=LLVM_INSTALL_PATH/bin/llvm-config python setup.py install
   
 Finally, for translation of C kernels to LLVM kernels, Clang is required.
-This can be your system version of Clang, using any modern version (>=3.3).
+This can be your system version of Clang - however, only Clang 3.2 and 3.3
+have been tested.
 
 If Clang is not installed on your machine, you can install it via apt-get::
 
-  sudo apt-get install clang-3.4
+  sudo apt-get install clang-3.3
 
 HDF5
 ~~~~

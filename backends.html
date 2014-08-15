@@ -167,7 +167,7 @@ pointers are to two consecutive double values, since the
 OpenMP backend is annotated with OpenMP pragmas to execute in parallel with
 multiple threads. To avoid race conditions on data access, the iteration set
 is coloured and a thread safe execution plan is computed as described in
-<em class="xref std std-ref">colouring</em>.</p>
+<a class="reference internal" href="plan.html#plan-colouring"><em>Colouring</em></a>.</p>
 <p>The JIT compiled code for the parallel loop from above changes as follows:</p>
 <div class="highlight-c"><pre>void wrap_midpoint__(PyObject* _boffset,
                      PyObject* _nblocks,

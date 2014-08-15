@@ -209,14 +209,6 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`vecset_test` Module
--------------------------
-
-.. automodule:: pyop2.vecset_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`version` Module
 ---------------------
 

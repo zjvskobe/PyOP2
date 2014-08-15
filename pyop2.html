@@ -2380,11 +2380,11 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>typ</strong> &#8211; A class of cached object.  For example</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>typ</strong> &#8211; A class of cached object.  For example
+<a class="reference internal" href="#pyop2.caching.ObjectCached" title="pyop2.caching.ObjectCached"><tt class="xref py py-class docutils literal"><span class="pre">ObjectCached</span></tt></a> or <a class="reference internal" href="#pyop2.caching.Cached" title="pyop2.caching.Cached"><tt class="xref py py-class docutils literal"><span class="pre">Cached</span></tt></a>.</td>
 </tr>
 </tbody>
 </table>
-<p><a class="reference internal" href="#pyop2.caching.ObjectCached" title="pyop2.caching.ObjectCached"><tt class="xref py py-class docutils literal"><span class="pre">ObjectCached</span></tt></a> or <a class="reference internal" href="#pyop2.caching.Cached" title="pyop2.caching.Cached"><tt class="xref py py-class docutils literal"><span class="pre">Cached</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="class">
@@ -3519,7 +3519,7 @@ should not hold any long term references to objects that
 you want to be collected.  In particular, after the
 <tt class="docutils literal"><span class="pre">args</span></tt> have been inspected to produce the compiled code,
 they <strong>must not</strong> remain part of the object&#8217;s slots,
-otherwise they (and the <a class="reference internal" href="#pyop2.cuda.Dat" title="pyop2.cuda.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s, <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s
+otherwise they (and the <a class="reference internal" href="#pyop2.device.Dat" title="pyop2.device.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s, <a class="reference internal" href="#pyop2.finalised.Map" title="pyop2.finalised.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s
 and <a class="reference internal" href="#pyop2.finalised.Mat" title="pyop2.finalised.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>s they reference) will never be collected.</p>
 </div>
 <dl class="method">
@@ -4704,7 +4704,7 @@ should not hold any long term references to objects that
 you want to be collected.  In particular, after the
 <tt class="docutils literal"><span class="pre">args</span></tt> have been inspected to produce the compiled code,
 they <strong>must not</strong> remain part of the object&#8217;s slots,
-otherwise they (and the <a class="reference internal" href="#pyop2.cuda.Dat" title="pyop2.cuda.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s, <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s
+otherwise they (and the <a class="reference internal" href="#pyop2.device.Dat" title="pyop2.device.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s, <a class="reference internal" href="#pyop2.finalised.Map" title="pyop2.finalised.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s
 and <a class="reference internal" href="#pyop2.finalised.Mat" title="pyop2.finalised.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>s they reference) will never be collected.</p>
 </div>
 <dl class="method">
@@ -5154,11 +5154,10 @@ x[1] = y[1]</dd>
 <p>d.data[:] = np.arange(4)</p>
 <p>op2.par_loop(fn, s, d2(op2.WRITE), d(op2.READ, m))</p>
 <p>print d2.data
-&gt;&gt;&gt; [[ 0.  1.]</p>
-<blockquote>
-<div>[ 1.  2.]
-[ 2.  3.]
-[ 3.  0.]]</div></blockquote>
+# [[ 0.  1.]
+#  [ 1.  2.]
+#  [ 2.  3.]
+#  [ 3.  0.]]</p>
 </div></blockquote>
 <dl class="docutils">
 <dt>def fn2(x, y):</dt>
@@ -5167,11 +5166,10 @@ x[1] += y[0]</dd>
 </dl>
 <p>op2.par_loop(fn, s, d2(op2.INC), d(op2.READ, m[1]))</p>
 <p>print d2.data
-&gt;&gt;&gt; [[ 1.  2.]</p>
-<blockquote>
-<div>[ 3.  4.]
-[ 5.  6.]
-[ 3.  0.]]</div></blockquote>
+# [[ 1.  2.]
+#  [ 3.  4.]
+#  [ 5.  6.]
+#  [ 3.  0.]]</p>
 </div></blockquote>
 <dl class="class">
 <dt id="pyop2.pyparloop.Kernel">
@@ -5202,7 +5200,7 @@ should not hold any long term references to objects that
 you want to be collected.  In particular, after the
 <tt class="docutils literal"><span class="pre">args</span></tt> have been inspected to produce the compiled code,
 they <strong>must not</strong> remain part of the object&#8217;s slots,
-otherwise they (and the <a class="reference internal" href="#pyop2.cuda.Dat" title="pyop2.cuda.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s, <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s
+otherwise they (and the <a class="reference internal" href="#pyop2.device.Dat" title="pyop2.device.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a>s, <a class="reference internal" href="#pyop2.finalised.Map" title="pyop2.finalised.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>s
 and <a class="reference internal" href="#pyop2.finalised.Mat" title="pyop2.finalised.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>s they reference) will never be collected.</p>
 </div>
 </dd></dl>
@@ -5386,9 +5384,6 @@ The only recognised options are <cite>group</cite> and <cite>description</cite>.
 <tt class="descclassname">pyop2.utils.</tt><tt class="descname">get_petsc_dir</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.utils.get_petsc_dir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
-<div class="section" id="vecset-test-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">vecset_test</span></tt> Module<a class="headerlink" href="#vecset-test-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pyop2.version">
 <span id="id4"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">version</span></tt> Module<a class="headerlink" href="#module-pyop2.version" title="Permalink to this headline">¶</a></h2>
@@ -5617,7 +5612,6 @@ provide useful error messages if the user invokes them before calling
 <li><a class="reference internal" href="#module-pyop2.sparsity"><tt class="docutils literal"><span class="pre">sparsity</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.sparsity_new"><tt class="docutils literal"><span class="pre">sparsity_new</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.utils"><tt class="docutils literal"><span class="pre">utils</span></tt> Module</a></li>
-<li><a class="reference internal" href="#vecset-test-module"><tt class="docutils literal"><span class="pre">vecset_test</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.version"><tt class="docutils literal"><span class="pre">version</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.versioning"><tt class="docutils literal"><span class="pre">versioning</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.void"><tt class="docutils literal"><span class="pre">void</span></tt> Module</a></li>

@@ -151,7 +151,7 @@ boundary can contribute to off-process degrees of freedom and vice versa.</p>
 and vector entries, however its implementation is not thread safe. Concurrent
 insertion into <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> MPI matrices <em>is</em> thread safe if off-process insertions
 are not cached and concurrent writes to rows are avoided, which is done
-through colouring as described in <em class="xref std std-ref">colouring</em>.</p>
+through colouring as described in <a class="reference internal" href="plan.html#plan-colouring"><em>Colouring</em></a>.</p>
 <p>PyOP2 therefore disables <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a>&#8216;s off-process insertion feature and instead
 redundantly computes over all off process entities that touch local dofs,
 which is the <em>exec halo</em> section described above. The price for this is

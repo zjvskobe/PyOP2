@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>coffee Package &mdash; PyOP2 0.10.0 documentation</title>
+    <title>coffee Package &mdash; PyOP2 0.11.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.0',
+        VERSION:     '0.11.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.11.0 documentation" href="index.html" />
     <link rel="up" title="pyop2 Package" href="pyop2.html" />
     <link rel="prev" title="pyop2 Package" href="pyop2.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="pyop2.html" title="pyop2 Package"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li>
           <li><a href="pyop2.html" accesskey="U">pyop2 Package</a> &raquo;</li> 
       </ul>
     </div>  
@@ -52,6 +52,47 @@
             
   <div class="section" id="coffee-package">
 <h1>coffee Package<a class="headerlink" href="#coffee-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pyop2.coffee.ast_autotuner">
+<span id="ast-autotuner-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ast_autotuner</span></tt> Module<a class="headerlink" href="#module-pyop2.coffee.ast_autotuner" title="Permalink to this headline">¶</a></h2>
+<p>COFFEE&#8217;s autotuning system.</p>
+<dl class="class">
+<dt id="pyop2.coffee.ast_autotuner.Autotuner">
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_autotuner.</tt><tt class="descname">Autotuner</tt><big>(</big><em>kernels</em>, <em>itspace</em>, <em>include_dirs</em>, <em>compiler</em>, <em>isa</em>, <em>blas</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_autotuner.Autotuner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Initialize the autotuner.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>kernels</strong> &#8211; list of code snippets implementing the kernel.</li>
+<li><strong>itspace</strong> &#8211; kernel&#8217;s iteration space.</li>
+<li><strong>include_dirs</strong> &#8211; list of directories to be searched for header files</li>
+<li><strong>compiler</strong> &#8211; backend compiler info</li>
+<li><strong>isa</strong> &#8211; instruction set architecture info</li>
+<li><strong>blas</strong> &#8211; COFFEE&#8217;s dense linear algebra library info</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pyop2.coffee.ast_autotuner.Autotuner.tune">
+<tt class="descname">tune</tt><big>(</big><em>resolution</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_autotuner.Autotuner.tune" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the fastest kernel implementation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resolution</strong> &#8211; the amount of time in milliseconds a kernel is run.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-pyop2.coffee.ast_base">
 <span id="ast-base-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ast_base</span></tt> Module<a class="headerlink" href="#module-pyop2.coffee.ast_base" title="Permalink to this headline">¶</a></h2>
 <p>This file contains the hierarchy of classes that implement a kernel&#8217;s
@@ -64,6 +105,11 @@ Abstract Syntax Tree (ast).</p>
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.point_ofs">
 <tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point_ofs</tt><big>(</big><em>p</em>, <em>o</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.point_ofs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyop2.coffee.ast_base.point_ofs_stride">
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point_ofs_stride</tt><big>(</big><em>p</em>, <em>o</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.point_ofs_stride" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -296,7 +342,7 @@ in as simple strings.</p>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Symbol">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Symbol</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Symbol" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Symbol</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Symbol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Expr" title="pyop2.coffee.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Expr</span></tt></a></p>
 <p>A generic symbol. The length of <tt class="docutils literal"><span class="pre">rank</span></tt> is the tensor rank:</p>
 <ul class="simple">
@@ -371,7 +417,7 @@ symbol is accessing, or the size of the tensor itself.</td>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXLoad">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXLoad</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLoad" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXLoad</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLoad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Symbol" title="pyop2.coffee.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Symbol</span></tt></a></p>
 <p>Load of values in a vector register using AVX intrinsics.</p>
 <dl class="method">
@@ -383,7 +429,7 @@ symbol is accessing, or the size of the tensor itself.</td>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXSet">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSet</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSet</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Symbol" title="pyop2.coffee.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Symbol</span></tt></a></p>
 <p>Replicate the symbol&#8217;s value in all slots of a vector register
 using AVX intrinsics.</p>
@@ -674,6 +720,45 @@ The intrinsic function used is <tt class="docutils literal"><span class="pre">_m
 <dd></dd></dl>
 
 </div>
+<div class="section" id="module-pyop2.coffee.ast_linearalgebra">
+<span id="ast-linearalgebra-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ast_linearalgebra</span></tt> Module<a class="headerlink" href="#module-pyop2.coffee.ast_linearalgebra" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra">
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_linearalgebra.</tt><tt class="descname">AssemblyLinearAlgebra</tt><big>(</big><em>assembly_optimizer</em>, <em>kernel_decls</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Convert assembly code into sequences of calls to external dense linear
+algebra libraries. Currently, MKL, ATLAS, and EIGEN are supported.</p>
+<p>Initialize an AssemblyLinearAlgebra object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>assembly_optimizer</strong> &#8211; an AssemblyOptimizer object of the AST</li>
+<li><strong>kernel_decls</strong> &#8211; list of declarations used in the AST</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra.transform">
+<tt class="descname">transform</tt><big>(</big><em>library</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform perfect loop nests representing matrix-matrix multiplies into
+calls to a dense linear algebra library.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>library</strong> &#8211; the BLAS library that should be used (mkl, atlas, eigen).</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-pyop2.coffee.ast_optimizer">
 <span id="ast-optimizer-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ast_optimizer</span></tt> Module<a class="headerlink" href="#module-pyop2.coffee.ast_optimizer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -706,17 +791,31 @@ the loops that were marked by the user/higher layer with a <tt class="docutils l
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.generalized_licm">
-<tt class="descname">generalized_licm</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.generalized_licm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform loop-invariant code motion.</p>
-<p>Invariant expressions found in the loop nest are moved &#8220;after&#8221; the
-outermost independent loop and &#8220;after&#8221; the fastest varying dimension
-loop. Here, &#8220;after&#8221; means that if the loop nest has two loops i and j,
-and j is in the body of i, then i comes after j (i.e. the loop nest
-has to be read from right to left)</p>
-<p>For example, if a sub-expression E depends on [i, j] and the loop nest
-has three loops [i, j, k], then E is hoisted out from the body of k to
-the body of i). All hoisted expressions are then wrapped within a
-suitable loop in order to exploit compiler autovectorization.</p>
+<tt class="descname">generalized_licm</tt><big>(</big><em>level</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.generalized_licm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generalized loop-invariant code motion.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>level</strong> &#8211; <p>The optimization level (0, 1, 2, 3). The higher, the more
+invasive is the re-writing of the assembly expressions,
+trying to hoist as much invariant code as possible.
+level == 1: performs &#8220;basic&#8221; generalized loop-invariant</p>
+<blockquote>
+<div>code motion</div></blockquote>
+<dl class="docutils">
+<dt>level == 2: level 1 + expansion of terms, factorization of</dt>
+<dd>basis functions appearing multiple times in the
+same expression, and finally another run of
+loop-invariant code motion to move invariant
+sub-expressions exposed by factorization</dd>
+<dt>level == 3: level 2 + precomputation of read-only expressions</dt>
+<dd>out of the assembly loop nest</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -744,10 +843,234 @@ compiler unrolling and vector-promoting the sliced loops.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.unroll">
+<tt class="descname">unroll</tt><big>(</big><em>loops_factor</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.unroll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unroll loops in the assembly nest.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>loops_factor</strong> &#8211; dictionary from loops to unroll (factor, increment).
+Loops are specified as integers: 0 = integration loop,
+1 = test functions loop, 2 = trial functions loop.
+A factor of 0 denotes that the corresponding loop
+is not present.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.permute_int_loop">
+<tt class="descname">permute_int_loop</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.permute_int_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Permute the integration loop with the innermost loop in the assembly nest.
+This transformation is legal if <tt class="docutils literal"><span class="pre">_precompute</span></tt> was invoked. Storage layout of
+all 2-dimensional arrays involved in the element matrix computation is
+transposed.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.split">
-<tt class="descname">split</tt><big>(</big><em>cut</em>, <em>length</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.split" title="Permalink to this definition">¶</a></dt>
-<dd><p>Split outer product RHS to improve resources utilization (e.g.
-vector registers).</p>
+<tt class="descname">split</tt><big>(</big><em>cut=1</em>, <em>length=0</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split assembly expressions into multiple chunks exploiting sum&#8217;s
+associativity. This is done to improve register pressure.
+This transformation &#8220;splits&#8221; an expression into at most <tt class="docutils literal"><span class="pre">length</span></tt> chunks
+of <tt class="docutils literal"><span class="pre">cut</span></tt> operands. If <tt class="docutils literal"><span class="pre">length</span> <span class="pre">=</span> <span class="pre">0</span></tt>, then the expression is completely
+split into chunks of <tt class="docutils literal"><span class="pre">cut</span></tt> operands.</p>
+<p>For example, consider the following piece of code:
+for i</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>for j</dt>
+<dd>A[i][j] += X[i]*Y[j] + Z[i]*K[j] + B[i]*X[j]</dd>
+</dl>
+</div></blockquote>
+<p>If <tt class="docutils literal"><span class="pre">cut=1</span></tt> and <tt class="docutils literal"><span class="pre">length=1</span></tt>, the cut is applied at most length=1 times, and this
+is transformed into:
+for i</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>for j</dt>
+<dd>A[i][j] += X[i]*Y[j]</dd>
+</dl>
+</div></blockquote>
+<p>// Reminder of the splitting:
+for i</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>for j</dt>
+<dd>A[i][j] += Z[i]*K[j] + B[i]*X[j]</dd>
+</dl>
+</div></blockquote>
+<p>If <tt class="docutils literal"><span class="pre">cut=1</span></tt> and <tt class="docutils literal"><span class="pre">length=0</span></tt>, length is ignored and the expression is cut into chunks
+of size <tt class="docutils literal"><span class="pre">cut=1</span></tt>:
+for i</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>for j</dt>
+<dd>A[i][j] += X[i]*Y[j]</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>for i</dt>
+<dd><dl class="first last docutils">
+<dt>for j</dt>
+<dd>A[i][j] += Z[i]*K[j]</dd>
+</dl>
+</dd>
+<dt>for i</dt>
+<dd><dl class="first last docutils">
+<dt>for j</dt>
+<dd>A[i][j] += B[i]*X[j]</dd>
+</dl>
+</dd>
+</dl>
+<p>If <tt class="docutils literal"><span class="pre">cut=2</span></tt> and <tt class="docutils literal"><span class="pre">length=0</span></tt>, length is ignored and the expression is cut into chunks
+of size <tt class="docutils literal"><span class="pre">cut=2</span></tt>:
+for i</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>for j</dt>
+<dd>A[i][j] += X[i]*Y[j] + Z[i]*K[j]</dd>
+</dl>
+</div></blockquote>
+<p>// Reminder of the splitting:
+for i</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>for j</dt>
+<dd>A[i][j] += B[i]*X[j]</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter">
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">AssemblyRewriter</tt><big>(</big><em>expr</em>, <em>int_loop</em>, <em>syms</em>, <em>decls</em>, <em>parent</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Provide operations to re-write an assembly expression:
+- Loop-invariant code motion: find and hoist sub-expressions which are
+invariant with respect to an assembly loop
+- Expansion: transform an expression (a + b)*c into (a*c + b*c)
+- Distribute: transform an expression a*b + a*c into a*(b+c)</p>
+<p>Initialize the AssemblyRewriter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expr</strong> &#8211; provide generic information related to an assembly expression,
+including the depending for loops.</li>
+<li><strong>int_loop</strong> &#8211; the loop along which integration is performed.</li>
+<li><strong>syms</strong> &#8211; list of AST symbols used to evaluate the local element matrix.</li>
+<li><strong>decls</strong> &#8211; list of AST declarations of the various symbols in <tt class="docutils literal"><span class="pre">syms</span></tt>.</li>
+<li><strong>parent</strong> &#8211; the parent AST node of the assembly loop nest.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.licm">
+<tt class="descname">licm</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.licm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform loop-invariant code motion.</p>
+<p>Invariant expressions found in the loop nest are moved &#8220;after&#8221; the
+outermost independent loop and &#8220;after&#8221; the fastest varying dimension
+loop. Here, &#8220;after&#8221; means that if the loop nest has two loops i and j,
+and j is in the body of i, then i comes after j (i.e. the loop nest
+has to be read from right to left).</p>
+<p>For example, if a sub-expression E depends on [i, j] and the loop nest
+has three loops [i, j, k], then E is hoisted out from the body of k to
+the body of i). All hoisted expressions are then wrapped within a
+suitable loop in order to exploit compiler autovectorization. Note that
+this applies to constant sub-expressions as well, in which case hoisting
+after the outermost loop takes place.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.count_occurrences">
+<tt class="descname">count_occurrences</tt><big>(</big><em>str_key=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.count_occurrences" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each variable in the assembly expression, count how many times
+it appears as involved in some operations. For example, for the
+expression a*(5+c) + b*(a+4), return {a: 2, b: 1, c: 1}.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.expand">
+<tt class="descname">expand</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand assembly expressions such that:</p>
+<p>Y[j] = f(...)
+(X[i]*Y[j])*F + ...</p>
+<p>becomes:</p>
+<p>Y[j] = f(...)*F
+(X[i]*Y[j]) + ...</p>
+<p>This may be useful for several purposes:
+- Relieve register pressure; when, for example, (X[i]*Y[j]) is computed
+in a loop L&#8217; different than the loop L&#8217;&#8217; in which Y[j] is evaluated,
+and cost(L&#8217;) &gt; cost(L&#8217;&#8216;)
+- It is also a step towards exposing well-known linear algebra operations,
+like matrix-matrix multiplies.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.distribute">
+<tt class="descname">distribute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.distribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply to the distributivity property to the assembly expression.
+E.g. A[i]*B[j] + A[i]*C[j] becomes A[i]*(B[j] + C[j]).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.coffee.ast_optimizer.ExpressionExpander">
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ExpressionExpander</tt><big>(</big><em>var_info</em>, <em>eg</em>, <em>expr</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Expand assembly expressions such that:</p>
+<p>Y[j] = f(...)
+(X[i]*Y[j])*F + ...</p>
+<p>becomes:</p>
+<p>Y[j] = f(...)*F
+(X[i]*Y[j]) + ...</p>
+<dl class="attribute">
+<dt id="pyop2.coffee.ast_optimizer.ExpressionExpander.CONST">
+<tt class="descname">CONST</tt><em class="property"> = -1</em><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander.CONST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyop2.coffee.ast_optimizer.ExpressionExpander.ITVAR">
+<tt class="descname">ITVAR</tt><em class="property"> = -2</em><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander.ITVAR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.ExpressionExpander.expand">
+<tt class="descname">expand</tt><big>(</big><em>node</em>, <em>parent</em>, <em>it_vars</em>, <em>exp_var</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the expansion of the expression rooted in <tt class="docutils literal"><span class="pre">node</span></tt>. Terms are
+expanded along the iteration variable <tt class="docutils literal"><span class="pre">exp_var</span></tt>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyop2.coffee.ast_optimizer.ExpressionGraph">
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ExpressionGraph</tt><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Track read-after-write dependencies between symbols.</p>
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.ExpressionGraph.add_dependency">
+<tt class="descname">add_dependency</tt><big>(</big><em>sym</em>, <em>expr</em>, <em>self_loop</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionGraph.add_dependency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract symbols from <tt class="docutils literal"><span class="pre">expr</span></tt> and create a read-after-write dependency
+with <tt class="docutils literal"><span class="pre">sym</span></tt>. If <tt class="docutils literal"><span class="pre">sym</span></tt> already has a dependency, then <tt class="docutils literal"><span class="pre">sym</span></tt> has a
+self dependency on itself.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.coffee.ast_optimizer.ExpressionGraph.has_dep">
+<tt class="descname">has_dep</tt><big>(</big><em>sym</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionGraph.has_dep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if <tt class="docutils literal"><span class="pre">sym</span></tt> has a read-after-write dependency with some
+other symbols. This is the case if <tt class="docutils literal"><span class="pre">sym</span></tt> has either a self dependency
+or at least one input edge, meaning that other symbols depend on it.</p>
 </dd></dl>
 
 </dd></dl>
@@ -758,7 +1081,7 @@ vector registers).</p>
 <p>Transform the kernel&#8217;s AST according to the backend we are running over.</p>
 <dl class="class">
 <dt id="pyop2.coffee.ast_plan.ASTKernel">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">ASTKernel</tt><big>(</big><em>ast</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">ASTKernel</tt><big>(</big><em>ast</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Manipulate the kernel&#8217;s Abstract Syntax Tree.</p>
 <p>The single functionality present at the moment is provided by the
@@ -793,12 +1116,50 @@ accordingly.</p>
 <dd><p>Transform and optimize the kernel suitably for CPU execution.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.coffee.ast_plan.ASTKernel.gencode">
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel.gencode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string representation of the AST.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_plan.init_coffee">
-<tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">init_coffee</tt><big>(</big><em>isa</em>, <em>comp</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.init_coffee" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">init_coffee</tt><big>(</big><em>isa</em>, <em>comp</em>, <em>blas</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.init_coffee" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize COFFEE.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyop2.coffee.ast_utils">
+<span id="ast-utils-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ast_utils</span></tt> Module<a class="headerlink" href="#module-pyop2.coffee.ast_utils" title="Permalink to this headline">¶</a></h2>
+<p>Utility functions for AST transformation.</p>
+<dl class="function">
+<dt id="pyop2.coffee.ast_utils.increase_stack">
+<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">increase_stack</tt><big>(</big><em>asm_opt</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_utils.increase_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8220;Increase the stack size it the total space occupied by the kernel&#8217;s local
+arrays is too big.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyop2.coffee.ast_utils.unroll_factors">
+<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">unroll_factors</tt><big>(</big><em>sizes</em>, <em>ths</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_utils.unroll_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of unroll factors to run, given loop sizes in <tt class="docutils literal"><span class="pre">sizes</span></tt>.
+The return value is a list of tuples, where each element in a tuple
+represents the unroll factor for the corresponding loop in the nest.</p>
+<p>For example, if there are three loops i, j, and k, a tuple (2, 1, 1) in
+the returned list indicates that the outermost loop i should be unrolled
+by a factor two (i.e. two iterations), while loops j and k should not be
+unrolled.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ths</strong> &#8211; unrolling threshold that cannot be exceed by the overall unroll
+factor</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -910,9 +1271,12 @@ which can freely decide to use a higher or lower value.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">coffee Package</a><ul>
+<li><a class="reference internal" href="#module-pyop2.coffee.ast_autotuner"><tt class="docutils literal"><span class="pre">ast_autotuner</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.coffee.ast_base"><tt class="docutils literal"><span class="pre">ast_base</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyop2.coffee.ast_linearalgebra"><tt class="docutils literal"><span class="pre">ast_linearalgebra</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.coffee.ast_optimizer"><tt class="docutils literal"><span class="pre">ast_optimizer</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.coffee.ast_plan"><tt class="docutils literal"><span class="pre">ast_plan</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pyop2.coffee.ast_utils"><tt class="docutils literal"><span class="pre">ast_utils</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-pyop2.coffee.ast_vectorizer"><tt class="docutils literal"><span class="pre">ast_vectorizer</span></tt> Module</a></li>
 </ul>
 </li>
@@ -955,7 +1319,7 @@ which can freely decide to use a higher or lower value.</p>
         <li class="right" >
           <a href="pyop2.html" title="pyop2 Package"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li>
+        <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li>
           <li><a href="pyop2.html" >pyop2 Package</a> &raquo;</li> 
       </ul>
     </div>

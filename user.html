@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyop2 user documentation &mdash; PyOP2 0.10.0 documentation</title>
+    <title>pyop2 user documentation &mdash; PyOP2 0.11.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.0',
+        VERSION:     '0.11.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,9 +23,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.11.0 documentation" href="index.html" />
     <link rel="next" title="pyop2 Package" href="pyop2.html" />
-    <link rel="prev" title="Caching in PyOP2" href="caching.html" /> 
+    <link rel="prev" title="Profiling" href="profiling.html" /> 
   </head>
   <body>
     <div class="related">
@@ -41,9 +41,9 @@
           <a href="pyop2.html" title="pyop2 Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="caching.html" title="Caching in PyOP2"
+          <a href="profiling.html" title="Profiling"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -766,10 +766,18 @@ iterset element.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.Map.implicit_bcs">
+<tt class="descname">implicit_bcs</tt><a class="headerlink" href="#pyop2.Map.implicit_bcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return any implicit (extruded &#8220;top&#8221; or &#8220;bottom&#8221;) bcs to
+apply to this <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>.  Normally empty except in the case of
+some <tt class="xref py py-class docutils literal"><span class="pre">DecoratedMap</span></tt>s.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.Map.iteration_region">
 <tt class="descname">iteration_region</tt><a class="headerlink" href="#pyop2.Map.iteration_region" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the iteration region for the current map. For a normal map it
-will always be ALL. For a class <cite>SparsityMap</cite> it will specify over which mesh
+will always be ALL. For a <tt class="xref py py-class docutils literal"><span class="pre">DecoratedMap</span></tt> it will specify over which mesh
 region the iteration will take place.</p>
 </dd></dl>
 
@@ -880,10 +888,18 @@ iterset element.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyop2.MixedMap.implicit_bcs">
+<tt class="descname">implicit_bcs</tt><a class="headerlink" href="#pyop2.MixedMap.implicit_bcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return any implicit (extruded &#8220;top&#8221; or &#8220;bottom&#8221;) bcs to
+apply to this <a class="reference internal" href="#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Map</span></tt></a>.  Normally empty except in the case of
+some <tt class="xref py py-class docutils literal"><span class="pre">DecoratedMap</span></tt>s.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyop2.MixedMap.iteration_region">
 <tt class="descname">iteration_region</tt><a class="headerlink" href="#pyop2.MixedMap.iteration_region" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the iteration region for the current map. For a normal map it
-will always be ALL. For a class <cite>SparsityMap</cite> it will specify over which mesh
+will always be ALL. For a <tt class="xref py py-class docutils literal"><span class="pre">DecoratedMap</span></tt> it will specify over which mesh
 region the iteration will take place.</p>
 </dd></dl>
 
@@ -1255,6 +1271,12 @@ method will return a full duplicate object.</p>
 <tt class="descclassname">Global.</tt><tt class="descname">dtype</tt><a class="headerlink" href="#pyop2.Global.dtype" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="pyop2.Global.duplicate">
+<tt class="descclassname">Global.</tt><tt class="descname">duplicate</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.Global.duplicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a deep copy of self.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Global.name">
 <tt class="descclassname">Global.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.Global.name" title="Permalink to this definition">¶</a></dt>
@@ -1482,6 +1504,13 @@ product against.</td>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyop2.Dat.load">
+<tt class="descclassname">Dat.</tt><tt class="descname">load</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyop2.Dat.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the data stored in file <tt class="docutils literal"><span class="pre">filename</span></tt> into a NumPy array
+and store the values in <tt class="xref py py-meth docutils literal"><span class="pre">_data()</span></tt>.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pyop2.Dat.name">
 <tt class="descclassname">Dat.</tt><tt class="descname">name</tt><a class="headerlink" href="#pyop2.Dat.name" title="Permalink to this definition">¶</a></dt>
@@ -1702,6 +1731,13 @@ error to call it on fewer than all the ranks in MPI communicator.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyop2.MixedDat.load">
+<tt class="descclassname">MixedDat.</tt><tt class="descname">load</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pyop2.MixedDat.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the data stored in file <tt class="docutils literal"><span class="pre">filename</span></tt> into a NumPy array
+and store the values in <tt class="xref py py-meth docutils literal"><span class="pre">_data()</span></tt>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -2204,8 +2240,8 @@ invocations.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="caching.html"
-                        title="previous chapter">Caching in PyOP2</a></p>
+  <p class="topless"><a href="profiling.html"
+                        title="previous chapter">Profiling</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="pyop2.html"
                         title="next chapter">pyop2 Package</a></p>
@@ -2244,9 +2280,9 @@ invocations.</p>
           <a href="pyop2.html" title="pyop2 Package"
              >next</a> |</li>
         <li class="right" >
-          <a href="caching.html" title="Caching in PyOP2"
+          <a href="profiling.html" title="Profiling"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -1,10 +1,26 @@
 coffee Package
 ==============
 
+:mod:`ast_autotuner` Module
+---------------------------
+
+.. automodule:: pyop2.coffee.ast_autotuner
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`ast_base` Module
 ----------------------
 
 .. automodule:: pyop2.coffee.ast_base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ast_linearalgebra` Module
+-------------------------------
+
+.. automodule:: pyop2.coffee.ast_linearalgebra
     :members:
     :undoc-members:
     :show-inheritance:
@@ -21,6 +37,14 @@ coffee Package
 ----------------------
 
 .. automodule:: pyop2.coffee.ast_plan
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ast_utils` Module
+-----------------------
+
+.. automodule:: pyop2.coffee.ast_utils
     :members:
     :undoc-members:
     :show-inheritance:

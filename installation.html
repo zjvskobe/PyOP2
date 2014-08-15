@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installing PyOP2 &mdash; PyOP2 0.10.0 documentation</title>
+    <title>Installing PyOP2 &mdash; PyOP2 0.11.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.10.0',
+        VERSION:     '0.11.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="PyOP2 0.10.0 documentation" href="index.html" />
+    <link rel="top" title="PyOP2 0.11.0 documentation" href="index.html" />
     <link rel="next" title="PyOP2 Concepts" href="concepts.html" />
     <link rel="prev" title="Welcome to PyOP2’s documentation!" href="index.html" /> 
   </head>
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to PyOP2’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -93,9 +93,10 @@ PyOP2 and its dependencies on a Ubuntu 12.04 or compatible platform.
 Only the sequential and OpenMP backends are covered at the moment.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This script is not intended to be used by PyOP2 developers. If you intend
-to contribute to PyOP2 it is recommended to follow the instructions below
-for a manual installation.</p>
+<p class="last">This script will only work reliably on a clean Ubuntu installation and is
+not intended to be used by PyOP2 developers. If you intend to contribute to
+PyOP2 it is recommended to follow the instructions below for a manual
+installation.</p>
 </div>
 <p>Running with superuser privileges will install missing packages and
 Python dependencies will be installed system wide:</p>
@@ -113,8 +114,7 @@ need to be installed. Python dependencies will be installed to the user
 site <tt class="docutils literal"><span class="pre">~/.local</span></tt>:</p>
 <div class="highlight-python"><pre>wget -O - https://github.com/OP2/PyOP2/raw/master/install.sh | bash</pre>
 </div>
-<p>In each case, OP2-Common and PyOP2 will be cloned to subdirectories of
-the current directory.</p>
+<p>In each case, PyOP2 will be cloned to subdirectories of the current directory.</p>
 <p>After installation has completed and a rudimentary functionality check,
 the test suite is run. The script indicates whether all these steps have
 completed successfully and only in this case will exit with return code
@@ -219,7 +219,8 @@ priority over system installed packages on your <tt class="docutils literal"><sp
 <li>Cython &gt;= 0.17</li>
 <li>decorator</li>
 <li>numpy &gt;= 1.6</li>
-<li><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> current git next (see below)</li>
+<li>networkx</li>
+<li><a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> current git master (see below)</li>
 <li><a class="reference external" href="http://pythonhosted.org/petsc4py/">PETSc4py</a> current git master (see below)</li>
 </ul>
 <p>Testing dependencies (optional, required to run the tests):</p>
@@ -232,13 +233,13 @@ priority over system installed packages on your <tt class="docutils literal"><sp
 <p>With the exception of the <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> dependencies, these can be installed
 using the package management system of your OS, or via <tt class="docutils literal"><span class="pre">pip</span></tt>.</p>
 <p>Install the dependencies via the package manager (Debian based systems):</p>
-<div class="highlight-python"><pre>sudo apt-get install cython python-decorator python-numpy</pre>
+<div class="highlight-python"><pre>sudo apt-get install cython python-decorator python-numpy python-networkx</pre>
 </div>
 <p><strong>Note:</strong> This may not give you recent enough versions of those packages
 (in particular the Cython version shipped with 12.04 is too old). You
 can selectively upgrade packages via <tt class="docutils literal"><span class="pre">pip</span></tt>, see below.</p>
 <p>Install dependencies via <tt class="docutils literal"><span class="pre">pip</span></tt>:</p>
-<div class="highlight-python"><pre>sudo pip install "Cython&gt;=0.17" decorator "numpy&gt;=1.6"</pre>
+<div class="highlight-python"><pre>sudo pip install "Cython&gt;=0.17" decorator "numpy&gt;=1.6" networkx</pre>
 </div>
 <p>Additional Python 2.6 dependencies:</p>
 <ul class="simple">
@@ -255,7 +256,7 @@ can selectively upgrade packages via <tt class="docutils literal"><span class="p
 library and requires:</p>
 <ul class="simple">
 <li>an MPI implementation built with <em>shared libraries</em></li>
-<li>The current <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> next branch built with <em>shared libraries</em></li>
+<li>The current <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> master branch built with <em>shared libraries</em></li>
 </ul>
 <p>If you have a suitable <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> installed on your system, <tt class="docutils literal"><span class="pre">PETSC_DIR</span></tt>
 and <tt class="docutils literal"><span class="pre">PETSC_ARCH</span></tt> need to be set for the <a class="reference external" href="http://pythonhosted.org/petsc4py/">petsc4py</a> installer to find
@@ -272,7 +273,7 @@ without installing any additional packages at this point.</p>
 </div>
 <p>Then install <a class="reference external" href="http://www.mcs.anl.gov/petsc/">PETSc</a> via <tt class="docutils literal"><span class="pre">pip</span></tt></p>
 <div class="highlight-python"><pre>sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
-  pip install -e git+https://bitbucket.org/petsc/petsc.git@next#egg=petsc
+  pip install -e git+https://bitbucket.org/petsc/petsc.git#egg=petsc
 unset PETSC_DIR
 unset PETSC_ARCH</pre>
 </div>
@@ -556,7 +557,7 @@ manner as required.</p>
         <li class="right" >
           <a href="index.html" title="Welcome to PyOP2’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">PyOP2 0.10.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

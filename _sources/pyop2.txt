@@ -9,6 +9,14 @@ pyop2 Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`_version` Module
+----------------------
+
+.. automodule:: pyop2._version
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`backends` Module
 ----------------------
 
@@ -157,6 +165,14 @@ pyop2 Package
 -----------------------
 
 .. automodule:: pyop2.profiling
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`pyparloop` Module
+-----------------------
+
+.. automodule:: pyop2.pyparloop
     :members:
     :undoc-members:
     :show-inheritance:

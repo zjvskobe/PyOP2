@@ -20,9 +20,10 @@ PyOP2 and its dependencies on a Ubuntu 12.04 or compatible platform.
 Only the sequential and OpenMP backends are covered at the moment.
 
 .. note::
-  This script is not intended to be used by PyOP2 developers. If you intend
-  to contribute to PyOP2 it is recommended to follow the instructions below
-  for a manual installation.
+  This script will only work reliably on a clean Ubuntu installation and is
+  not intended to be used by PyOP2 developers. If you intend to contribute to
+  PyOP2 it is recommended to follow the instructions below for a manual
+  installation.
 
 Running with superuser privileges will install missing packages and
 Python dependencies will be installed system wide::
@@ -41,8 +42,7 @@ site ``~/.local``::
 
   wget -O - https://github.com/OP2/PyOP2/raw/master/install.sh | bash
 
-In each case, OP2-Common and PyOP2 will be cloned to subdirectories of
-the current directory.
+In each case, PyOP2 will be cloned to subdirectories of the current directory.
 
 After installation has completed and a rudimentary functionality check,
 the test suite is run. The script indicates whether all these steps have
@@ -159,7 +159,8 @@ Common dependencies:
 * Cython >= 0.17 
 * decorator 
 * numpy >= 1.6 
-* PETSc_ current git next (see below)
+* networkx
+* PETSc_ current git master (see below)
 * PETSc4py_ current git master (see below)
 
 Testing dependencies (optional, required to run the tests):
@@ -174,7 +175,7 @@ using the package management system of your OS, or via ``pip``.
 
 Install the dependencies via the package manager (Debian based systems)::
 
-  sudo apt-get install cython python-decorator python-numpy
+  sudo apt-get install cython python-decorator python-numpy python-networkx
 
 **Note:** This may not give you recent enough versions of those packages
 (in particular the Cython version shipped with 12.04 is too old). You
@@ -182,7 +183,7 @@ can selectively upgrade packages via ``pip``, see below.
 
 Install dependencies via ``pip``::
 
-  sudo pip install "Cython>=0.17" decorator "numpy>=1.6"
+  sudo pip install "Cython>=0.17" decorator "numpy>=1.6" networkx
 
 Additional Python 2.6 dependencies: 
 
@@ -202,7 +203,7 @@ PyOP2 uses petsc4py_, the Python bindings for the PETSc_ linear algebra
 library and requires:
 
 * an MPI implementation built with *shared libraries* 
-* The current PETSc_ next branch built with *shared libraries*
+* The current PETSc_ master branch built with *shared libraries*
 
 If you have a suitable PETSc_ installed on your system, ``PETSC_DIR``
 and ``PETSC_ARCH`` need to be set for the petsc4py_ installer to find
@@ -222,7 +223,7 @@ compiler) are installed. On a Debian based system, run::
 Then install PETSc_ via ``pip`` ::
 
   sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
-    pip install -e git+https://bitbucket.org/petsc/petsc.git@next#egg=petsc
+    pip install -e git+https://bitbucket.org/petsc/petsc.git#egg=petsc
   unset PETSC_DIR
   unset PETSC_ARCH
 

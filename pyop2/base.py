@@ -3567,6 +3567,10 @@ class ParLoop(object):
                 if arg._is_dat:
                     self._halo_exchange_args.append(arg)
         self._iteration_region = kwargs.get("iterate", None)
+        self._args_to_mark = []
+        for arg in self.args:
+            if arg._is_dat and arg.access in [INC, WRITE, RW]:
+                self._args_to_mark.append(arg)
 
         for i, arg in enumerate(self._actual_args):
             arg.position = i
@@ -3662,10 +3666,8 @@ class ParLoop(object):
     def maybe_set_halo_update_needed(self):
         """Set halo update needed for :class:`Dat` arguments that are written to
         in this parallel loop."""
-        for arg in self.args:
-            if arg._is_dat and arg.access in [INC, WRITE, RW]:
-                arg.data.needs_halo_update = True
-                #self._args_to_mark.append(arg)
+        for arg in self._args_to_mark:
+            arg.data.needs_halo_update = True
 
     def build_itspace(self, iterset):
         """Checks that the iteration set of the :class:`ParLoop` matches the

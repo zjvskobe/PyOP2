@@ -3575,6 +3575,9 @@ class ParLoop(object):
 
         self._it_space = self.build_itspace(iterset)
 
+    def replace_arg_data(self, data, idx):
+        self._actual_args[idx]._dat = data
+
     def _run(self):
         for a in self.args:
             if a.access != READ:

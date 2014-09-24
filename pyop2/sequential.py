@@ -101,7 +101,7 @@ class ParLoop(host.ParLoop):
 
     @collective
     @lineprof
-    def _compute(self, part):
+    def _compute(self, start, end):
         fun = getattr(self, '_fun', None)
         if not fun:
             fun = JITModule(self.kernel, self.it_space, *self.args, direct=self.is_direct, iterate=self.iteration_region)
@@ -159,8 +159,8 @@ class ParLoop(host.ParLoop):
                 self._jit_args.append(0)
                 self._jit_args.append(self._it_space.layers - 1)
 
-        self._jit_args[0] = part.offset
-        self._jit_args[1] = part.offset + part.size
+        self._jit_args[0] = start
+        self._jit_args[1] = end
         # Must call fun on all processes since this may trigger
         # compilation.
         with timed_region("ParLoop kernel"):

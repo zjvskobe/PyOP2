@@ -652,6 +652,20 @@ class JITModule(base.JITModule):
                                         if l.strip() and l.strip() != ';'])
 
         compiler = coffee.ast_plan.compiler
+        self.timer_function = """
+        #include <time.h>
+        #include <sys/types.h>
+        #include <stdlib.h>
+
+        long stamp()
+        {
+          struct timespec tv;
+          long _stamp;
+          clock_gettime(CLOCK_MONOTONIC, &tv);
+          _stamp = tv.tv_sec * 1000 * 1000 * 1000 + tv.tv_nsec;
+          return _stamp;
+        }
+        """
         blas = coffee.ast_plan.blas_interface
         blas_header, blas_namespace, externc_open, externc_close = ("", "", "", "")
         if self._kernel._applied_blas:
@@ -664,6 +678,8 @@ class JITModule(base.JITModule):
         if any(arg._is_soa for arg in self._args):
             kernel_code = """
             #define OP2_STRIDE(a, idx) a[idx]
+            #define _POSIX_C_SOURCE 199309L
+            %(timer)s
             %(header)s
             %(namespace)s
             %(externc_open)s
@@ -672,9 +688,12 @@ class JITModule(base.JITModule):
             """ % {'code': self._kernel.code,
                    'externc_open': externc_open,
                    'namespace': blas_namespace,
-                   'header': headers}
+                   'header': headers,
+                   'timer': self.timer_function}
         else:
             kernel_code = """
+            #define _POSIX_C_SOURCE 199309L
+            %(timer)s
             %(header)s
             %(namespace)s
             %(externc_open)s
@@ -682,7 +701,8 @@ class JITModule(base.JITModule):
             """ % {'code': self._kernel.code,
                    'externc_open': externc_open,
                    'namespace': blas_namespace,
-                   'header': headers}
+                   'header': headers,
+                   'timer': self.timer_function}
         code_to_compile = strip(dedent(self._wrapper) % self.generate_code())
 
         _const_decs = '\n'.join([const._format_declaration()
@@ -716,7 +736,8 @@ class JITModule(base.JITModule):
             cppargs += [compiler[coffee.ast_plan.intrinsics['inst_set']]]
         ldargs = ["-L%s/lib" % d for d in get_petsc_dir()] + \
                  ["-Wl,-rpath,%s/lib" % d for d in get_petsc_dir()] + \
-                 ["-lpetsc", "-lm"] + self._libraries
+                 ['-Wl,-rpath,/apps/intel/2013sp1/lib/intel64/'] + \
+                 ["-lpetsc", "-lm", "-lrt"] + self._libraries
         if self._kernel._applied_blas:
             blas_dir = blas['dir']
             if blas_dir:
@@ -725,6 +746,8 @@ class JITModule(base.JITModule):
             ldargs += blas['link']
             if blas['name'] == 'eigen':
                 extension = "cpp"
+        cppargs += ["-D_POSIX_C_SOURCE=199309L"]
+        print code_to_compile
         self._fun = compilation.load(code_to_compile,
                                      extension,
                                      self._wrapper_name,
@@ -803,6 +826,9 @@ class JITModule(base.JITModule):
                                  if not arg._is_mat and arg._is_vec_map])
 
         indent = lambda t, i: ('\n' + '  ' * i).join(t.split('\n'))
+
+        _timer_start = """long s1, s2;\ns1 = stamp();\n"""
+        _timer_end   = """s2 = stamp();\nreturn (s2 - s1)/1e9;\n"""
 
         _map_decl = ""
         _apply_offset = ""
@@ -970,5 +996,7 @@ class JITModule(base.JITModule):
                 'layout_assign': _layout_assign,
                 'layout_loop_close': _layout_loops_close,
                 'kernel_args': _kernel_args,
+                'timer_start': _timer_start if configuration["measure_vbw"] else "",
+                'timer_end': _timer_end if configuration["measure_vbw"] else "",
                 'itset_loop_body': '\n'.join([itset_loop_body(i, j, shape, offsets, is_facet=(self._iteration_region == ON_INTERIOR_FACETS))
                                               for i, j, shape, offsets in self._itspace])}

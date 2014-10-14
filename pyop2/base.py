@@ -3703,6 +3703,8 @@ class ParLoop(LazyComputation):
         self._kernel = kernel
         self._is_layered = iterset._extruded
         self._iteration_region = kwargs.get("iterate", None)
+        self._maybe_rhs = False
+        self._is_lhs = False
 
         for i, arg in enumerate(self._actual_args):
             arg.position = i
@@ -3718,7 +3720,23 @@ class ParLoop(LazyComputation):
 
         self._it_space = self.build_itspace(iterset)
 
+        # Data volume computation
+        vol = 0
+        for arg in args:
+            if arg._is_dat:
+                vol += sum(s.size * s.cdim for s in arg.data.dataset) * arg.dtype.itemsize
+                self._maybe_rhs = True
+            if arg._is_mat:
+                vol += (arg.data.sparsity.onz + arg.data.sparsity.nz) * arg.dtype.itemsize
+                self._is_lhs = True
+        self._data_volume = vol
+
     def _run(self):
+        if configuration["measure_vbw"]:
+            if self._is_lhs:
+                return self.compute_with_vbw()
+            elif self._maybe_rhs and self._kernel.name == "form00_cell_integral_0_otherwise":
+                return self.compute_with_vbw()
         return self.compute()
 
     @collective
@@ -3736,6 +3754,25 @@ class ParLoop(LazyComputation):
             self._compute(self.it_space.iterset.exec_part)
         self.reduction_end()
         self.maybe_set_halo_update_needed()
+
+    @collective
+    @timed_function('ParLoop compute with VBW')
+    @profile
+    def compute_with_vbw(self):
+        """Executes the kernel over all members of the iteration space."""
+        self.halo_exchange_begin()
+        self.maybe_set_dat_dirty()
+        t1 = self._compute(self.it_space.iterset.core_part)
+        self.halo_exchange_end()
+        self._compute(self.it_space.iterset.owned_part)
+        self.reduction_begin()
+        if self.needs_exec_halo:
+            self._compute(self.it_space.iterset.exec_part)
+        self.reduction_end()
+        self.maybe_set_halo_update_needed()
+        #Put the result of the VBW comp
+        print " VBW = ", (self._data_volume * 1.0 / 1024.0 / 1024.0 / t1) if t1 > 0 else -1.0
+        configuration["vbw_result"] = (self._data_volume * 1.0 / 1024.0 / 1024.0 / t1) if t1 > 0 else -1.0
 
     @collective
     def _compute(self, part):

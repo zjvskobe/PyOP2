@@ -65,6 +65,7 @@ class Configuration(object):
     """
     # name, env variable, type, default, write once
     DEFAULTS = {
+        "measure_vbw": ("PYOP2_MEASURE_VBW", bool, False),
         "backend": ("PYOP2_BACKEND", str, "sequential"),
         "compiler": ("PYOP2_BACKEND_COMPILER", str, "gnu"),
         "simd_isa": ("PYOP2_SIMD_ISA", str, "sse"),

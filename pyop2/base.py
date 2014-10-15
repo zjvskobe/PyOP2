@@ -3648,6 +3648,10 @@ class Kernel(Cached):
         code must conform to the OP2 user kernel API."""
         return self._code
 
+    @code.setter
+    def code(self, value):
+        self._code = value
+
     def __str__(self):
         return "OP2 Kernel: %s" % self._name
 
@@ -3694,6 +3698,12 @@ class JITModule(Cached):
         iterate = kwargs.get("iterate", None)
         if iterate is not None:
             key += ((iterate,))
+
+        if configuration['likwid'] is not None:
+            key += ((configuration['likwid'],))
+
+        if configuration['hpc_profiling'] is not None:
+            key += ((configuration['hpc_profiling'],))
 
         # The currently defined Consts need to be part of the cache key, since
         # these need to be uploaded to the device before launching the kernel
@@ -3802,6 +3812,8 @@ class ParLoop(LazyComputation):
         self._kernel = kernel
         self._is_layered = iterset._extruded
         self._iteration_region = kwargs.get("iterate", None)
+        self._is_lhs = False
+        self._is_rhs = False
         # Are we only computing over owned set entities?
         self._only_local = isinstance(iterset, LocalSet)
 
@@ -3829,7 +3841,15 @@ class ParLoop(LazyComputation):
         self._it_space = self.build_itspace(iterset)
         # Data volume computation
         vol = 0
-        for arg in args:
+        unique_args = []
+        for arg1 in args:
+            freq = 0
+            for arg2 in unique_args:
+                if arg1 == arg2:
+                    freq += 1
+            if freq == 0:
+                unique_args.append(arg1)
+        for arg in unique_args:
             if arg._is_dat:
                 vol += sum(s.size * s.cdim for s in arg.data.dataset) * arg.dtype.itemsize
                 self._is_rhs = True
@@ -3839,17 +3859,18 @@ class ParLoop(LazyComputation):
         self._data_volume = vol
 
     def _run(self):
-        if configuration['only_rhs'] and self._is_rhs and not self._is_lhs:
-            if self._kernel.name == "form00_cell_integral_0_otherwise":
-                if configuration['spike_kernel'] is not "" or configuration['spike_wrapper'] is not "":
+        if configuration["hpc_profiling"]:
+            if configuration['only_rhs'] and self._is_rhs and not self._is_lhs:
+                if self._kernel.name == "form00_cell_integral_0_otherwise":
+                    if configuration['spike_kernel'] is not "" or configuration['spike_wrapper'] is not "":
+                            configuration['spike'] = True
+                    return self.compute()
+            if configuration['only_lhs'] and self._is_lhs:
+                if configuration['spike_kernel'] is not "":
                         configuration['spike'] = True
                 return self.compute()
-        if configuration['only_lhs'] and self._is_lhs:
-            if configuration['spike_kernel'] is not "":
-                    configuration['spike'] = True
-            return self.compute()
-        if configuration["profiling"] and not configuration['only_lhs'] and not configuration['only_rhs']:
-            return self.compute() 
+            if not configuration['only_lhs'] and not configuration['only_rhs']:
+                return self.compute()
         return self.compute_no_profiling()
 
     @collective
@@ -3870,11 +3891,11 @@ class ParLoop(LazyComputation):
                 t3 = self._compute(self.it_space.iterset.exec_part)
             self.reduction_end()
             self.maybe_set_halo_update_needed()
-            #self.assemble()
         add_data_volume('base', '%s-%s' % (region_name, self.kernel._md5),
                         self._data_volume)
         add_c_time('base', '%s-%s' % (region_name, self.kernel._md5),
-                        t1 + t2 + t3)
+                   t1 + t2 + t3)
+
     @collective
     @timed_function('ParLoop compute')
     @profile

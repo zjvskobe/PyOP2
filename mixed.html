@@ -27,8 +27,8 @@
     <link rel="next" title="MPI" href="mpi.html" />
     <link rel="prev" title="Parallel Execution Plan" href="plan.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,7 +50,7 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="mixed-types">
 <span id="mixed"></span><h1>Mixed Types<a class="headerlink" href="#mixed-types" title="Permalink to this headline">¶</a></h1>
@@ -168,11 +168,11 @@ read and for the (1,1) block only the second component. For the (0,1) and
 (1,0) blocks, both components of the <a class="reference internal" href="user.html#pyop2.MixedDat" title="pyop2.MixedDat"><tt class="xref py py-class docutils literal"><span class="pre">MixedDat</span></tt></a> are accessed.</p>
 <p>This diagram illustrates the assembly of the block <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">Mat</span></tt></a>:</p>
 <div class="figure align-center">
-<img src="_images/mixed_assembly.svg" /><p class="caption">Assembling into the blocks of a global matrix <img class="math" src="_images/math/019e9892786e493964e145e7c5cf7b700314e53b.png" alt="A"/>: block
-<img class="math" src="_images/math/0ae1e514318ffb6def39a261fb6dc4e720552224.png" alt="A^{0,0}"/> uses maps <img class="math" src="_images/math/db4f68fdb47f75bc251d6e1c5c9e274a82a94d41.png" alt="\iota^{1,0}"/> and <img class="math" src="_images/math/4d50f609a342215d3e1d4dbab4deb204fc58e494.png" alt="\iota^{2,0}"/>,
-<img class="math" src="_images/math/f1b5808db272e9a698a0f2cc6c37cb7582eb9ee8.png" alt="A^{0,1}"/> uses <img class="math" src="_images/math/db4f68fdb47f75bc251d6e1c5c9e274a82a94d41.png" alt="\iota^{1,0}"/> and <img class="math" src="_images/math/89a5ad1c3f51159070d9ed6d586adbb83a24d7c0.png" alt="\iota^{2,1}"/>,
-<img class="math" src="_images/math/84db48f3dcc8dd5a599af7f957bc858c7923d80a.png" alt="A^{1,0}"/> uses <img class="math" src="_images/math/ed73cff3ded4804527454620ad7918ec7d35df15.png" alt="\iota^{1,1}"/> and <img class="math" src="_images/math/4d50f609a342215d3e1d4dbab4deb204fc58e494.png" alt="\iota^{2,0}"/> and finally
-<img class="math" src="_images/math/872d7afad1be18ee37732d23f34018f234b4b7b4.png" alt="A^{1,1}"/> uses <img class="math" src="_images/math/ed73cff3ded4804527454620ad7918ec7d35df15.png" alt="\iota^{1,1}"/> and <img class="math" src="_images/math/89a5ad1c3f51159070d9ed6d586adbb83a24d7c0.png" alt="\iota^{2,1}"/> for the row
+<img src="_images/mixed_assembly.svg" /><p class="caption">Assembling into the blocks of a global matrix <img class="math" src="_images/math/0acafa529182e79b4f56165ec677554fba7fcf98.png" alt="A"/>: block
+<img class="math" src="_images/math/7f3876f26b07e013e1c33c1f6eae158d649f7aaf.png" alt="A^{0,0}"/> uses maps <img class="math" src="_images/math/d690899af107867e3289e349ad87ee91240093ee.png" alt="\iota^{1,0}"/> and <img class="math" src="_images/math/501e8b84452300489bafc3858bab4656d8139a7e.png" alt="\iota^{2,0}"/>,
+<img class="math" src="_images/math/1ed141c13bce9048f737bffe5f1a1ee20149f37e.png" alt="A^{0,1}"/> uses <img class="math" src="_images/math/d690899af107867e3289e349ad87ee91240093ee.png" alt="\iota^{1,0}"/> and <img class="math" src="_images/math/d5936ac7b0ad569810e010b5f1e442d7aa152320.png" alt="\iota^{2,1}"/>,
+<img class="math" src="_images/math/f1a2a8c757e0baedbe11825f15d75245bd3da92c.png" alt="A^{1,0}"/> uses <img class="math" src="_images/math/df42b928d1faf6f05015dc754b6a744dd1ff946d.png" alt="\iota^{1,1}"/> and <img class="math" src="_images/math/501e8b84452300489bafc3858bab4656d8139a7e.png" alt="\iota^{2,0}"/> and finally
+<img class="math" src="_images/math/f23e044373a23f61edcb216765134bdc99d48a86.png" alt="A^{1,1}"/> uses <img class="math" src="_images/math/df42b928d1faf6f05015dc754b6a744dd1ff946d.png" alt="\iota^{1,1}"/> and <img class="math" src="_images/math/d5936ac7b0ad569810e010b5f1e442d7aa152320.png" alt="\iota^{2,1}"/> for the row
 and column spaces respectively.</p>
 </div>
 </div>
@@ -182,7 +182,7 @@ and column spaces respectively.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -200,12 +200,14 @@ and column spaces respectively.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="mpi.html"
                         title="next chapter">MPI</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/mixed.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/mixed.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -222,7 +224,7 @@ and column spaces respectively.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -240,9 +242,9 @@ and column spaces respectively.</p>
         <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2012-2013, Imperial College et al.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
     </div>
   </body>
 </html>

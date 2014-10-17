@@ -27,8 +27,8 @@
     <link rel="next" title="Parallel Execution Plan" href="plan.html" />
     <link rel="prev" title="PyOP2 Backends" href="backends.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,7 +50,7 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pyop2-linear-algebra-interface">
 <span id="linear-algebra"></span><h1>PyOP2 Linear Algebra Interface<a class="headerlink" href="#pyop2-linear-algebra-interface" title="Permalink to this headline">¶</a></h1>
@@ -97,8 +97,8 @@ a given processor, and the off-diagonal part all other rows.</p>
 mapped to global matrix entries via a local-to-global mapping represented by a
 pair of <a class="reference internal" href="user.html#pyop2.Map" title="pyop2.Map"><tt class="xref py py-class docutils literal"><span class="pre">Maps</span></tt></a> for the row and column space.</p>
 <div class="figure align-center">
-<img src="_images/assembly.svg" /><p class="caption">Assembly of a local tensor <img class="math" src="_images/math/160af41b84ca464f353bd30ca15ad10948a4c14d.png" alt="A^K"/> into a global matrix <img class="math" src="_images/math/019e9892786e493964e145e7c5cf7b700314e53b.png" alt="A"/> using
-the local-to-global mapping <img class="math" src="_images/math/88182d147008174ad6c656150a6f537245ab7b49.png" alt="\iota_K^1"/> for rows and <img class="math" src="_images/math/91af85ccf10810399f4401719eaeae383c1024f5.png" alt="\iota_K^2"/>
+<img src="_images/assembly.svg" /><p class="caption">Assembly of a local tensor <img class="math" src="_images/math/416920d3ef3011904b935c9374dc5f4a74b9c35f.png" alt="A^K"/> into a global matrix <img class="math" src="_images/math/0acafa529182e79b4f56165ec677554fba7fcf98.png" alt="A"/> using
+the local-to-global mapping <img class="math" src="_images/math/c2dadd230e16fe156330721f052de8c142a12a08.png" alt="\iota_K^1"/> for rows and <img class="math" src="_images/math/a4b814b8d15308f751e832804579e3f31214ab43.png" alt="\iota_K^2"/>
 for columns</p>
 </div>
 <p>For each <a class="reference internal" href="user.html#pyop2.par_loop" title="pyop2.par_loop"><tt class="xref py py-func docutils literal"><span class="pre">par_loop()</span></tt></a> that assembles a matrix, PyOP2 generates a
@@ -314,7 +314,7 @@ supported by the <tt class="docutils literal"><span class="pre">cuda</span></tt>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -335,12 +335,14 @@ supported by the <tt class="docutils literal"><span class="pre">cuda</span></tt>
   <h4>Next topic</h4>
   <p class="topless"><a href="plan.html"
                         title="next chapter">Parallel Execution Plan</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/linear_algebra.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/linear_algebra.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -357,7 +359,7 @@ supported by the <tt class="docutils literal"><span class="pre">cuda</span></tt>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -375,9 +377,9 @@ supported by the <tt class="docutils literal"><span class="pre">cuda</span></tt>
         <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2012-2013, Imperial College et al.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
     </div>
   </body>
 </html>

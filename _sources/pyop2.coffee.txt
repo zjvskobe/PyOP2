@@ -1,59 +1,70 @@
-coffee Package
-==============
+pyop2.coffee package
+====================
 
-:mod:`ast_autotuner` Module
----------------------------
+Submodules
+----------
+
+pyop2.coffee.ast_autotuner module
+---------------------------------
 
 .. automodule:: pyop2.coffee.ast_autotuner
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`ast_base` Module
-----------------------
+pyop2.coffee.ast_base module
+----------------------------
 
 .. automodule:: pyop2.coffee.ast_base
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`ast_linearalgebra` Module
--------------------------------
+pyop2.coffee.ast_linearalgebra module
+-------------------------------------
 
 .. automodule:: pyop2.coffee.ast_linearalgebra
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`ast_optimizer` Module
----------------------------
+pyop2.coffee.ast_optimizer module
+---------------------------------
 
 .. automodule:: pyop2.coffee.ast_optimizer
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`ast_plan` Module
-----------------------
+pyop2.coffee.ast_plan module
+----------------------------
 
 .. automodule:: pyop2.coffee.ast_plan
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`ast_utils` Module
------------------------
+pyop2.coffee.ast_utils module
+-----------------------------
 
 .. automodule:: pyop2.coffee.ast_utils
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`ast_vectorizer` Module
-----------------------------
+pyop2.coffee.ast_vectorizer module
+----------------------------------
 
 .. automodule:: pyop2.coffee.ast_vectorizer
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: pyop2.coffee
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,237 +1,5 @@
-pyop2 Package
+pyop2 package
 =============
-
-:mod:`pyop2` Package
---------------------
-
-.. automodule:: pyop2.__init__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`_version` Module
-----------------------
-
-.. automodule:: pyop2._version
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`backends` Module
-----------------------
-
-.. automodule:: pyop2.backends
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`base` Module
-------------------
-
-.. automodule:: pyop2.base
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`caching` Module
----------------------
-
-.. automodule:: pyop2.caching
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`compilation` Module
--------------------------
-
-.. automodule:: pyop2.compilation
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`computeind` Module
-------------------------
-
-.. automodule:: pyop2.computeind
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`configuration` Module
----------------------------
-
-.. automodule:: pyop2.configuration
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`cuda` Module
-------------------
-
-.. automodule:: pyop2.cuda
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`device` Module
---------------------
-
-.. automodule:: pyop2.device
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`exceptions` Module
-------------------------
-
-.. automodule:: pyop2.exceptions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`finalised` Module
------------------------
-
-.. automodule:: pyop2.finalised
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`host` Module
-------------------
-
-.. automodule:: pyop2.host
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`logger` Module
---------------------
-
-.. automodule:: pyop2.logger
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`mpi` Module
------------------
-
-.. automodule:: pyop2.mpi
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`op2` Module
------------------
-
-.. automodule:: pyop2.op2
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`opencl` Module
---------------------
-
-.. automodule:: pyop2.opencl
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`openmp` Module
---------------------
-
-.. automodule:: pyop2.openmp
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`petsc_base` Module
-------------------------
-
-.. automodule:: pyop2.petsc_base
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`plan` Module
-------------------
-
-.. automodule:: pyop2.plan
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`profiling` Module
------------------------
-
-.. automodule:: pyop2.profiling
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`pyparloop` Module
------------------------
-
-.. automodule:: pyop2.pyparloop
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`sequential` Module
-------------------------
-
-.. automodule:: pyop2.sequential
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`sparsity` Module
-----------------------
-
-.. automodule:: pyop2.sparsity
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`sparsity_new` Module
---------------------------
-
-.. automodule:: pyop2.sparsity_new
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`utils` Module
--------------------
-
-.. automodule:: pyop2.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`version` Module
----------------------
-
-.. automodule:: pyop2.version
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`versioning` Module
-------------------------
-
-.. automodule:: pyop2.versioning
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`void` Module
-------------------
-
-.. automodule:: pyop2.void
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 Subpackages
 -----------
@@ -240,3 +8,222 @@ Subpackages
 
     pyop2.coffee
 
+Submodules
+----------
+
+pyop2.backends module
+---------------------
+
+.. automodule:: pyop2.backends
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.base module
+-----------------
+
+.. automodule:: pyop2.base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.caching module
+--------------------
+
+.. automodule:: pyop2.caching
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.compilation module
+------------------------
+
+.. automodule:: pyop2.compilation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.computeind module
+-----------------------
+
+.. automodule:: pyop2.computeind
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.configuration module
+--------------------------
+
+.. automodule:: pyop2.configuration
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.cuda module
+-----------------
+
+.. automodule:: pyop2.cuda
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.device module
+-------------------
+
+.. automodule:: pyop2.device
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.exceptions module
+-----------------------
+
+.. automodule:: pyop2.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.finalised module
+----------------------
+
+.. automodule:: pyop2.finalised
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.host module
+-----------------
+
+.. automodule:: pyop2.host
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.logger module
+-------------------
+
+.. automodule:: pyop2.logger
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.mpi module
+----------------
+
+.. automodule:: pyop2.mpi
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.op2 module
+----------------
+
+.. automodule:: pyop2.op2
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.opencl module
+-------------------
+
+.. automodule:: pyop2.opencl
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.openmp module
+-------------------
+
+.. automodule:: pyop2.openmp
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.petsc_base module
+-----------------------
+
+.. automodule:: pyop2.petsc_base
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.plan module
+-----------------
+
+.. automodule:: pyop2.plan
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.profiling module
+----------------------
+
+.. automodule:: pyop2.profiling
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.pyparloop module
+----------------------
+
+.. automodule:: pyop2.pyparloop
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.sequential module
+-----------------------
+
+.. automodule:: pyop2.sequential
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.sparsity module
+---------------------
+
+.. automodule:: pyop2.sparsity
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.utils module
+------------------
+
+.. automodule:: pyop2.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.version module
+--------------------
+
+.. automodule:: pyop2.version
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.versioning module
+-----------------------
+
+.. automodule:: pyop2.versioning
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pyop2.void module
+-----------------
+
+.. automodule:: pyop2.void
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pyop2
+    :members:
+    :undoc-members:
+    :show-inheritance:

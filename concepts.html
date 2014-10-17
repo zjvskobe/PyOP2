@@ -27,8 +27,8 @@
     <link rel="next" title="PyOP2 Kernels" href="kernels.html" />
     <link rel="prev" title="Installing PyOP2" href="installation.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -50,7 +50,7 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pyop2-concepts">
 <span id="concepts"></span><h1>PyOP2 Concepts<a class="headerlink" href="#pyop2-concepts" title="Permalink to this headline">¶</a></h1>
@@ -148,9 +148,9 @@ declared as follows:</p>
 <span id="data-mat"></span><h3>Mat<a class="headerlink" href="#mat" title="Permalink to this headline">¶</a></h3>
 <p>In a PyOP2 context, a (sparse) matrix is a linear operator from one set to
 another. In other words, it is a linear function which takes a
-<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> on one set <img class="math" src="_images/math/019e9892786e493964e145e7c5cf7b700314e53b.png" alt="A"/> and returns the value of a
-<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> on another set <img class="math" src="_images/math/ff5fb3d775862e2123b007eb4373ff6cc1a34d4e.png" alt="B"/>. Of course, in particular,
-<img class="math" src="_images/math/019e9892786e493964e145e7c5cf7b700314e53b.png" alt="A"/> may be the same set as <img class="math" src="_images/math/ff5fb3d775862e2123b007eb4373ff6cc1a34d4e.png" alt="B"/>. This makes the operation of at
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> on one set <img class="math" src="_images/math/0acafa529182e79b4f56165ec677554fba7fcf98.png" alt="A"/> and returns the value of a
+<a class="reference internal" href="user.html#pyop2.Dat" title="pyop2.Dat"><tt class="xref py py-class docutils literal"><span class="pre">Dat</span></tt></a> on another set <img class="math" src="_images/math/83956e92fcc80dee17fce864543216939a3c9da7.png" alt="B"/>. Of course, in particular,
+<img class="math" src="_images/math/0acafa529182e79b4f56165ec677554fba7fcf98.png" alt="A"/> may be the same set as <img class="math" src="_images/math/83956e92fcc80dee17fce864543216939a3c9da7.png" alt="B"/>. This makes the operation of at
 least some matrices equivalent to the operation of a particular PyOP2 kernel.</p>
 <p>PyOP2 can be used to assemble <a class="reference internal" href="user.html#pyop2.Mat" title="pyop2.Mat"><tt class="xref py py-class docutils literal"><span class="pre">matrices</span></tt></a>, which are defined
 on a <a class="reference internal" href="user.html#pyop2.Sparsity" title="pyop2.Sparsity"><tt class="xref py py-class docutils literal"><span class="pre">sparsity</span> <span class="pre">pattern</span></tt></a> which is built from a pair of
@@ -287,7 +287,7 @@ computation and only give the declaration for context.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -317,12 +317,14 @@ computation and only give the declaration for context.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="kernels.html"
                         title="next chapter">PyOP2 Kernels</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/concepts.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/concepts.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -339,7 +341,7 @@ computation and only give the declaration for context.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -357,9 +359,9 @@ computation and only give the declaration for context.</p>
         <li><a href="index.html">PyOP2 0.11.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2012-2013, Imperial College et al.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
     </div>
   </body>
 </html>

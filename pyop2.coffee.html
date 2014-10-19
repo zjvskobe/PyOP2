@@ -27,8 +27,8 @@
     <link rel="up" title="pyop2 package" href="pyop2.html" />
     <link rel="prev" title="pyop2 package" href="pyop2.html" /> 
   </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
+  <body>
+    <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -48,7 +48,7 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body" role="main">
+          <div class="body">
             
   <div class="section" id="pyop2-coffee-package">
 <h1>pyop2.coffee package<a class="headerlink" href="#pyop2-coffee-package" title="Permalink to this headline">¶</a></h1>
@@ -60,7 +60,7 @@
 <p>COFFEE&#8217;s autotuning system.</p>
 <dl class="class">
 <dt id="pyop2.coffee.ast_autotuner.Autotuner">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_autotuner.</tt><tt class="descname">Autotuner</tt><span class="sig-paren">(</span><em>variants</em>, <em>itspace</em>, <em>include</em>, <em>compiler</em>, <em>isa</em>, <em>blas</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_autotuner.Autotuner" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_autotuner.</tt><tt class="descname">Autotuner</tt><big>(</big><em>variants</em>, <em>itspace</em>, <em>include</em>, <em>compiler</em>, <em>isa</em>, <em>blas</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_autotuner.Autotuner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Initialize the autotuner.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -81,7 +81,7 @@
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_autotuner.Autotuner.tune">
-<tt class="descname">tune</tt><span class="sig-paren">(</span><em>resolution</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_autotuner.Autotuner.tune" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">tune</tt><big>(</big><em>resolution</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_autotuner.Autotuner.tune" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the fastest kernel implementation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -102,87 +102,87 @@
 Abstract Syntax Tree (ast).</p>
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.point">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point</tt><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.point" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point</tt><big>(</big><em>p</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.point" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.point_ofs">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point_ofs</tt><span class="sig-paren">(</span><em>p</em>, <em>o</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.point_ofs" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point_ofs</tt><big>(</big><em>p</em>, <em>o</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.point_ofs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.point_ofs_stride">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point_ofs_stride</tt><span class="sig-paren">(</span><em>p</em>, <em>o</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.point_ofs_stride" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">point_ofs_stride</tt><big>(</big><em>p</em>, <em>o</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.point_ofs_stride" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.assign">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">assign</tt><span class="sig-paren">(</span><em>s</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.assign" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">assign</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.assign" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.incr">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">incr</tt><span class="sig-paren">(</span><em>s</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.incr" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">incr</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.incr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.incr_by_1">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">incr_by_1</tt><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.incr_by_1" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">incr_by_1</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.incr_by_1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.decr">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decr</tt><span class="sig-paren">(</span><em>s</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.decr" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decr</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.decr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.decr_by_1">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decr_by_1</tt><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.decr_by_1" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decr_by_1</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.decr_by_1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.idiv">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">idiv</tt><span class="sig-paren">(</span><em>s</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.idiv" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">idiv</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.idiv" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.imul">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">imul</tt><span class="sig-paren">(</span><em>s</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.imul" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">imul</tt><big>(</big><em>s</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.imul" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.wrap">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">wrap</tt><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.wrap" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">wrap</tt><big>(</big><em>e</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.wrap" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.bracket">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">bracket</tt><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.bracket" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">bracket</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.bracket" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.decl">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decl</tt><span class="sig-paren">(</span><em>q</em>, <em>t</em>, <em>s</em>, <em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.decl" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decl</tt><big>(</big><em>q</em>, <em>t</em>, <em>s</em>, <em>a</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.decl" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.decl_init">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decl_init</tt><span class="sig-paren">(</span><em>q</em>, <em>t</em>, <em>s</em>, <em>a</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.decl_init" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">decl_init</tt><big>(</big><em>q</em>, <em>t</em>, <em>s</em>, <em>a</em>, <em>e</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.decl_init" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.for_loop">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">for_loop</tt><span class="sig-paren">(</span><em>s1</em>, <em>e</em>, <em>s2</em>, <em>s3</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.for_loop" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">for_loop</tt><big>(</big><em>s1</em>, <em>e</em>, <em>s2</em>, <em>s3</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.for_loop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.ternary">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">ternary</tt><span class="sig-paren">(</span><em>e</em>, <em>s1</em>, <em>s2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.ternary" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">ternary</tt><big>(</big><em>e</em>, <em>s1</em>, <em>s2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.ternary" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.as_symbol">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">as_symbol</tt><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.as_symbol" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">as_symbol</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.as_symbol" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="class">
@@ -195,69 +195,69 @@ of a perfect loop nest.</p>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Node">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Node</tt><span class="sig-paren">(</span><em>children=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Node" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Node</tt><big>(</big><em>children=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>The base class of the AST.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Node.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Node.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Node.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Root">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Root</tt><span class="sig-paren">(</span><em>children=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Root" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Root</tt><big>(</big><em>children=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Root" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Node" title="pyop2.coffee.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Node</span></tt></a></p>
 <p>Root of the AST.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Root.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Root.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Root.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Expr">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Expr</tt><span class="sig-paren">(</span><em>children=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Expr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Expr</tt><big>(</big><em>children=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Expr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Node" title="pyop2.coffee.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Node</span></tt></a></p>
 <p>Generic expression.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.BinExpr">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">BinExpr</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em>, <em>op</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.BinExpr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">BinExpr</tt><big>(</big><em>expr1</em>, <em>expr2</em>, <em>op</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.BinExpr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Expr" title="pyop2.coffee.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Expr</span></tt></a></p>
 <p>Generic binary expression.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.BinExpr.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.BinExpr.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.BinExpr.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.UnaryExpr">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">UnaryExpr</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.UnaryExpr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">UnaryExpr</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.UnaryExpr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Expr" title="pyop2.coffee.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Expr</span></tt></a></p>
 <p>Generic unary expression.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Neg">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Neg</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Neg" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Neg</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Neg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.UnaryExpr" title="pyop2.coffee.ast_base.UnaryExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.UnaryExpr</span></tt></a></p>
 <p>Unary negation of an expression</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Neg.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Neg.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Neg.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.ArrayInit">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">ArrayInit</tt><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.ArrayInit" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">ArrayInit</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.ArrayInit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Expr" title="pyop2.coffee.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Expr</span></tt></a></p>
 <p>Array Initilizer. A n-dimensional array A can be statically initialized
 to some values. For example</p>
@@ -268,14 +268,14 @@ to some values. For example</p>
 in as simple strings.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.ArrayInit.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.ArrayInit.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.ArrayInit.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.ColSparseArrayInit">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">ColSparseArrayInit</tt><span class="sig-paren">(</span><em>values</em>, <em>nonzero_bounds</em>, <em>numpy_values</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.ColSparseArrayInit" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">ColSparseArrayInit</tt><big>(</big><em>values</em>, <em>nonzero_bounds</em>, <em>numpy_values</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.ColSparseArrayInit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.ArrayInit" title="pyop2.coffee.ast_base.ArrayInit"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.ArrayInit</span></tt></a></p>
 <p>Array initilizer in which zero-columns, i.e. columns full of zeros, are
 explictly tracked. Only bi-dimensional arrays are allowed.</p>
@@ -295,85 +295,85 @@ and last nonzero columns</li>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.ColSparseArrayInit.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.ColSparseArrayInit.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.ColSparseArrayInit.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Par">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Par</tt><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Par" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Par</tt><big>(</big><em>expr</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Par" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.UnaryExpr" title="pyop2.coffee.ast_base.UnaryExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.UnaryExpr</span></tt></a></p>
 <p>Parenthesis object.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Par.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Par.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Par.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Sum">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Sum</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Sum" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Sum</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.BinExpr" title="pyop2.coffee.ast_base.BinExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.BinExpr</span></tt></a></p>
 <p>Binary sum.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Sub">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Sub</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Sub" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Sub</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.BinExpr" title="pyop2.coffee.ast_base.BinExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.BinExpr</span></tt></a></p>
 <p>Binary subtraction.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Prod">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Prod</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Prod" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Prod</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Prod" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.BinExpr" title="pyop2.coffee.ast_base.BinExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.BinExpr</span></tt></a></p>
 <p>Binary product.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Div">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Div</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Div" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Div</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Div" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.BinExpr" title="pyop2.coffee.ast_base.BinExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.BinExpr</span></tt></a></p>
 <p>Binary division.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Less">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Less</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Less" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Less</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Less" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.BinExpr" title="pyop2.coffee.ast_base.BinExpr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.BinExpr</span></tt></a></p>
 <p>Compare two expressions using the operand <tt class="docutils literal"><span class="pre">&lt;</span></tt>.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.FunCall">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">FunCall</tt><span class="sig-paren">(</span><em>function_name</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.FunCall" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">FunCall</tt><big>(</big><em>function_name</em>, <em>*args</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.FunCall" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Expr" title="pyop2.coffee.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Expr</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>Function call.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.FunCall.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.FunCall.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.FunCall.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Ternary">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Ternary</tt><span class="sig-paren">(</span><em>expr</em>, <em>true_stmt</em>, <em>false_stmt</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Ternary" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Ternary</tt><big>(</big><em>expr</em>, <em>true_stmt</em>, <em>false_stmt</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Ternary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Expr" title="pyop2.coffee.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Expr</span></tt></a></p>
 <p>Ternary operator: <tt class="docutils literal"><span class="pre">expr</span> <span class="pre">?</span> <span class="pre">true_stmt</span> <span class="pre">:</span> <span class="pre">false_stmt</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Ternary.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Ternary.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Ternary.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Symbol">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Symbol</tt><span class="sig-paren">(</span><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Symbol" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Symbol</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Symbol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Expr" title="pyop2.coffee.ast_base.Expr"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Expr</span></tt></a></p>
 <p>A generic symbol. The length of <tt class="docutils literal"><span class="pre">rank</span></tt> is the tensor rank:</p>
 <ul class="simple">
@@ -393,178 +393,178 @@ symbol is accessing, or the size of the tensor itself.</td>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Symbol.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Symbol.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Symbol.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXSum">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSum</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSum" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSum</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Sum" title="pyop2.coffee.ast_base.Sum"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Sum</span></tt></a></p>
 <p>Sum of two vector registers using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXSum.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSum.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSum.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXSub">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSub</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSub" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSub</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSub" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Sub" title="pyop2.coffee.ast_base.Sub"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Sub</span></tt></a></p>
 <p>Subtraction of two vector registers using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXSub.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSub.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSub.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXProd">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXProd</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXProd" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXProd</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXProd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Prod" title="pyop2.coffee.ast_base.Prod"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Prod</span></tt></a></p>
 <p>Product of two vector registers using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXProd.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXProd.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXProd.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXDiv">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXDiv</tt><span class="sig-paren">(</span><em>expr1</em>, <em>expr2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXDiv" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXDiv</tt><big>(</big><em>expr1</em>, <em>expr2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXDiv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Div" title="pyop2.coffee.ast_base.Div"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Div</span></tt></a></p>
 <p>Division of two vector registers using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXDiv.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXDiv.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXDiv.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXLoad">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXLoad</tt><span class="sig-paren">(</span><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLoad" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXLoad</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLoad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Symbol" title="pyop2.coffee.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Symbol</span></tt></a></p>
 <p>Load of values in a vector register using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXLoad.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLoad.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLoad.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXSet">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSet</tt><span class="sig-paren">(</span><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSet</tt><big>(</big><em>symbol</em>, <em>rank=()</em>, <em>offset=()</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Symbol" title="pyop2.coffee.ast_base.Symbol"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Symbol</span></tt></a></p>
 <p>Replicate the symbol&#8217;s value in all slots of a vector register
 using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXSet.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSet.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSet.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Statement">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Statement</tt><span class="sig-paren">(</span><em>children=None</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Statement" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Statement</tt><big>(</big><em>children=None</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Statement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Node" title="pyop2.coffee.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Node</span></tt></a></p>
 <p>Base class for commands productions.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.EmptyStatement">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">EmptyStatement</tt><span class="sig-paren">(</span><em>children=None</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.EmptyStatement" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">EmptyStatement</tt><big>(</big><em>children=None</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.EmptyStatement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>Empty statement.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.EmptyStatement.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.EmptyStatement.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.EmptyStatement.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.FlatBlock">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">FlatBlock</tt><span class="sig-paren">(</span><em>code</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.FlatBlock" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">FlatBlock</tt><big>(</big><em>code</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.FlatBlock" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Treat a chunk of code as a single statement, i.e. a C string</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.FlatBlock.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.FlatBlock.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.FlatBlock.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Assign">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Assign</tt><span class="sig-paren">(</span><em>sym</em>, <em>exp</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Assign" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Assign</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Assign" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>Assign an expression to a symbol.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Assign.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Assign.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Assign.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Incr">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Incr</tt><span class="sig-paren">(</span><em>sym</em>, <em>exp</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Incr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Incr</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Incr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>Increment a symbol by an expression.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Incr.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Incr.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Incr.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Decr">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Decr</tt><span class="sig-paren">(</span><em>sym</em>, <em>exp</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Decr" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Decr</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Decr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>Decrement a symbol by an expression.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Decr.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Decr.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Decr.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.IMul">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">IMul</tt><span class="sig-paren">(</span><em>sym</em>, <em>exp</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.IMul" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">IMul</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.IMul" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>In-place multiplication of a symbol by an expression.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.IMul.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.IMul.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.IMul.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.IDiv">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">IDiv</tt><span class="sig-paren">(</span><em>sym</em>, <em>exp</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.IDiv" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">IDiv</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.IDiv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>In-place division of a symbol by an expression.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.IDiv.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.IDiv.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.IDiv.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Decl">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Decl</tt><span class="sig-paren">(</span><em>typ</em>, <em>sym</em>, <em>init=None</em>, <em>qualifiers=None</em>, <em>attributes=None</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Decl" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Decl</tt><big>(</big><em>typ</em>, <em>sym</em>, <em>init=None</em>, <em>qualifiers=None</em>, <em>attributes=None</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Decl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a>, <a class="reference internal" href="#pyop2.coffee.ast_base.Perfect" title="pyop2.coffee.ast_base.Perfect"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Perfect</span></tt></a></p>
 <p>Declaration of a symbol.</p>
 <p>Syntax:</p>
@@ -577,7 +577,7 @@ using AVX intrinsics.</p>
 </div>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Decl.size">
-<tt class="descname">size</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Decl.size" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">size</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Decl.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the size of the declared variable. In particular, return</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">(0,)</span></tt>, if it is a scalar</li>
@@ -589,12 +589,12 @@ represents the size of an array dimension (e.g. <tt class="docutils literal"><sp
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Decl.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Decl.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Decl.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Decl.get_nonzero_columns">
-<tt class="descname">get_nonzero_columns</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Decl.get_nonzero_columns" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_nonzero_columns</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Decl.get_nonzero_columns" title="Permalink to this definition">¶</a></dt>
 <dd><p>If the declared array:</p>
 <ul class="simple">
 <li>is a bi-dimensional array,</li>
@@ -609,19 +609,19 @@ Else, return an empty tuple.</p>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Block">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Block</tt><span class="sig-paren">(</span><em>stmts</em>, <em>pragma=None</em>, <em>open_scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Block" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Block</tt><big>(</big><em>stmts</em>, <em>pragma=None</em>, <em>open_scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Block" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Block of statements.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Block.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Block.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Block.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.For">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">For</tt><span class="sig-paren">(</span><em>init</em>, <em>cond</em>, <em>incr</em>, <em>body</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.For" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">For</tt><big>(</big><em>init</em>, <em>cond</em>, <em>incr</em>, <em>body</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.For" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Represent the classic for loop of an imperative language, although
 some restrictions must be considered: only a single iteration variable
@@ -631,39 +631,39 @@ can be declared and modified (i.e. it is not supported something like</p>
 </div>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.For.it_var">
-<tt class="descname">it_var</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.For.it_var" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">it_var</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.For.it_var" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.For.start">
-<tt class="descname">start</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.For.start" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.For.start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.For.end">
-<tt class="descname">end</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.For.end" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">end</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.For.end" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.For.size">
-<tt class="descname">size</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.For.size" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">size</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.For.size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.For.increment">
-<tt class="descname">increment</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.For.increment" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">increment</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.For.increment" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.For.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.For.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.For.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.Switch">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Switch</tt><span class="sig-paren">(</span><em>switch_expr</em>, <em>cases</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Switch" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">Switch</tt><big>(</big><em>switch_expr</em>, <em>cases</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Switch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Switch construct.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -680,14 +680,14 @@ can be declared and modified (i.e. it is not supported something like</p>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.Switch.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.Switch.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.Switch.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.FunDecl">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">FunDecl</tt><span class="sig-paren">(</span><em>ret</em>, <em>name</em>, <em>args</em>, <em>body</em>, <em>pred=</em>, <span class="optional">[</span><span class="optional">]</span><em>headers=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.FunDecl" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">FunDecl</tt><big>(</big><em>ret</em>, <em>name</em>, <em>args</em>, <em>body</em>, <em>pred=[]</em>, <em>headers=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.FunDecl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Function declaration.</p>
 <p>Syntax:</p>
@@ -700,128 +700,128 @@ can be declared and modified (i.e. it is not supported something like</p>
 </div>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.FunDecl.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.FunDecl.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.FunDecl.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXStore">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXStore</tt><span class="sig-paren">(</span><em>sym</em>, <em>exp</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXStore" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXStore</tt><big>(</big><em>sym</em>, <em>exp</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXStore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Assign" title="pyop2.coffee.ast_base.Assign"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Assign</span></tt></a></p>
 <p>Store of values in a vector register using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXStore.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXStore.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXStore.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXLocalPermute">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXLocalPermute</tt><span class="sig-paren">(</span><em>r</em>, <em>mask</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLocalPermute" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXLocalPermute</tt><big>(</big><em>r</em>, <em>mask</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLocalPermute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Permutation of values in a vector register using AVX intrinsics.
 The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_permute_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXLocalPermute.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLocalPermute.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXLocalPermute.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXGlobalPermute">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXGlobalPermute</tt><span class="sig-paren">(</span><em>r1</em>, <em>r2</em>, <em>mask</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXGlobalPermute" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXGlobalPermute</tt><big>(</big><em>r1</em>, <em>r2</em>, <em>mask</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXGlobalPermute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Permutation of values in two vector registers using AVX intrinsics.
 The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_permute2f128_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXGlobalPermute.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXGlobalPermute.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXGlobalPermute.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXUnpackHi">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXUnpackHi</tt><span class="sig-paren">(</span><em>r1</em>, <em>r2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackHi" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXUnpackHi</tt><big>(</big><em>r1</em>, <em>r2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackHi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Unpack of values in a vector register using AVX intrinsics.
 The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_unpackhi_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXUnpackHi.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackHi.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackHi.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXUnpackLo">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXUnpackLo</tt><span class="sig-paren">(</span><em>r1</em>, <em>r2</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackLo" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXUnpackLo</tt><big>(</big><em>r1</em>, <em>r2</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackLo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Unpack of values in a vector register using AVX intrinsics.
 The intrinsic function used is <tt class="docutils literal"><span class="pre">_mm256_unpacklo_pd</span></tt>.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXUnpackLo.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackLo.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXUnpackLo.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.AVXSetZero">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSetZero</tt><span class="sig-paren">(</span><em>children=None</em>, <em>pragma=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSetZero" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">AVXSetZero</tt><big>(</big><em>children=None</em>, <em>pragma=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSetZero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Statement" title="pyop2.coffee.ast_base.Statement"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Statement</span></tt></a></p>
 <p>Set to 0 the entries of a vector register using AVX intrinsics.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.AVXSetZero.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSetZero.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=True</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.AVXSetZero.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_base.PreprocessNode">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">PreprocessNode</tt><span class="sig-paren">(</span><em>prep</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.PreprocessNode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">PreprocessNode</tt><big>(</big><em>prep</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.PreprocessNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_base.Node" title="pyop2.coffee.ast_base.Node"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_base.Node</span></tt></a></p>
 <p>Represent directives which are handled by the C&#8217;s preprocessor.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_base.PreprocessNode.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><em>scope=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.PreprocessNode.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><em>scope=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.PreprocessNode.gencode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.indent">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">indent</tt><span class="sig-paren">(</span><em>block</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.indent" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">indent</tt><big>(</big><em>block</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.indent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Indent each row of the given string block with <tt class="docutils literal"><span class="pre">n*2</span></tt> spaces.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.semicolon">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">semicolon</tt><span class="sig-paren">(</span><em>scope</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.semicolon" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">semicolon</tt><big>(</big><em>scope</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.semicolon" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.c_sym">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_sym</tt><span class="sig-paren">(</span><em>const</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.c_sym" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_sym</tt><big>(</big><em>const</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.c_sym" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.c_for">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_for</tt><span class="sig-paren">(</span><em>var</em>, <em>to</em>, <em>code</em>, <em>pragma='#pragma pyop2 itspace'</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.c_for" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_for</tt><big>(</big><em>var</em>, <em>to</em>, <em>code</em>, <em>pragma='#pragma pyop2 itspace'</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.c_for" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.c_flat_for">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_flat_for</tt><span class="sig-paren">(</span><em>code</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.c_flat_for" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_flat_for</tt><big>(</big><em>code</em>, <em>parent</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.c_flat_for" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_base.c_from_itspace_to_fors">
-<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_from_itspace_to_fors</tt><span class="sig-paren">(</span><em>itspaces</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_base.c_from_itspace_to_fors" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_base.</tt><tt class="descname">c_from_itspace_to_fors</tt><big>(</big><em>itspaces</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_base.c_from_itspace_to_fors" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -829,7 +829,7 @@ The intrinsic function used is <tt class="docutils literal"><span class="pre">_m
 <span id="pyop2-coffee-ast-linearalgebra-module"></span><h2>pyop2.coffee.ast_linearalgebra module<a class="headerlink" href="#module-pyop2.coffee.ast_linearalgebra" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_linearalgebra.</tt><tt class="descname">AssemblyLinearAlgebra</tt><span class="sig-paren">(</span><em>assembly_optimizer</em>, <em>kernel_decls</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_linearalgebra.</tt><tt class="descname">AssemblyLinearAlgebra</tt><big>(</big><em>assembly_optimizer</em>, <em>kernel_decls</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Convert assembly code into sequences of calls to external dense linear
 algebra libraries. Currently, MKL, ATLAS, and EIGEN are supported.</p>
@@ -848,7 +848,7 @@ algebra libraries. Currently, MKL, ATLAS, and EIGEN are supported.</p>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra.transform">
-<tt class="descname">transform</tt><span class="sig-paren">(</span><em>library</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra.transform" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">transform</tt><big>(</big><em>library</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_linearalgebra.AssemblyLinearAlgebra.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform perfect loop nests representing matrix-matrix multiplies into
 calls to a dense linear algebra library.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -868,7 +868,7 @@ calls to a dense linear algebra library.</p>
 <span id="pyop2-coffee-ast-optimizer-module"></span><h2>pyop2.coffee.ast_optimizer module<a class="headerlink" href="#module-pyop2.coffee.ast_optimizer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">AssemblyOptimizer</tt><span class="sig-paren">(</span><em>loop_nest</em>, <em>pre_header</em>, <em>kernel_decls</em>, <em>is_mixed</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">AssemblyOptimizer</tt><big>(</big><em>loop_nest</em>, <em>pre_header</em>, <em>kernel_decls</em>, <em>is_mixed</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Assembly optimiser interface class</p>
 <p>Initialize the AssemblyOptimizer.</p>
@@ -890,7 +890,7 @@ function spaces.</li>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.extract_itspace">
-<tt class="descname">extract_itspace</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.extract_itspace" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">extract_itspace</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.extract_itspace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove fully-parallel loop from the iteration space. These are
 the loops that were marked by the user/higher layer with a <tt class="docutils literal"><span class="pre">pragma</span>
 <span class="pre">pyop2</span> <span class="pre">itspace</span></tt>.</p>
@@ -898,7 +898,7 @@ the loops that were marked by the user/higher layer with a <tt class="docutils l
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.rewrite">
-<tt class="descname">rewrite</tt><span class="sig-paren">(</span><em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.rewrite" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">rewrite</tt><big>(</big><em>level</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.rewrite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Rewrite an assembly expression to minimize floating point operations
 and relieve register pressure. This involves several possible transformations:</p>
 <ol class="arabic simple">
@@ -929,7 +929,7 @@ trying to eliminate unnecessary floating point operations.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.slice">
-<tt class="descname">slice</tt><span class="sig-paren">(</span><em>slice_factor=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.slice" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">slice</tt><big>(</big><em>slice_factor=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.slice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform slicing of the innermost loop to enhance register reuse.
 For example, given a loop:</p>
 <div class="highlight-none"><div class="highlight"><pre>for i = 0 to N
@@ -952,7 +952,7 @@ compiler unrolling and vector-promoting the sliced loops.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.unroll">
-<tt class="descname">unroll</tt><span class="sig-paren">(</span><em>loops_factor</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.unroll" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unroll</tt><big>(</big><em>loops_factor</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.unroll" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unroll loops in the assembly nest.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -974,7 +974,7 @@ Loops are specified as integers:</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.permute">
-<tt class="descname">permute</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.permute" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">permute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.permute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Permute the integration loop with the innermost loop in the assembly nest.
 This transformation is legal if <tt class="docutils literal"><span class="pre">_precompute</span></tt> was invoked. Storage layout of
 all 2-dimensional arrays involved in the element matrix computation is
@@ -983,7 +983,7 @@ transposed.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyOptimizer.split">
-<tt class="descname">split</tt><span class="sig-paren">(</span><em>cut=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.split" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">split</tt><big>(</big><em>cut=1</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyOptimizer.split" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split assembly expressions into multiple chunks exploiting sum&#8217;s
 associativity. Each chunk will have <tt class="docutils literal"><span class="pre">cut</span></tt> summands.</p>
 <p>For example, consider the following piece of code:</p>
@@ -1021,7 +1021,7 @@ for i
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">AssemblyRewriter</tt><span class="sig-paren">(</span><em>expr</em>, <em>int_loop</em>, <em>syms</em>, <em>decls</em>, <em>parent</em>, <em>hoisted</em>, <em>expr_graph</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">AssemblyRewriter</tt><big>(</big><em>expr</em>, <em>int_loop</em>, <em>syms</em>, <em>decls</em>, <em>parent</em>, <em>hoisted</em>, <em>expr_graph</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Provide operations to re-write an assembly expression:</p>
 <ul class="simple">
@@ -1052,7 +1052,7 @@ matrix.</li>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.licm">
-<tt class="descname">licm</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.licm" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">licm</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.licm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform loop-invariant code motion.</p>
 <p>Invariant expressions found in the loop nest are moved &#8220;after&#8221; the
 outermost independent loop and &#8220;after&#8221; the fastest varying dimension
@@ -1069,7 +1069,7 @@ as well, in which case hoisting after the outermost loop takes place.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.count_occurrences">
-<tt class="descname">count_occurrences</tt><span class="sig-paren">(</span><em>str_key=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.count_occurrences" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">count_occurrences</tt><big>(</big><em>str_key=False</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.count_occurrences" title="Permalink to this definition">¶</a></dt>
 <dd><p>For each variable in the assembly expression, count how many times
 it appears as involved in some operations. For example, for the
 expression <tt class="docutils literal"><span class="pre">a*(5+c)</span> <span class="pre">+</span> <span class="pre">b*(a+4)</span></tt>, return <tt class="docutils literal"><span class="pre">{a:</span> <span class="pre">2,</span> <span class="pre">b:</span> <span class="pre">1,</span> <span class="pre">c:</span> <span class="pre">1}</span></tt>.</p>
@@ -1077,7 +1077,7 @@ expression <tt class="docutils literal"><span class="pre">a*(5+c)</span> <span c
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.expand">
-<tt class="descname">expand</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.expand" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">expand</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.expand" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expand assembly expressions such that:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">Y</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="n">F</span> <span class="o">+</span> <span class="o">...</span>
@@ -1100,7 +1100,7 @@ operations, like matrix-matrix multiplies.</li>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.distribute">
-<tt class="descname">distribute</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.distribute" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">distribute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.distribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply to the distributivity property to the assembly expression.
 E.g.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">B</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">C</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
@@ -1114,7 +1114,7 @@ E.g.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.AssemblyRewriter.simplify">
-<tt class="descname">simplify</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.simplify" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">simplify</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.AssemblyRewriter.simplify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scan the hoisted terms one by one and eliminate duplicate sub-expressions.
 Remove useless assignments (e.g. a = b, and b never used later).</p>
 </dd></dl>
@@ -1123,7 +1123,7 @@ Remove useless assignments (e.g. a = b, and b never used later).</p>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_optimizer.ExpressionExpander">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ExpressionExpander</tt><span class="sig-paren">(</span><em>var_info</em>, <em>expr_graph</em>, <em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ExpressionExpander</tt><big>(</big><em>var_info</em>, <em>expr_graph</em>, <em>expr</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Expand assembly expressions such that:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">Y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
@@ -1147,7 +1147,7 @@ Remove useless assignments (e.g. a = b, and b never used later).</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.ExpressionExpander.expand">
-<tt class="descname">expand</tt><span class="sig-paren">(</span><em>node</em>, <em>parent</em>, <em>it_vars</em>, <em>exp_var</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander.expand" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">expand</tt><big>(</big><em>node</em>, <em>parent</em>, <em>it_vars</em>, <em>exp_var</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionExpander.expand" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform the expansion of the expression rooted in <tt class="docutils literal"><span class="pre">node</span></tt>. Terms are
 expanded along the iteration variable <tt class="docutils literal"><span class="pre">exp_var</span></tt>.</p>
 </dd></dl>
@@ -1156,7 +1156,7 @@ expanded along the iteration variable <tt class="docutils literal"><span class="
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_optimizer.LoopScheduler">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">LoopScheduler</tt><span class="sig-paren">(</span><em>expr_graph</em>, <em>root</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.LoopScheduler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">LoopScheduler</tt><big>(</big><em>expr_graph</em>, <em>root</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.LoopScheduler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Base class for classes that handle loop scheduling; that is, loop fusion,
 loop distribution, etc.</p>
@@ -1178,7 +1178,7 @@ identifiers that appear in <tt class="docutils literal"><span class="pre">root</
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_optimizer.PerfectSSALoopMerger">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">PerfectSSALoopMerger</tt><span class="sig-paren">(</span><em>expr_graph</em>, <em>root</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.PerfectSSALoopMerger" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">PerfectSSALoopMerger</tt><big>(</big><em>expr_graph</em>, <em>root</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.PerfectSSALoopMerger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_optimizer.LoopScheduler" title="pyop2.coffee.ast_optimizer.LoopScheduler"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_optimizer.LoopScheduler</span></tt></a></p>
 <p>Analyze data dependencies and iteration spaces, then merge fusable
 loops.
@@ -1186,7 +1186,7 @@ Statements must be in &#8220;soft&#8221; SSA form: they can be declared and init
 at declaration time, then they can be assigned a value in only one place.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.PerfectSSALoopMerger.merge">
-<tt class="descname">merge</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.PerfectSSALoopMerger.merge" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">merge</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.PerfectSSALoopMerger.merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge perfect loop nests rooted in <tt class="docutils literal"><span class="pre">self.root</span></tt>.</p>
 </dd></dl>
 
@@ -1194,7 +1194,7 @@ at declaration time, then they can be assigned a value in only one place.</p>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_optimizer.ExprLoopFissioner">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ExprLoopFissioner</tt><span class="sig-paren">(</span><em>expr_graph</em>, <em>root</em>, <em>cut</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExprLoopFissioner" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ExprLoopFissioner</tt><big>(</big><em>expr_graph</em>, <em>root</em>, <em>cut</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExprLoopFissioner" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_optimizer.LoopScheduler" title="pyop2.coffee.ast_optimizer.LoopScheduler"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_optimizer.LoopScheduler</span></tt></a></p>
 <p>Analyze data dependencies and iteration spaces, then fission associative
 operations in expressions.
@@ -1210,7 +1210,7 @@ Fissioned expressions are placed in a separate loop nest.</p>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.ExprLoopFissioner.expr_fission">
-<tt class="descname">expr_fission</tt><span class="sig-paren">(</span><em>expr</em>, <em>copy_loops</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExprLoopFissioner.expr_fission" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">expr_fission</tt><big>(</big><em>expr</em>, <em>copy_loops</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExprLoopFissioner.expr_fission" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split an expression containing <tt class="docutils literal"><span class="pre">x</span></tt> summands into <tt class="docutils literal"><span class="pre">x/cut</span></tt> chunks.
 Each chunk is placed in a separate loop nest if <tt class="docutils literal"><span class="pre">copy_loops</span></tt> is true,
 in the same loop nest otherwise. Return a dictionary of all of the split
@@ -1239,7 +1239,7 @@ along the same iteration space); false, otherwise.</li>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_optimizer.ZeroLoopScheduler">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ZeroLoopScheduler</tt><span class="sig-paren">(</span><em>expr_graph</em>, <em>root</em>, <em>decls</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ZeroLoopScheduler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_optimizer.</tt><tt class="descname">ZeroLoopScheduler</tt><big>(</big><em>expr_graph</em>, <em>root</em>, <em>decls</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ZeroLoopScheduler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyop2.coffee.ast_optimizer.LoopScheduler" title="pyop2.coffee.ast_optimizer.LoopScheduler"><tt class="xref py py-class docutils literal"><span class="pre">pyop2.coffee.ast_optimizer.LoopScheduler</span></tt></a></p>
 <p>Analyze data dependencies, iteration spaces, and domain-specific
 information to perform symbolic execution of the assembly code so as to
@@ -1273,7 +1273,7 @@ is the list of hoisted temporaries declarations.</td>
 </table>
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.ZeroLoopScheduler.reschedule">
-<tt class="descname">reschedule</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ZeroLoopScheduler.reschedule" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reschedule</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ZeroLoopScheduler.reschedule" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restructure the loop nests rooted in <tt class="docutils literal"><span class="pre">self.root</span></tt> based on the
 propagation of zero-valued columns along the computation. This, therefore,
 involves fissing and fusing loops so as to remove iterations spent
@@ -1295,7 +1295,7 @@ rooted, <tt class="docutils literal"><span class="pre">loops</span></tt> is the 
 <p>Track read-after-write dependencies between symbols.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.ExpressionGraph.add_dependency">
-<tt class="descname">add_dependency</tt><span class="sig-paren">(</span><em>sym</em>, <em>expr</em>, <em>self_loop</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionGraph.add_dependency" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">add_dependency</tt><big>(</big><em>sym</em>, <em>expr</em>, <em>self_loop</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionGraph.add_dependency" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extract symbols from <tt class="docutils literal"><span class="pre">expr</span></tt> and create a read-after-write dependency
 with <tt class="docutils literal"><span class="pre">sym</span></tt>. If <tt class="docutils literal"><span class="pre">sym</span></tt> already has a dependency, then <tt class="docutils literal"><span class="pre">sym</span></tt> has a
 self dependency on itself.</p>
@@ -1303,7 +1303,7 @@ self dependency on itself.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_optimizer.ExpressionGraph.has_dep">
-<tt class="descname">has_dep</tt><span class="sig-paren">(</span><em>sym</em>, <em>target_sym=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionGraph.has_dep" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">has_dep</tt><big>(</big><em>sym</em>, <em>target_sym=None</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_optimizer.ExpressionGraph.has_dep" title="Permalink to this definition">¶</a></dt>
 <dd><p>If <tt class="docutils literal"><span class="pre">target_sym</span></tt> is not provided, return True if <tt class="docutils literal"><span class="pre">sym</span></tt> has a
 read-after-write dependency with some other symbols. This is the case if
 <tt class="docutils literal"><span class="pre">sym</span></tt> has either a self dependency or at least one input edge, meaning
@@ -1321,14 +1321,14 @@ read-after-write dependency on it, i.e. if there is an edge from
 <p>Transform the kernel&#8217;s AST according to the backend we are running over.</p>
 <dl class="class">
 <dt id="pyop2.coffee.ast_plan.ASTKernel">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">ASTKernel</tt><span class="sig-paren">(</span><em>ast</em>, <em>include_dirs=</em><span class="optional">[</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">ASTKernel</tt><big>(</big><em>ast</em>, <em>include_dirs=[]</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Manipulate the kernel&#8217;s Abstract Syntax Tree.</p>
 <p>The single functionality present at the moment is provided by the
 <a class="reference internal" href="#pyop2.coffee.ast_plan.ASTKernel.plan_gpu" title="pyop2.coffee.ast_plan.ASTKernel.plan_gpu"><tt class="xref py py-meth docutils literal"><span class="pre">plan_gpu()</span></tt></a> method, which transforms the AST for GPU execution.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_plan.ASTKernel.plan_gpu">
-<tt class="descname">plan_gpu</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel.plan_gpu" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plan_gpu</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel.plan_gpu" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform the kernel suitably for GPU execution.</p>
 <p>Loops decorated with a <tt class="docutils literal"><span class="pre">pragma</span> <span class="pre">pyop2</span> <span class="pre">itspace</span></tt> are hoisted out of
 the kernel. The list of arguments in the function signature is
@@ -1354,13 +1354,13 @@ accordingly.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_plan.ASTKernel.plan_cpu">
-<tt class="descname">plan_cpu</tt><span class="sig-paren">(</span><em>opts</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel.plan_cpu" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plan_cpu</tt><big>(</big><em>opts</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel.plan_cpu" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform and optimize the kernel suitably for CPU execution.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_plan.ASTKernel.gencode">
-<tt class="descname">gencode</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel.gencode" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">gencode</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.ASTKernel.gencode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a string representation of the AST.</p>
 </dd></dl>
 
@@ -1368,7 +1368,7 @@ accordingly.</p>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_plan.init_coffee">
-<tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">init_coffee</tt><span class="sig-paren">(</span><em>isa</em>, <em>comp</em>, <em>blas</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_plan.init_coffee" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_plan.</tt><tt class="descname">init_coffee</tt><big>(</big><em>isa</em>, <em>comp</em>, <em>blas</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_plan.init_coffee" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize COFFEE.</p>
 </dd></dl>
 
@@ -1378,14 +1378,14 @@ accordingly.</p>
 <p>Utility functions for AST transformation.</p>
 <dl class="function">
 <dt id="pyop2.coffee.ast_utils.increase_stack">
-<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">increase_stack</tt><span class="sig-paren">(</span><em>asm_opt</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_utils.increase_stack" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">increase_stack</tt><big>(</big><em>asm_opt</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_utils.increase_stack" title="Permalink to this definition">¶</a></dt>
 <dd><p>&#8220;Increase the stack size it the total space occupied by the kernel&#8217;s local
 arrays is too big.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_utils.unroll_factors">
-<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">unroll_factors</tt><span class="sig-paren">(</span><em>sizes</em>, <em>ths</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_utils.unroll_factors" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">unroll_factors</tt><big>(</big><em>sizes</em>, <em>ths</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_utils.unroll_factors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of unroll factors to run, given loop sizes in <tt class="docutils literal"><span class="pre">sizes</span></tt>.
 The return value is a list of tuples, where each element in a tuple
 represents the unroll factor for the corresponding loop in the nest.</p>
@@ -1406,14 +1406,14 @@ factor</td>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_utils.ast_update_ofs">
-<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">ast_update_ofs</tt><span class="sig-paren">(</span><em>node</em>, <em>ofs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_utils.ast_update_ofs" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">ast_update_ofs</tt><big>(</big><em>node</em>, <em>ofs</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_utils.ast_update_ofs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a dictionary <tt class="docutils literal"><span class="pre">ofs</span></tt> s.t. <tt class="docutils literal"><span class="pre">{'itvar':</span> <span class="pre">ofs}</span></tt>, update the various
 iteration variables in the symbols rooted in <tt class="docutils literal"><span class="pre">node</span></tt>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_utils.itspace_size_ofs">
-<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">itspace_size_ofs</tt><span class="sig-paren">(</span><em>itspace</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_utils.itspace_size_ofs" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">itspace_size_ofs</tt><big>(</big><em>itspace</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_utils.itspace_size_ofs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an <tt class="docutils literal"><span class="pre">itspace</span></tt> in the form</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="p">((</span><span class="s">&#39;itvar&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">bound_a</span><span class="p">,</span> <span class="n">bound_b</span><span class="p">),</span> <span class="o">...</span><span class="p">)),</span>
 </pre></div>
@@ -1426,7 +1426,7 @@ iteration variables in the symbols rooted in <tt class="docutils literal"><span 
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_utils.itspace_merge">
-<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">itspace_merge</tt><span class="sig-paren">(</span><em>itspaces</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_utils.itspace_merge" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_utils.</tt><tt class="descname">itspace_merge</tt><big>(</big><em>itspaces</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_utils.itspace_merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given an iterator of iteration spaces, each iteration space represented
 as a 2-tuple containing the start and end point, return a tuple of iteration
 spaces in which contiguous iteration spaces have been merged. For example:</p>
@@ -1441,19 +1441,19 @@ spaces in which contiguous iteration spaces have been merged. For example:</p>
 <span id="pyop2-coffee-ast-vectorizer-module"></span><h2>pyop2.coffee.ast_vectorizer module<a class="headerlink" href="#module-pyop2.coffee.ast_vectorizer" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pyop2.coffee.ast_vectorizer.AssemblyVectorizer">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">AssemblyVectorizer</tt><span class="sig-paren">(</span><em>assembly_optimizer</em>, <em>intrinsics</em>, <em>compiler</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">AssemblyVectorizer</tt><big>(</big><em>assembly_optimizer</em>, <em>intrinsics</em>, <em>compiler</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Loop vectorizer</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_vectorizer.AssemblyVectorizer.alignment">
-<tt class="descname">alignment</tt><span class="sig-paren">(</span><em>decl_scope</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer.alignment" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">alignment</tt><big>(</big><em>decl_scope</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer.alignment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Align all data structures accessed in the loop nest to the size in
 bytes of the vector length.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_vectorizer.AssemblyVectorizer.padding">
-<tt class="descname">padding</tt><span class="sig-paren">(</span><em>decl_scope</em>, <em>nz_in_fors</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer.padding" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">padding</tt><big>(</big><em>decl_scope</em>, <em>nz_in_fors</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer.padding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pad all data structures accessed in the loop nest to the nearest
 multiple of the vector length. Adjust trip counts and bounds of all
 innermost loops where padded arrays are written to. Since padding
@@ -1464,7 +1464,7 @@ property.</p>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_vectorizer.AssemblyVectorizer.outer_product">
-<tt class="descname">outer_product</tt><span class="sig-paren">(</span><em>opts</em>, <em>factor=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer.outer_product" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">outer_product</tt><big>(</big><em>opts</em>, <em>factor=1</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.AssemblyVectorizer.outer_product" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute outer products according to <tt class="docutils literal"><span class="pre">opts</span></tt>.</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">opts</span> <span class="pre">=</span> <span class="pre">V_OP_PADONLY</span></tt> : no peeling, just use padding</li>
@@ -1481,7 +1481,7 @@ compiler, which can freely decide to use a higher or lower value.</li>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_vectorizer.OuterProduct">
-<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">OuterProduct</tt><span class="sig-paren">(</span><em>stmt</em>, <em>loops</em>, <em>intr</em>, <em>nest</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">OuterProduct</tt><big>(</big><em>stmt</em>, <em>loops</em>, <em>intr</em>, <em>nest</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate outer product vectorisation of a statement.</p>
 <dl class="attribute">
 <dt id="pyop2.coffee.ast_vectorizer.OuterProduct.OP_STORE_IN_MEM">
@@ -1495,29 +1495,29 @@ compiler, which can freely decide to use a higher or lower value.</li>
 
 <dl class="class">
 <dt id="pyop2.coffee.ast_vectorizer.OuterProduct.Alloc">
-<em class="property">class </em><tt class="descname">Alloc</tt><span class="sig-paren">(</span><em>intr</em>, <em>tensor_size</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descname">Alloc</tt><big>(</big><em>intr</em>, <em>tensor_size</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Handle allocation of register variables.</p>
 <dl class="method">
 <dt id="pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.get_reg">
-<tt class="descname">get_reg</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.get_reg" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_reg</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.get_reg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.free_regs">
-<tt class="descname">free_regs</tt><span class="sig-paren">(</span><em>regs</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.free_regs" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">free_regs</tt><big>(</big><em>regs</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.free_regs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.get_tensor">
-<tt class="descname">get_tensor</tt><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.get_tensor" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_tensor</tt><big>(</big><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.Alloc.get_tensor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="method">
 <dt id="pyop2.coffee.ast_vectorizer.OuterProduct.generate">
-<tt class="descclassname">OuterProduct.</tt><tt class="descname">generate</tt><span class="sig-paren">(</span><em>rows</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.generate" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">OuterProduct.</tt><tt class="descname">generate</tt><big>(</big><em>rows</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.OuterProduct.generate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the outer-product intrinsics-based vectorisation code.</p>
 </dd></dl>
 
@@ -1525,19 +1525,19 @@ compiler, which can freely decide to use a higher or lower value.</li>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_vectorizer.vect_roundup">
-<tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">vect_roundup</tt><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.vect_roundup" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">vect_roundup</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.vect_roundup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return x rounded up to the vector length.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_vectorizer.vect_rounddown">
-<tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">vect_rounddown</tt><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.vect_rounddown" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">vect_rounddown</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.vect_rounddown" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return x rounded down to the vector length.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyop2.coffee.ast_vectorizer.inner_loops">
-<tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">inner_loops</tt><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.inner_loops" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyop2.coffee.ast_vectorizer.</tt><tt class="descname">inner_loops</tt><big>(</big><em>node</em><big>)</big><a class="headerlink" href="#pyop2.coffee.ast_vectorizer.inner_loops" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find inner loops in the subtree rooted in node.</p>
 </dd></dl>
 
@@ -1551,7 +1551,7 @@ compiler, which can freely decide to use a higher or lower value.</li>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -1572,14 +1572,12 @@ compiler, which can freely decide to use a higher or lower value.</li>
   <h4>Previous topic</h4>
   <p class="topless"><a href="pyop2.html"
                         title="previous chapter">pyop2 package</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/pyop2.coffee.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pyop2.coffee.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -1596,7 +1594,7 @@ compiler, which can freely decide to use a higher or lower value.</li>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
+    <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -1612,9 +1610,9 @@ compiler, which can freely decide to use a higher or lower value.</li>
           <li><a href="pyop2.html" >pyop2 package</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer" role="contentinfo">
+    <div class="footer">
         &copy; Copyright 2012-2013, Imperial College et al.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3a0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>

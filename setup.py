@@ -98,8 +98,6 @@ install_requires = [
     'COFFEE',
 ]
 
-dep_links = ['git+https://github.com/coneoproject/COFFEE#egg=COFFEE-dev']
-
 version = sys.version_info[:2]
 if version < (2, 7) or (3, 0) <= version <= (3, 1):
     install_requires += ['argparse', 'ordereddict']
@@ -147,7 +145,6 @@ setup(name='PyOP2',
           'Programming Language :: Python :: 2.7',
       ],
       install_requires=install_requires,
-      dependency_links=dep_links,
       test_requires=test_requires,
       packages=['pyop2', 'pyop2_utils'],
       package_data={

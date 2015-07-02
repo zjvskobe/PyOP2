@@ -86,12 +86,6 @@ To install core packages on a Debian-based system (Ubuntu, Mint, etc.)::
     mercurial python-pip libopenmpi-dev openmpi-bin libblas-dev \
     liblapack-dev gfortran
 
-.. note::
-
-   This may not give you recent enough versions of those packages
-   (in particular the Cython version shipped with 12.04 is too old). You
-   can selectively upgrade packages via ``pip``, see below.
-
 Install dependencies via ``pip``::
 
   sudo pip install "Cython>=0.20" decorator "numpy>=1.6" "mpi4py>=1.3.1"

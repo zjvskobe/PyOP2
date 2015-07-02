@@ -173,38 +173,37 @@ Install petsc4py via ``pip``::
 
   sudo pip install git+https://bitbucket.org/mapdes/petsc4py.git@firedrake#egg=petsc4py
 
-If you have previously installed and older version of PETSc or petsc4py,
-``pip`` might tell you that the requirements are already satisfied when running
-above commands. In that case, use ``pip install -U --no-deps`` to upgrade
-(``--no-deps`` prevents also recursively upgrading any dependencies).
+.. note::
+
+   To update PETSc or petsc4py, you may need to pass the flags
+   ``--upgrade --no-deps``, otherwise pip may inform you that the
+   requirements are already satisfied. For example, ``sudo pip install
+   --upgrade --no-deps git+https://...``
 
 .. _coffee-install:
 
-COFFEE
-~~~~~~
+Installing COFFEE
+-----------------
 
-If you do not intend to develop COFFEE, you can simply install it using ``pip``::
+COFFEE, which applies code optimisations, can be installed using
+``pip``::
 
   sudo pip install git+https://github.com/coneoproject/COFFEE.git
 
-If you *do* intend to contribute to COFFEE, then clone the repository::
+If you are interested in developing COFFEE, we suggest cloning the
+git repository. It can be installed from the repository, or added to
+your PYTHONPATH.
 
-  git clone git@github.com:coneoproject/COFFEE.git
+.. note::
 
-COFFEE can be installed from the repository via::
-
-  sudo python setup.py install
-
-.. hint::
-
-   If you only intend to run PyOP2 on CPUs (not GPUs) you can now skip
-   straight to :ref:`pyop2-install`, otherwise read on for additional
-   dependencies.
+   If you are only installing PyOP2 for use with Firedrake, or you
+   are making a standalone PyOP2 installation but have no interest in
+   GPU backends, you can now skip to :ref:`pyop2-install`.
 
 .. _cuda-installation:
 
-CUDA backend:
-~~~~~~~~~~~~~
+Optional CUDA backend
+---------------------
 
 Dependencies: 
 
@@ -252,8 +251,8 @@ your ``$LIBRARY_PATH`` if in a non-standard location::
 
 .. _opencl-installation:
 
-OpenCL backend:
-~~~~~~~~~~~~~~~
+Optional OpenCL backend
+-----------------------
 
 Dependencies: 
 
@@ -310,7 +309,7 @@ toolkit <http://developer.amd.com/tools/heterogeneous-computing/amd-accelerated-
   sudo ./Install-AMD-APP.sh
 
 HDF5
-~~~~
+----
 
 PyOP2 allows initializing data structures using data stored in HDF5
 files. To use this feature you need the optional dependency

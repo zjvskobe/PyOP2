@@ -81,7 +81,7 @@ To install core packages on a Debian-based system (Ubuntu, Mint, etc.)::
 
 Install further dependencies via ``pip``::
 
-  sudo pip install "Cython>=0.20" decorator "numpy>=1.6" "mpi4py>=1.3.1"
+  sudo pip install "Cython>=0.20" decorator "numpy>=1.9.1" "mpi4py>=1.3.1"
 
 .. note::
    
@@ -193,6 +193,19 @@ COFFEE, which applies code optimisations, can be installed using
 If you are interested in developing COFFEE, we suggest cloning the
 git repository. It can be installed from the repository, or added to
 your PYTHONPATH.
+
+HDF5 support
+------------
+
+PyOP2 allows initializing data structures using data stored in HDF5
+files. To use this feature, you need the optional dependency
+`h5py <http://h5py.org>`__.
+
+On a Debian-based system, run::
+
+  sudo apt-get install libhdf5-mpi-dev python-h5py
+
+Alternatively, if the HDF5 library is available, ``sudo pip install h5py``.
 
 .. note::
 
@@ -307,19 +320,6 @@ toolkit <http://developer.amd.com/tools/heterogeneous-computing/amd-accelerated-
   # Install to /usr/local instead of /opt 
   sed -ie 's:/opt:/usr/local:g' default-install_lnx*.pl
   sudo ./Install-AMD-APP.sh
-
-HDF5
-----
-
-PyOP2 allows initializing data structures using data stored in HDF5
-files. To use this feature you need the optional dependency
-`h5py <http://h5py.org>`__.
-
-On a Debian-based system, run::
-
-  sudo apt-get install libhdf5-mpi-dev python-h5py
-
-Alternatively, if the HDF5 library is available, ``sudo pip install h5py``.
 
 .. _pyop2-install:
 

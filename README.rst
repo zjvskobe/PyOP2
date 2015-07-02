@@ -54,7 +54,7 @@ The following dependencies are needed for running PyOP2 tests:
 * gmsh
 * triangle
 
-With the exception of the PETSc_ dependencies, these can be installed
+With the exception of the PETSc dependencies, these can be installed
 using the package management system of your OS, or via ``pip``.
 
 Installing packages with pip
@@ -149,8 +149,8 @@ environment for PyOP2 consists of the following:
 
 .. hint::
 
-   Your system is now ready to move on to installation of PETSc_ and
-   petsc4py_ described below.  
+   Your system is now ready to move on to installation of PETSc and
+   petsc4py described below.
 
 .. note::
 
@@ -167,24 +167,24 @@ PyOP2 uses petsc4py_, the Python bindings for the PETSc_ linear algebra
 library and requires:
 
 * an MPI implementation built with *shared libraries* 
-* A suitable very recent PETSc_ master branch built with *shared libraries*
+* A suitable very recent PETSc master branch built with *shared libraries*
 
-If you have a suitable PETSc_ installed on your system, ``PETSC_DIR``
-and ``PETSC_ARCH`` need to be set for the petsc4py_ installer to find
+If you have a suitable PETSc installed on your system, ``PETSC_DIR``
+and ``PETSC_ARCH`` need to be set for the petsc4py installer to find
 it. 
 
 .. note::
 
    There are no current OS PETSc packages which are new
    enough. Therefore, unless you really know you should be doing
-   otherwise, always install PETSc_ using pip. The following
-   instructions will install the firedrake branch of PETSc_ and
-   petsc4py_. This is a recent version of the upstream master branch
+   otherwise, always install PETSc using pip. The following
+   instructions will install the firedrake branch of PETSc and
+   petsc4py. This is a recent version of the upstream master branch
    which has been verified to at least build correctly. You may also
    use the upstream next or master branch, but be aware that these are
    rapidly developing and tend to break regularly.
 
-Then install PETSc_ via ``pip`` ::
+Then install PETSc via ``pip`` ::
 
   sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
     pip install https://bitbucket.org/mapdes/petsc/get/firedrake.tar.bz2
@@ -199,14 +199,14 @@ Then install PETSc_ via ``pip`` ::
 
      --with-threadcomm --with-openmp --with-pthreadclasses
 
-If you built PETSc_ using ``pip``, ``PETSC_DIR`` and ``PETSC_ARCH``
-should be left unset when building petsc4py_.
+If you built PETSc using ``pip``, ``PETSC_DIR`` and ``PETSC_ARCH``
+should be left unset when building petsc4py.
 
-Install petsc4py_ via ``pip``::
+Install petsc4py via ``pip``::
 
   sudo pip install git+https://bitbucket.org/mapdes/petsc4py.git@firedrake#egg=petsc4py
 
-If you have previously installed and older version of PETSc_ or petsc4py_,
+If you have previously installed and older version of PETSc or petsc4py,
 ``pip`` might tell you that the requirements are already satisfied when running
 above commands. In that case, use ``pip install -U --no-deps`` to upgrade
 (``--no-deps`` prevents also recursively upgrading any dependencies).

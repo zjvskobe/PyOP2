@@ -330,19 +330,18 @@ Clone the PyOP2 repository::
 
   git clone https://github.com/OP2/PyOP2.git
  
-PyOP2 uses `Cython <http://cython.org>`__ extension modules, which need to be built
-in-place when using PyOP2 from the source tree::
+This can **either** be installed system-wide, with::
 
-  python setup.py build_ext --inplace
+  sudo python setup.py install
 
-When running PyOP2 from the source tree, make sure it is on your
+**or** can be used directly from the source tree::
+
+  make ext
+
+If PyOP2 is used from the source tree, make sure it is on your
 ``$PYTHONPATH``::
 
   export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH
-
-When installing PyOP2 via ``python setup.py install`` the extension
-modules will be built automatically and amending ``$PYTHONPATH`` is not
-necessary.
 
 Setting up the environment
 --------------------------

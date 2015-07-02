@@ -87,8 +87,6 @@ Install further dependencies via ``pip``::
    
    You can now skip down to :ref:`petsc-install`.
 
-.. _mac-install:
-
 Obtaining a build environment on Mac OS
 ---------------------------------------
 
@@ -150,28 +148,21 @@ environment for PyOP2 consists of the following:
 Installing PETSc
 ----------------
 
-PyOP2 uses petsc4py_, the Python bindings for the PETSc_ linear algebra
-library and requires:
+PyOP2 uses the PETSc_ linear algebra library, via the Python bindings
+provided by petsc4py_. This requires:
 
 * an MPI implementation built with *shared libraries* 
-* A suitable very recent PETSc master branch built with *shared libraries*
-
-If you have a suitable PETSc installed on your system, ``PETSC_DIR``
-and ``PETSC_ARCH`` need to be set for the petsc4py installer to find
-it. 
+* a version of PETSc, built with *shared libraries*
 
 .. note::
 
-   There are no current OS PETSc packages which are new
-   enough. Therefore, unless you really know you should be doing
-   otherwise, always install PETSc using pip. The following
-   instructions will install the firedrake branch of PETSc and
-   petsc4py. This is a recent version of the upstream master branch
-   which has been verified to at least build correctly. You may also
-   use the upstream next or master branch, but be aware that these are
-   rapidly developing and tend to break regularly.
+   PyOP2 requires a very recent version of PETSc. Unless you really
+   know what you are doing, follow these instructions to install PETSc
+   using pip. This will install a recent version of the PETSc master
+   branch which has been verified to work correctly with PyOP2 and
+   Firedrake.
 
-Then install PETSc via ``pip`` ::
+To install PETSc via ``pip`` ::
 
   sudo PETSC_CONFIGURE_OPTIONS="--download-ctetgen --download-triangle --download-chaco" \
     pip install https://bitbucket.org/mapdes/petsc/get/firedrake.tar.bz2

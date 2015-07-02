@@ -343,24 +343,6 @@ If PyOP2 is used from the source tree, make sure it is on your
 
   export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH
 
-Setting up the environment
---------------------------
-
-To make sure PyOP2 finds all its dependencies, create a file ``.env``
-e.g. in your PyOP2 root directory and source it via ``. .env`` when
-using PyOP2. Use the template below, adjusting paths and removing
-definitions as necessary::
-
-  #PETSc installation, not necessary when PETSc was installed via pip
-  export PETSC_DIR=/path/to/petsc 
-  export PETSC_ARCH=linux-gnu-c-opt
-
-  #Add PyOP2 to PYTHONPATH
-  export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH
-
-Alternatively, package the configuration in an `environment
-module <http://modules.sourceforge.net/>`__.
-
 Testing your installation
 -------------------------
 

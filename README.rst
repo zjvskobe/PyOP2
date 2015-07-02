@@ -11,55 +11,6 @@ The main testing platform for PyOP2 is Ubuntu 12.04 64-bit with Python
 2.7.3. Later Ubuntu versions should also work. Some users successfully
 use PyOP2 on Mac OS X.
 
-Quick start installations
--------------------------
-
-Installation script for Ubuntu
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For the impatient there is a script for the unattended installation of
-PyOP2 and its dependencies on a Ubuntu 12.04 or compatible platform.
-Only the sequential and OpenMP backends are covered at the moment.
-
-.. note::
-  This script will only work reliably on a clean Ubuntu installation and is
-  not intended to be used by PyOP2 developers. If you intend to contribute to
-  PyOP2 it is recommended to follow the instructions below for a manual
-  installation.
-
-Running with superuser privileges will install missing packages and
-Python dependencies will be installed system wide::
-
-  wget -O - https://github.com/OP2/PyOP2/raw/master/install.sh | sudo bash
-
-.. warning::
-  This will fail if you if you require a password for ``sudo``. Run e.g. the
-  following beforehand to assure your password is cached ::
-
-      sudo whoami
-
-Running without superuser privileges will instruct you which packages
-need to be installed. Python dependencies will be installed to the user
-site ``~/.local``::
-
-  wget -O - https://github.com/OP2/PyOP2/raw/master/install.sh | bash
-
-In each case, PyOP2 will be cloned to subdirectories of the current directory.
-
-After installation has completed and a rudimentary functionality check,
-the test suite is run. The script indicates whether all these steps have
-completed successfully and only in this case will exit with return code
-0.
-
-Only high-level progress updates are printed to screen. Most of the
-output is redirected to a log file ``pyop2_install.log``. Please consult
-this log file in the case of errors. If you can't figure out the cause
-of discover a bug in the installation script, please `report
-it <https://github.com/OP2/PyOP2/issues>`__.
-
-This completes the quick start installation. More complete
-instructions follow for virtual machine and native installations.
-
 Manual Installation
 -------------------
 

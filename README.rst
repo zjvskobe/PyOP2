@@ -334,45 +334,45 @@ This can **either** be installed system-wide, with::
 
   sudo python setup.py install
 
-**or** can be used directly from the source tree::
+**or** can be used directly from the source tree. In this case, some
+Cython extension modules must be built, and the PyOP2 folder must
+be on your ``$PYTHONPATH``::
 
   make ext
-
-If PyOP2 is used from the source tree, make sure it is on your
-``$PYTHONPATH``::
 
   export PYTHONPATH=/path/to/PyOP2:$PYTHONPATH
 
 Testing your installation
 -------------------------
 
-PyOP2 unit tests use `pytest <http://pytest.org>`__ >= 2.3. Install via package
-manager::
+The PyOP2 unit tests use `pytest <http://pytest.org>`__. This can
+**either** be installed via the package manager::
 
   sudo apt-get install python-pytest
 
-or pip::
+**or** through pip::
 
   sudo pip install "pytest>=2.3"
 
-The code linting test uses `flake8 <http://flake8.readthedocs.org>`__.
-Install via pip::
+The code linting test uses `flake8 <http://flake8.readthedocs.org>`__,
+which can be installed via pip::
 
   sudo pip install "flake8>=2.1.0"
 
-If you install *pytest* and *flake8* using ``pip --user``, you should
-include the binary folder of your local site in your path by adding the
-following to ``~/.bashrc`` or ``.env``::
+.. note::
 
-  # Add pytest binaries to the path
-  export PATH=${PATH}:${HOME}/.local/bin
+   If you install *pytest* and *flake8* using ``pip --user``, you
+   should include the binary folder of your local site in your
+   ``$PATH``::
 
-If all tests in our test suite pass, you should be good to go::
+     export PATH=${PATH}:${HOME}/.local/bin
+
+To run the PyOP2 tests, type::
 
   make test
 
-This will run code linting and unit tests, attempting to run for all backends
-and skipping those for not available backends.
+This will run code linting and unit tests, attempting to run tests for
+all backends and skipping backends which are not available.
 
 Troubleshooting
 ---------------

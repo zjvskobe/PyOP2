@@ -169,9 +169,6 @@ To install PETSc via ``pip`` ::
   unset PETSC_DIR
   unset PETSC_ARCH
 
-If you built PETSc using ``pip``, ``PETSC_DIR`` and ``PETSC_ARCH``
-should be left unset when building petsc4py.
-
 Install petsc4py via ``pip``::
 
   sudo pip install git+https://bitbucket.org/mapdes/petsc4py.git@firedrake#egg=petsc4py

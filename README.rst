@@ -14,10 +14,10 @@ use PyOP2 on Mac OS X.
 List of dependencies
 --------------------
 
-.. hint::
+.. note::
 
-   The installation instructions further down the page cover the
-   installation of these packages.
+   Reading this section is optional; the installation instructions
+   further down the page cover the installation of these packages.
 
 PyOP2 requires a number of tools and libraries to be available:
 
@@ -57,26 +57,6 @@ The following dependencies are needed for running PyOP2 tests:
 With the exception of the PETSc dependencies, these can be installed
 using the package management system of your OS, or via ``pip``.
 
-Installing packages with pip
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To install dependencies system-wide use ``sudo pip install ...``, to
-install to a user site use ``pip install --user ...``. If you don't want
-PyOP2 or its dependencies interfering with your existing Python environment,
-consider creating a `virtualenv <http://virtualenv.org/>`__.
-
-.. note::
-
-   In the following we will use ``sudo pip install ...``. If
-   you want either of the other options you should change the command
-   appropriately.
-
-.. note::
-
-   Installing to the user site does not always give packages
-   priority over system installed packages on your ``sys.path``.
-
-
 Obtaining a build environment on Ubuntu
 ---------------------------------------
 
@@ -86,18 +66,31 @@ To install core packages on a Debian-based system (Ubuntu, Mint, etc.)::
     mercurial python-pip libopenmpi-dev openmpi-bin libblas-dev \
     liblapack-dev gfortran
 
-Install dependencies via ``pip``::
+.. note::
+
+   In the following we will use ``sudo pip install ...``, which
+   installs dependencies system-wide. To install to a user site, use
+   ``pip install --user ...``. If you don't want PyOP2 dependencies
+   to interfere with your existing Python environment, consider
+   creating a `virtualenv <http://virtualenv.org/>`__.
+
+.. note::
+
+   Installing to the user site does not always give packages
+   priority over system-installed packages on your ``sys.path``.
+
+Install further dependencies via ``pip``::
 
   sudo pip install "Cython>=0.20" decorator "numpy>=1.6" "mpi4py>=1.3.1"
 
-.. hint::
+.. note::
    
-   You can now skip down to installing :ref:`petsc-install`.
+   You can now skip down to :ref:`petsc-install`.
 
 .. _mac-install:
 
 Obtaining a build environment on Mac OS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------
 
 We recommend using `Homebrew <http://brew.sh>`__ as a package manager
 for the required packages on Mac OS systems.  Obtaining a build
@@ -154,8 +147,8 @@ environment for PyOP2 consists of the following:
 
 .. _petsc-install:
 
-PETSc
-~~~~~
+Installing PETSc
+----------------
 
 PyOP2 uses petsc4py_, the Python bindings for the PETSc_ linear algebra
 library and requires:

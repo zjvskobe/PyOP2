@@ -37,14 +37,17 @@ subsystem:
 * numpy >= 1.9.1 
 * mpi4py >= 1.3.1
 
-PETSc. We require very recent versions of PETSc so you will need to follow the specific instructions given below to install the right version.
+PyOP2 relies on PETSc, a suite for scientific computation, and
+appropriate Python bindings:
 
 * PETSc_
 * PETSc4py_
 
-COFFEE. We require the current master version of COFFEE for which you will need to follow the instructions given below.
+PyOP2 also uses COFFEE, which performs code optimisations:
 
-Testing dependencies (optional, required to run the tests):
+* COFFEE_
+
+The following dependencies are needed for running PyOP2 tests:
 
 * pytest >= 2.3
 * flake8 >= 2.1.0
@@ -448,7 +451,6 @@ Start with the unit tests with the sequential backend ::
 With all the sequential tests passing, move on to the next backend in the same
 manner as required.
 
-.. _PPA: https://launchpad.net/~amcg/+archive/petsc3.4/
 .. _PETSc: http://www.mcs.anl.gov/petsc/
 .. _petsc4py: http://pythonhosted.org/petsc4py/
-.. _Instant: https://bitbucket.org/fenics-project/instant
+.. _COFFEE: https://github.com/coneoproject/COFFEE

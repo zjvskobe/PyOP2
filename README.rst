@@ -77,10 +77,10 @@ consider creating a `virtualenv <http://virtualenv.org/>`__.
    priority over system installed packages on your ``sys.path``.
 
 
-Obtaining a build environment on Ubuntu and similar systems
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Obtaining a build environment on Ubuntu
+---------------------------------------
 
-On a Debian-based system (Ubuntu, Mint, etc.) install core packages::
+To install core packages on a Debian-based system (Ubuntu, Mint, etc.)::
 
   sudo apt-get install -y build-essential python-dev git-core \
     mercurial python-pip libopenmpi-dev openmpi-bin libblas-dev \

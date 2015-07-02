@@ -374,12 +374,14 @@ To run the PyOP2 tests, type::
 This will run code linting and unit tests, attempting to run tests for
 all backends and skipping backends which are not available.
 
+**If all tests pass, the PyOP2 installation is complete.**
+
 Troubleshooting
 ---------------
 
-Start by verifying that PyOP2 picks up the "correct" dependencies, in
-particular if you have several versions of a Python package installed in
-different places on the system.
+Start by verifying that PyOP2 picks up the "correct" dependencies,
+particularly if you have several versions of a Python package installed
+in different places on your system.
 
 Run ``pydoc <module>`` to find out where a module/package is loaded
 from. To print the module search path, run::
@@ -389,14 +391,13 @@ from. To print the module search path, run::
 Troubleshooting test failures
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run the tests as follows, to abort after the first failed test:
-
-Start with the unit tests with the sequential backend ::
+Start by running the unit tests with the sequential backend. In order
+to abort after the first failed test::
 
   py.test test/unit -vsx --tb=short --backend=sequential
 
-With all the sequential tests passing, move on to the next backend in the same
-manner as required.
+With all the sequential tests passing, run the additional backends in
+the same manner.
 
 .. _PETSc: http://www.mcs.anl.gov/petsc/
 .. _petsc4py: http://pythonhosted.org/petsc4py/

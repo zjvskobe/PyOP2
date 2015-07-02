@@ -60,21 +60,6 @@ it <https://github.com/OP2/PyOP2/issues>`__.
 This completes the quick start installation. More complete
 instructions follow for virtual machine and native installations.
 
-Provisioning a virtual machine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A ``Vagrantfile`` is provided for automatic provisioning of a Ubuntu
-12.04 64bit virtual machine with PyOP2 preinstalled. It requires
-`VirtualBox 4.2 <https://www.virtualbox.org/wiki/Linux_Downloads>`__ and
-`Vagrant <http://www.vagrantup.com>`__ to be installed, which are
-available for Linux, Mac and Windows.
-
-Creating and launching a virtual machine is a single command: run
-``vagrant up`` to automatically download the base VM image, configure it
-for use with VirtualBox, boot the VM and install PyOP2 and all
-dependencies using the above install script.
-
-
 Manual Installation
 -------------------
 

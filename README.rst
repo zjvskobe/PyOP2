@@ -194,8 +194,8 @@ If you are interested in developing COFFEE, we suggest cloning the
 git repository. It can be installed from the repository, or added to
 your PYTHONPATH.
 
-HDF5 support
-------------
+Optional HDF5 support
+---------------------
 
 PyOP2 allows initializing data structures using data stored in HDF5
 files. To use this feature, you need the optional dependency

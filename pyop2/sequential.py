@@ -89,6 +89,7 @@ void %(wrapper_name)s(int start, int end,
         if iterset._extruded:
             argtypes.append(ctypes.c_int)
             argtypes.append(ctypes.c_int)
+            argtypes.append(ctypes.c_int)
 
         self._argtypes = argtypes
 

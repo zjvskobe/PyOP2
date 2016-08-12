@@ -202,6 +202,7 @@ void %(wrapper_name)s(int boffset,
         if iterset._extruded:
             argtypes.append(ctypes.c_int)
             argtypes.append(ctypes.c_int)
+            argtypes.append(ctypes.c_int)
 
         self._argtypes = argtypes
 

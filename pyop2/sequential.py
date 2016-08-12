@@ -42,7 +42,7 @@ from mpi import collective
 from petsc_base import *
 from profiling import timed_region
 from host import Kernel, Arg  # noqa: needed by BackendSelector
-from utils import as_tuple, cached_property
+from utils import cached_property
 
 
 class JITModule(host.JITModule):
@@ -80,16 +80,8 @@ void %(wrapper_name)s(int start, int end,
         if isinstance(iterset, Subset):
             argtypes.append(iterset._argtype)
         for arg in args:
-            if arg._is_mat:
-                argtypes.append(arg.data._argtype)
-            else:
-                for d in arg.data:
-                    argtypes.append(d._argtype)
-            if arg._is_indirect or arg._is_mat:
-                maps = as_tuple(arg.map, Map)
-                for map in maps:
-                    for m in map:
-                        argtypes.append(m._argtype)
+            types, values = arg.wrapper_args()
+            argtypes.extend(types)
 
         for c in Const._definitions():
             argtypes.append(c._argtype)
@@ -109,17 +101,8 @@ class ParLoop(host.ParLoop):
             arglist.append(iterset._indices.ctypes.data)
 
         for arg in args:
-            if arg._is_mat:
-                arglist.append(arg.data.handle.handle)
-            else:
-                for d in arg.data:
-                    # Cannot access a property of the Dat or we will force
-                    # evaluation of the trace
-                    arglist.append(d._data.ctypes.data)
-            if arg._is_indirect or arg._is_mat:
-                for map in arg._map:
-                    for m in map:
-                        arglist.append(m._values.ctypes.data)
+            types, values = arg.wrapper_args()
+            arglist.extend(values)
 
         for c in Const._definitions():
             arglist.append(c._data.ctypes.data)

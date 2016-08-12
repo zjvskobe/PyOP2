@@ -193,16 +193,8 @@ void %(wrapper_name)s(int boffset,
         if isinstance(iterset, Subset):
             argtypes.append(iterset._argtype)
         for arg in args:
-            if arg._is_mat:
-                argtypes.append(arg.data._argtype)
-            else:
-                for d in arg.data:
-                    argtypes.append(d._argtype)
-            if arg._is_indirect or arg._is_mat:
-                maps = as_tuple(arg.map, Map)
-                for map in maps:
-                    for m in map:
-                        argtypes.append(m._argtype)
+            types, values = arg.wrapper_args()
+            argtypes.extend(types)
 
         for c in Const._definitions():
             argtypes.append(c._argtype)
@@ -240,16 +232,8 @@ class ParLoop(device.ParLoop, host.ParLoop):
         if isinstance(iterset, Subset):
             arglist.append(iterset._indices.ctypes.data)
         for arg in self.args:
-            if arg._is_mat:
-                arglist.append(arg.data.handle.handle)
-            else:
-                for d in arg.data:
-                    arglist.append(d._data.ctypes.data)
-            if arg._is_indirect or arg._is_mat:
-                maps = as_tuple(arg.map, Map)
-                for map in maps:
-                    for m in map:
-                        arglist.append(m._values.ctypes.data)
+            types, values = arg.wrapper_args()
+            arglist.extend(values)
         for c in Const._definitions():
             arglist.append(c._data.ctypes.data)
 

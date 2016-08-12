@@ -63,6 +63,27 @@ class Kernel(base.Kernel):
 
 class Arg(base.Arg):
 
+    def wrapper_args(self):
+        # TODO: Use cache key to calculate types.
+        types = []
+        values = []
+        if self._is_mat:
+            types.append(self.data._argtype)
+            values.append(self.data.handle.handle)
+        else:
+            for d in self.data:
+                types.append(d._argtype)
+                # Cannot access a property of the Dat or we will force
+                # evaluation of the trace
+                values.append(d._data.ctypes.data)
+        if self._is_indirect or self._is_mat:
+            maps = as_tuple(self.map, Map)
+            for map in maps:
+                for m in map:
+                    types.append(m._argtype)
+                    values.append(m._values.ctypes.data)
+        return types, values
+
     def c_arg_name(self, i=0, j=None):
         name = self.name
         if self._is_indirect and not (self._is_vec_map or self._uses_itspace):

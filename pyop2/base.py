@@ -296,6 +296,34 @@ class Arg(object):
         else:
             self._block_shape = None
 
+        # Cache key
+        if self._is_global:
+            self.cache_key = (self.data.dim, self.data.dtype, self.access)
+        elif self._is_dat:
+            if isinstance(self.idx, IterationIndex):
+                idx = (self.idx.__class__, self.idx.index)
+            else:
+                idx = self.idx
+            map_arity = self.map and (tuplify(self.map.offset) or self.map.arity)
+            if self._is_dat_view:
+                view_idx = self.data.index
+            else:
+                view_idx = None
+            self.cache_key = (self.data.dim, self.data.dtype,
+                              map_arity, idx, view_idx, self.access)
+        elif self._is_mat:
+            idxs = (self.idx[0].__class__, self.idx[0].index,
+                    self.idx[1].index)
+            map_arities = (tuplify(self.map[0].offset) or self.map[0].arity,
+                           tuplify(self.map[1].offset) or self.map[1].arity)
+            # Implicit boundary conditions (extruded "top" or
+            # "bottom") affect generated code, and therefore need
+            # to be part of cache key
+            map_bcs = (self.map[0].implicit_bcs, self.map[1].implicit_bcs)
+            map_cmpts = (self.map[0].vector_index, self.map[1].vector_index)
+            self.cache_key = (self.data.dims, self.data.dtype, idxs,
+                              map_arities, map_bcs, map_cmpts, self.access)
+
     def __eq__(self, other):
         """:class:`Arg`\s compare equal of they are defined on the same data,
         use the same :class:`Map` with the same index and the same access
@@ -3926,45 +3954,20 @@ class JITModule(Cached):
 
     @classmethod
     def _cache_key(cls, kernel, itspace, *args, **kwargs):
-        key = (kernel.cache_key, itspace.cache_key)
+        key = [kernel.cache_key, itspace.cache_key]
         for arg in args:
-            if arg._is_global:
-                key += (arg.data.dim, arg.data.dtype, arg.access)
-            elif arg._is_dat:
-                if isinstance(arg.idx, IterationIndex):
-                    idx = (arg.idx.__class__, arg.idx.index)
-                else:
-                    idx = arg.idx
-                map_arity = arg.map and (tuplify(arg.map.offset) or arg.map.arity)
-                if arg._is_dat_view:
-                    view_idx = arg.data.index
-                else:
-                    view_idx = None
-                key += (arg.data.dim, arg.data.dtype, map_arity,
-                        idx, view_idx, arg.access)
-            elif arg._is_mat:
-                idxs = (arg.idx[0].__class__, arg.idx[0].index,
-                        arg.idx[1].index)
-                map_arities = (tuplify(arg.map[0].offset) or arg.map[0].arity,
-                               tuplify(arg.map[1].offset) or arg.map[1].arity)
-                # Implicit boundary conditions (extruded "top" or
-                # "bottom") affect generated code, and therefore need
-                # to be part of cache key
-                map_bcs = (arg.map[0].implicit_bcs, arg.map[1].implicit_bcs)
-                map_cmpts = (arg.map[0].vector_index, arg.map[1].vector_index)
-                key += (arg.data.dims, arg.data.dtype, idxs,
-                        map_arities, map_bcs, map_cmpts, arg.access)
+            key.append(arg.cache_key)
 
         iterate = kwargs.get("iterate", None)
         if iterate is not None:
-            key += ((iterate,))
+            key.append((iterate,))
 
         # The currently defined Consts need to be part of the cache key, since
         # these need to be uploaded to the device before launching the kernel
         for c in Const._definitions():
-            key += (c.name, c.dtype, c.cdim)
+            key.append((c.name, c.dtype, c.cdim))
 
-        return key
+        return tuple(key)
 
     def _dump_generated_code(self, src, ext=None):
         """Write the generated code to a file for debugging purposes.

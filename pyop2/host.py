@@ -937,7 +937,7 @@ def wrapper_snippets(itspace, args,
     _map_bcs_p = ""
     _layer_arg = ""
     if itspace._extruded:
-        _layer_arg = ", int start_layer, int end_layer, int top_layer"
+        _layer_arg = "int start_layer, int end_layer, int top_layer, "
         _map_decl += ';\n'.join([arg.c_map_decl(is_facet=is_facet)
                                  for arg in args if arg._uses_itspace])
         _map_init += ';\n'.join([arg.c_map_init(is_top=is_top, is_facet=is_facet)

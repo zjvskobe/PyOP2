@@ -141,9 +141,9 @@ void %(wrapper_name)s(int boffset,
                       int *offset,
                       int *nelems,
                       %(ssinds_arg)s
+                      %(layer_arg)s
                       %(wrapper_args)s
-                      %(const_args)s
-                      %(layer_arg)s) {
+                      %(const_args)s) {
   %(user_code)s
   %(wrapper_decs)s;
   %(const_inits)s;
@@ -190,19 +190,20 @@ void %(wrapper_name)s(int boffset,
         """
         argtypes = [ctypes.c_int, ctypes.c_int,                      # start end
                     ctypes.c_voidp, ctypes.c_voidp, ctypes.c_voidp]  # plan args
+
         if isinstance(iterset, Subset):
             argtypes.append(iterset._argtype)
+        if iterset._extruded:
+            argtypes.append(ctypes.c_int)
+            argtypes.append(ctypes.c_int)
+            argtypes.append(ctypes.c_int)
+
         for arg in args:
             types, values = arg.wrapper_args()
             argtypes.extend(types)
 
         for c in Const._definitions():
             argtypes.append(c._argtype)
-
-        if iterset._extruded:
-            argtypes.append(ctypes.c_int)
-            argtypes.append(ctypes.c_int)
-            argtypes.append(ctypes.c_int)
 
         self._argtypes = argtypes
 
@@ -232,12 +233,6 @@ class ParLoop(device.ParLoop, host.ParLoop):
 
         if isinstance(iterset, Subset):
             arglist.append(iterset._indices.ctypes.data)
-        for arg in self.args:
-            types, values = arg.wrapper_args()
-            arglist.extend(values)
-        for c in Const._definitions():
-            arglist.append(c._data.ctypes.data)
-
         if iterset._extruded:
             region = self.iteration_region
             # Set up appropriate layer iteration bounds
@@ -257,6 +252,12 @@ class ParLoop(device.ParLoop, host.ParLoop):
                 arglist.append(0)
                 arglist.append(iterset.layers - 1)
                 arglist.append(iterset.layers - 1)
+
+        for arg in self.args:
+            types, values = arg.wrapper_args()
+            arglist.extend(values)
+        for c in Const._definitions():
+            arglist.append(c._data.ctypes.data)
 
         return arglist
 

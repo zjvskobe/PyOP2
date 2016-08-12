@@ -50,9 +50,9 @@ class JITModule(host.JITModule):
     _wrapper = """
 void %(wrapper_name)s(int start, int end,
                       %(ssinds_arg)s
+                      %(layer_arg)s
                       %(wrapper_args)s
-                      %(const_args)s
-                      %(layer_arg)s) {
+                      %(const_args)s) {
   %(user_code)s
   %(wrapper_decs)s;
   %(const_inits)s;
@@ -77,19 +77,20 @@ void %(wrapper_name)s(int start, int end,
 
     def set_argtypes(self, iterset, *args):
         argtypes = [ctypes.c_int, ctypes.c_int]
+
         if isinstance(iterset, Subset):
             argtypes.append(iterset._argtype)
+        if iterset._extruded:
+            argtypes.append(ctypes.c_int)
+            argtypes.append(ctypes.c_int)
+            argtypes.append(ctypes.c_int)
+
         for arg in args:
             types, values = arg.wrapper_args()
             argtypes.extend(types)
 
         for c in Const._definitions():
             argtypes.append(c._argtype)
-
-        if iterset._extruded:
-            argtypes.append(ctypes.c_int)
-            argtypes.append(ctypes.c_int)
-            argtypes.append(ctypes.c_int)
 
         self._argtypes = argtypes
 
@@ -98,16 +99,9 @@ class ParLoop(host.ParLoop):
 
     def prepare_arglist(self, iterset, *args):
         arglist = []
+
         if isinstance(iterset, Subset):
             arglist.append(iterset._indices.ctypes.data)
-
-        for arg in args:
-            types, values = arg.wrapper_args()
-            arglist.extend(values)
-
-        for c in Const._definitions():
-            arglist.append(c._data.ctypes.data)
-
         if iterset._extruded:
             region = self.iteration_region
             # Set up appropriate layer iteration bounds
@@ -127,6 +121,14 @@ class ParLoop(host.ParLoop):
                 arglist.append(0)
                 arglist.append(iterset.layers - 1)
                 arglist.append(iterset.layers - 1)
+
+        for arg in args:
+            types, values = arg.wrapper_args()
+            arglist.extend(values)
+
+        for c in Const._definitions():
+            arglist.append(c._data.ctypes.data)
+
         return arglist
 
     @cached_property

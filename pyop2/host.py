@@ -775,7 +775,7 @@ class JITModule(base.JITModule):
             %(code)s
             """ % {'code': self._kernel.code(),
                    'header': headers}
-        code_to_compile = strip(dedent(self._wrapper) % self.generate_code())
+        code_to_compile = self.generate_wrapper()
 
         _const_decs = '\n'.join([const._format_declaration()
                                 for const in Const._definitions()]) + '\n'
@@ -831,6 +831,9 @@ class JITModule(base.JITModule):
         del self._itspace
         del self._direct
         return self._fun
+
+    def generate_wrapper(self):
+        return strip(dedent(self._wrapper) % self.generate_code())
 
     def generate_code(self):
         snippets = wrapper_snippets(self._itspace, self._args,

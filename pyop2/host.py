@@ -87,6 +87,32 @@ class Arg(base.Arg):
                     values.append(m._values.ctypes.data)
         return c_typenames, types, values
 
+    def init_and_writeback(self, args, c, namer):
+        if self._is_mat:
+            arity = 6
+
+            mat_name, map1_name, map2_name = args
+            buf_name = namer('buffer')
+
+            init = ["double {buf}[{size}][{size}] __attribute__((aligned(16))) = {{0.0}};".format(
+                buf=buf_name, size=arity)]
+            writeback = ["""MatSetValuesLocal({mat}, {arity}, {map1} + {c} * {arity},
+\t\t\t{arity}, {map2} + {c} * {arity},
+\t\t\t(const PetscScalar *){buf},
+\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity=arity, map1=map1_name, map2=map2_name, c=c)]
+            return init, writeback, buf_name
+        else:
+            arity = 3
+            dim = 2
+
+            dat_name, map_name = args
+            buf_name = namer('vec')
+            ops = ["double *{buf}[{size}];".format(buf=buf_name, size=arity*dim)]
+            ops += ["{buf}[{i}] = {dat} + {map}[{c} * {arity} + {r}] * {dim} + {d};".format(
+                buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
+            return ops, [], buf_name
+
 
 class JITModule(base.JITModule):
 

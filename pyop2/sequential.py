@@ -34,6 +34,7 @@
 """OP2 sequential backend."""
 
 import ctypes
+import itertools
 
 from base import ON_BOTTOM, ON_TOP, ON_INTERIOR_FACETS
 from exceptions import *
@@ -45,7 +46,77 @@ from host import Kernel, Arg  # noqa: needed by BackendSelector
 from utils import cached_property
 
 
+def _alternative_names(name):
+    yield name
+    if len(name) >= 1 and name[-1] == '_':
+        name_underscore = name
+    else:
+        name_underscore = name + '_'
+        yield name_underscore
+    for i in itertools.count(1):
+        yield name_underscore + str(i)
+
+
+def alternative_names(name):
+    """Given a suggested name, generates alternative names to avoid name
+    collisions."""
+    return itertools.ifilter(lambda s: s not in ['', '_'],
+                             _alternative_names(name))
+
+
+class UniqueNameGenerator(object):
+    def __init__(self):
+        self.names = set()
+
+    def __call__(self, name):
+        for alt_name in alternative_names(name):
+            if alt_name not in self.names:
+                self.names.add(alt_name)
+                return alt_name
+
+
 class JITModule(host.JITModule):
+
+    def generate_wrapper(self):
+        wrapper_args = []
+        kernel_args = []
+        inits = []
+        writebacks = []
+
+        unique_name = UniqueNameGenerator()
+
+        def loop_body(c):
+            loop = "\tfor (int {0} = start; {0} < end; {0}++) {{\n{1}\n\t}}\n"
+            body = '\n'.join('\t\t' + init(c) + ';' for init in inits)
+            return loop.format(c, body)
+
+        for i, arg in enumerate(self._args):
+            prefix = 'arg{0}_'.format(i)
+            namer = lambda sn: unique_name(prefix + sn)
+
+            c_typenames, _1, _2 = arg.wrapper_args()
+
+            arg_names = []
+            for j, typ in enumerate(c_typenames):
+                name = namer(str(j))
+                arg_names.append(name)
+                wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))
+
+            init, writeback, kernel_arg = arg.init_and_writeback(arg_names, 'i', namer)
+            inits.extend(init)
+            writebacks.extend(writeback)
+            kernel_args.append(kernel_arg)
+
+        return ''.join(["void ", self._wrapper_name,
+                        "(int start, int end, ",
+                        ', '.join(wrapper_args),
+                        ")\n{\n",
+                        "\tfor (int {0} = start; {0} < end; {0}++) {{\n".format('i'),
+                        '\n'.join('\t\t' + init for init in inits),
+                        '\n' + self._kernel.name + '(' + ', '.join(kernel_args) + ');\n',
+                        '\n'.join('\t\t' + writeback for writeback in writebacks),
+                        "\n\t}\n",
+                        "}\n"])
 
     def set_argtypes(self, iterset, *args):
         argtypes = [ctypes.c_int, ctypes.c_int]

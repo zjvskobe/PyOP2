@@ -199,7 +199,7 @@ void %(wrapper_name)s(int boffset,
             argtypes.append(ctypes.c_int)
 
         for arg in args:
-            types, values = arg.wrapper_args()
+            _1, types, _2 = arg.wrapper_args()
             argtypes.extend(types)
 
         for c in Const._definitions():
@@ -254,7 +254,7 @@ class ParLoop(device.ParLoop, host.ParLoop):
                 arglist.append(iterset.layers - 1)
 
         for arg in self.args:
-            types, values = arg.wrapper_args()
+            _1, _2, values = arg.wrapper_args()
             arglist.extend(values)
         for c in Const._definitions():
             arglist.append(c._data.ctypes.data)

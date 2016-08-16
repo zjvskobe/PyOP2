@@ -65,13 +65,16 @@ class Arg(base.Arg):
 
     def wrapper_args(self):
         # TODO: Use cache key to calculate types.
+        c_typenames = []
         types = []
         values = []
         if self._is_mat:
+            c_typenames.append("Mat")
             types.append(self.data._argtype)
             values.append(self.data.handle.handle)
         else:
             for d in self.data:
+                c_typenames.append(self.ctype)
                 types.append(d._argtype)
                 # Cannot access a property of the Dat or we will force
                 # evaluation of the trace
@@ -80,9 +83,10 @@ class Arg(base.Arg):
             maps = as_tuple(self.map, Map)
             for map in maps:
                 for m in map:
+                    c_typenames.append("int")
                     types.append(m._argtype)
                     values.append(m._values.ctypes.data)
-        return types, values
+        return c_typenames, types, values
 
     def c_arg_name(self, i=0, j=None):
         name = self.name

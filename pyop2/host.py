@@ -35,6 +35,7 @@
 common to backends executing on the host."""
 
 from copy import deepcopy as dcopy
+from itertools import product
 
 import base
 import compilation
@@ -118,19 +119,22 @@ class Arg(base.Arg):
             else:
                 ops = ["double *{buf}[{size}];".format(buf=buf_name, size=arity)]
             writeback = []
+
             if self.access == READ:
-                if self.idx:
-                    ops += ["{buf}[{i}] = *({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d});".format(
-                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
-                elif self._flatten:
-                    ops += ["{buf}[{i}] = {dat} + {map}[{c} * {arity} + {r}] * {dim} + {d};".format(
-                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
+                if self.idx is not None:
+                    assert isinstance(self.idx, IterationIndex) and self.idx.index == 0
+                    value_of = lambda x: "*({0})".format(x)
                 else:
-                    ops += ["{buf}[{i}] = {dat} + {map}[{c} * {arity} + {r}] * {dim};".format(
-                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                        dim=dim, c=c, r=r, i=r) for r in range(arity)]
+                    value_of = lambda x: x
+
+                pointers = _pointers(dat_name, map_name, arity, dim, c, flatten=self._flatten)
+                if self.idx is None and not self._flatten:
+                    # Special case: reduced buffer length
+                    pointers = pointers[::dim]
+
+                for i, pointer in enumerate(pointers):
+                    ops.append("{buf_name}[{i}] = {value};".format(buf_name=buf_name, i=i, value=value_of(pointer)))
+
             elif self.access == WRITE and self.idx:
                 if self._flatten:
                     writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) = {buf}[{i}];".format(
@@ -159,6 +163,17 @@ class Arg(base.Arg):
             dat_name, = args
             kernel_arg = "{dat} + {c} * {dim}".format(dat=dat_name, c=c, dim=self.data.cdim)
             return [], [], kernel_arg
+
+
+def _pointers(dat_name, map_name, arity, dim, i, flatten):
+    template = "{dat_name} + {map_name}[{i} * {arity} + {r}] * {dim} + {d}"
+    if flatten:
+        ordering = ((r, d) for d, r in product(range(dim), range(arity)))
+    else:
+        ordering = ((r, d) for r, d in product(range(arity), range(dim)))
+    return [template.format(dat_name=dat_name, map_name=map_name,
+                            arity=arity, dim=dim, i=i, r=r, d=d)
+            for r, d in ordering]
 
 
 class JITModule(base.JITModule):

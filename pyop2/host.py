@@ -89,29 +89,76 @@ class Arg(base.Arg):
 
     def init_and_writeback(self, args, c, namer):
         if self._is_mat:
-            arity = 6
+            arity1 = self.map[0].arity
+            arity2 = self.map[1].arity
 
             mat_name, map1_name, map2_name = args
             buf_name = namer('buffer')
 
-            init = ["double {buf}[{size}][{size}] __attribute__((aligned(16))) = {{0.0}};".format(
-                buf=buf_name, size=arity)]
-            writeback = ["""MatSetValuesLocal({mat}, {arity}, {map1} + {c} * {arity},
-\t\t\t{arity}, {map2} + {c} * {arity},
+            init = ["double {buf}[{size1}][{size2}] __attribute__((aligned(16))) = {{0.0}};".format(
+                buf=buf_name, size1=arity1, size2=arity2)]
+            writeback = ["""MatSetValuesLocal({mat}, {arity1}, {map1} + {c} * {arity1},
+\t\t\t{arity2}, {map2} + {c} * {arity2},
 \t\t\t(const PetscScalar *){buf},
-\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity=arity, map1=map1_name, map2=map2_name, c=c)]
+\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity1, arity2=arity2, map1=map1_name, map2=map2_name, c=c)]
             return init, writeback, buf_name
-        else:
-            arity = 3
-            dim = 2
+        elif self._is_indirect:
+            arity = self.map.arity
+            dim = self.data.cdim
 
             dat_name, map_name = args
             buf_name = namer('vec')
-            ops = ["double *{buf}[{size}];".format(buf=buf_name, size=arity*dim)]
-            ops += ["{buf}[{i}] = {dat} + {map}[{c} * {arity} + {r}] * {dim} + {d};".format(
-                buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
-            return ops, [], buf_name
+            if self.idx:
+                if self.access == INC:
+                    ops = ["double {buf}[{size}] = {{0.0}};".format(buf=buf_name, size=arity*dim)]
+                else:
+                    ops = ["double {buf}[{size}];".format(buf=buf_name, size=arity*dim)]
+            elif self._flatten:
+                ops = ["double *{buf}[{size}];".format(buf=buf_name, size=arity*dim)]
+            else:
+                ops = ["double *{buf}[{size}];".format(buf=buf_name, size=arity)]
+            writeback = []
+            if self.access == READ:
+                if self.idx:
+                    ops += ["{buf}[{i}] = *({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d});".format(
+                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
+                elif self._flatten:
+                    ops += ["{buf}[{i}] = {dat} + {map}[{c} * {arity} + {r}] * {dim} + {d};".format(
+                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
+                else:
+                    ops += ["{buf}[{i}] = {dat} + {map}[{c} * {arity} + {r}] * {dim};".format(
+                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                        dim=dim, c=c, r=r, i=r) for r in range(arity)]
+            elif self.access == WRITE and self.idx:
+                if self._flatten:
+                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) = {buf}[{i}];".format(
+                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
+                else:
+                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) = {buf}[{i}];".format(
+                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                        dim=dim, c=c, r=r, d=d, i=r*dim+d) for r in range(arity) for d in range(dim)]
+            elif self.access == INC and self.idx:
+                if self._flatten:
+                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) += {buf}[{i}];".format(
+                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
+                else:
+                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) += {buf}[{i}];".format(
+                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
+                        dim=dim, c=c, r=r, d=d, i=r*dim+d) for r in range(arity) for d in range(dim)]
+            else:
+                raise NotImplementedError("access not supported")
+            return ops, writeback, buf_name
+        elif isinstance(self.data, Global):
+            dat_name, = args
+            return [], [], dat_name
+        else:
+            dat_name, = args
+            kernel_arg = "{dat} + {c} * {dim}".format(dat=dat_name, c=c, dim=self.data.cdim)
+            return [], [], kernel_arg
 
 
 class JITModule(base.JITModule):

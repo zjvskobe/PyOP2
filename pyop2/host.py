@@ -104,58 +104,44 @@ class Arg(base.Arg):
 \t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity1, arity2=arity2, map1=map1_name, map2=map2_name, c=c)]
             return init, writeback, buf_name
         elif self._is_indirect:
-            arity = self.map.arity
-            dim = self.data.cdim
-
             dat_name, map_name = args
             buf_name = namer('vec')
-            if self.idx:
-                if self.access == INC:
-                    ops = ["double {buf}[{size}] = {{0.0}};".format(buf=buf_name, size=arity*dim)]
-                else:
-                    ops = ["double {buf}[{size}];".format(buf=buf_name, size=arity*dim)]
-            elif self._flatten:
-                ops = ["double *{buf}[{size}];".format(buf=buf_name, size=arity*dim)]
-            else:
-                ops = ["double *{buf}[{size}];".format(buf=buf_name, size=arity)]
+
+            init = []
             writeback = []
 
-            if self.access == READ:
-                if self.idx is not None:
-                    assert isinstance(self.idx, IterationIndex) and self.idx.index == 0
-                    value_of = lambda x: "*({0})".format(x)
-                else:
-                    value_of = lambda x: x
-
-                pointers = _pointers(dat_name, map_name, arity, dim, c, flatten=self._flatten)
-                if self.idx is None and not self._flatten:
-                    # Special case: reduced buffer length
-                    pointers = pointers[::dim]
-
-                for i, pointer in enumerate(pointers):
-                    ops.append("{buf_name}[{i}] = {value};".format(buf_name=buf_name, i=i, value=value_of(pointer)))
-
-            elif self.access == WRITE and self.idx:
-                if self._flatten:
-                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) = {buf}[{i}];".format(
-                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
-                else:
-                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) = {buf}[{i}];".format(
-                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                        dim=dim, c=c, r=r, d=d, i=r*dim+d) for r in range(arity) for d in range(dim)]
-            elif self.access == INC and self.idx:
-                if self._flatten:
-                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) += {buf}[{i}];".format(
-                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                        dim=dim, c=c, r=r, d=d, i=d*arity+r) for d in range(dim) for r in range(arity)]
-                else:
-                    writeback += ["*({dat} + {map}[{c} * {arity} + {r}] * {dim} + {d}) += {buf}[{i}];".format(
-                        buf=buf_name, dat=dat_name, map=map_name, arity=arity,
-                        dim=dim, c=c, r=r, d=d, i=r*dim+d) for r in range(arity) for d in range(dim)]
+            if self.idx is not None:
+                assert isinstance(self.idx, IterationIndex) and self.idx.index == 0
+                star = ''
+                value_of = lambda x: "*({0})".format(x)
             else:
-                raise NotImplementedError("access not supported")
-            return ops, writeback, buf_name
+                star = '*'
+                value_of = lambda x: x
+
+            pointers = _pointers(dat_name, map_name, self.map.arity, self.data.cdim, c, flatten=self._flatten)
+            if self.idx is None and not self._flatten:
+                # Special case: reduced buffer length
+                pointers = pointers[::self.data.cdim]
+
+            init.append("{typename} {star}{buf}[{size}]{init};".format(typename=self.data.ctype, star=star, buf=buf_name, size=len(pointers), init=(' = {0.0}' if self.access == INC else '')))
+
+            if self.access == READ:
+                for i, pointer in enumerate(pointers):
+                    init.append("{buf_name}[{i}] = {value};".format(buf_name=buf_name, i=i, value=value_of(pointer)))
+
+            elif self.access in [WRITE, INC]:
+                if self.idx:
+                    op = {WRITE: '=', INC: '+='}[self.access]
+                    for i, pointer in enumerate(pointers):
+                        writeback.append("{value} {op} {buf_name}[{i}];".format(buf_name=buf_name, i=i, value=value_of(pointer), op=op))
+                else:
+                    for i, pointer in enumerate(pointers):
+                        init.append("{buf_name}[{i}] = {pointer};".format(buf_name=buf_name, i=i, pointer=pointer))
+
+            else:
+                raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
+
+            return init, writeback, buf_name
         elif isinstance(self.data, Global):
             dat_name, = args
             return [], [], dat_name

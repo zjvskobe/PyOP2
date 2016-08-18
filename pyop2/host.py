@@ -90,19 +90,63 @@ class Arg(base.Arg):
 
     def init_and_writeback(self, args, c, namer):
         if isinstance(self.data, Mat):
-            arity1 = self.map[0].arity
-            arity2 = self.map[1].arity
+            assert self._flatten
+            assert self.idx is not None
+
+            arity = [m.arity for m in self.map]
+            dim = self.data.dims[0][0]
+
+            assert len(arity) == len(dim)
+            size = [n * d for n, d in zip(arity, dim)]
 
             mat_name, map1_name, map2_name = args
             buf_name = namer('buffer')
 
             init = ["double {buf}[{size1}][{size2}] __attribute__((aligned(16))) = {{0.0}};".format(
-                buf=buf_name, size1=arity1, size2=arity2)]
-            writeback = ["""MatSetValuesLocal({mat}, {arity1}, {map1} + {c} * {arity1},
+                buf=buf_name, size1=size[0], size2=size[1])]
+
+            if all(d == 1 for d in dim):
+                writeback = ["""MatSetValuesLocal({mat}, {arity1}, {map1} + {c} * {arity1},
 \t\t\t{arity2}, {map2} + {c} * {arity2},
 \t\t\t(const PetscScalar *){buf},
-\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity1, arity2=arity2, map1=map1_name, map2=map2_name, c=c)]
+\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity[0], arity2=arity[1], map1=map1_name, map2=map2_name, c=c)]
+            else:
+                tmp_name = namer('tmp_buffer')
+
+                idx = "[%(ridx)s][%(cidx)s]"
+                idx_l = idx % {'ridx': "%d*j + k" % dim[0],
+                               'cidx': "%d*l + m" % dim[1]}
+                idx_r = idx % {'ridx': "j + %d*k" % arity[0],
+                               'cidx': "l + %d*m" % arity[1]}
+                # Shuffle xxx yyy zzz into xyz xyz xyz
+                writeback = ["""
+                double %(tmp_name)s[%(size1)d][%(size2)d] __attribute__((aligned(16)));
+                for ( int j = 0; j < %(nrows)d; j++ ) {
+                   for ( int k = 0; k < %(rbs)d; k++ ) {
+                      for ( int l = 0; l < %(ncols)d; l++ ) {
+                         for ( int m = 0; m < %(cbs)d; m++ ) {
+                            %(tmp_name)s%(idx_l)s = %(buf_name)s%(idx_r)s;
+                         }
+                      }
+                   }
+                }""" % {'nrows': arity[0],
+                        'ncols': arity[1],
+                        'rbs': dim[0],
+                        'cbs': dim[1],
+                        'idx_l': idx_l,
+                        'idx_r': idx_r,
+                        'buf_name': buf_name,
+                        'tmp_name': tmp_name,
+                        'size1': size[0],
+                        'size2': size[1]}]
+
+                writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1} + {c} * {arity1},
+\t\t\t{arity2}, {map2} + {c} * {arity2},
+\t\t\t(const PetscScalar *){tmp_name},
+\t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=arity[0], arity2=arity[1], map1=map1_name, map2=map2_name, c=c)]
+
             return init, writeback, buf_name
+
         elif isinstance(self.data, Dat) and self.map is not None:
             dat_name, map_name = args
             buf_name = namer('vec')

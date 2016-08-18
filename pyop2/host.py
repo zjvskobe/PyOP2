@@ -148,16 +148,24 @@ class Arg(base.Arg):
             return init, writeback, buf_name
 
         elif isinstance(self.data, Dat) and self.map is not None:
-            dat_name, map_name = args
-            buf_name = namer('vec')
+            assert len(self.data) == len(self.map)
+            M = len(self.data)
+            dat_names = args[:M]
+            map_names = args[M:]
+
+            pointers = []
 
             init = []
             writeback = []
 
-            pointers = _pointers(dat_name, map_name, self.map.arity, self.data.cdim, c, flatten=self._flatten)
-            if self.idx is None and not self._flatten:
-                # Special case: reduced buffer length
-                pointers = pointers[::self.data.cdim]
+            buf_name = namer('vec')
+
+            for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
+                pointers_ = _pointers(dat_name, map_name, map_.arity, dat.cdim, c, flatten=self._flatten)
+                if self.idx is None and not self._flatten:
+                    # Special case: reduced buffer length
+                    pointers_ = pointers_[::dat.cdim]
+                pointers.extend(pointers_)
 
             if self.idx is None:
                 init.append("{typename} *{buf}[{size}];".format(typename=self.data.ctype, buf=buf_name, size=len(pointers)))

@@ -89,7 +89,7 @@ class Arg(base.Arg):
         return c_typenames, types, values
 
     def init_and_writeback(self, args, c, namer):
-        if self._is_mat:
+        if isinstance(self.data, Mat):
             arity1 = self.map[0].arity
             arity2 = self.map[1].arity
 
@@ -103,7 +103,7 @@ class Arg(base.Arg):
 \t\t\t(const PetscScalar *){buf},
 \t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity1, arity2=arity2, map1=map1_name, map2=map2_name, c=c)]
             return init, writeback, buf_name
-        elif self._is_indirect:
+        elif isinstance(self.data, Dat) and self.map is not None:
             dat_name, map_name = args
             buf_name = namer('vec')
 
@@ -142,13 +142,15 @@ class Arg(base.Arg):
                 raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
 
             return init, writeback, buf_name
-        elif isinstance(self.data, Global):
-            dat_name, = args
-            return [], [], dat_name
-        else:
+        elif isinstance(self.data, Dat) and self.map is None:
             dat_name, = args
             kernel_arg = "{dat} + {c} * {dim}".format(dat=dat_name, c=c, dim=self.data.cdim)
             return [], [], kernel_arg
+        elif isinstance(self.data, Global):
+            arg_name, = args
+            return [], [], arg_name
+        else:
+            raise NotImplementedError("How to handle {0}?".format(type(self.data).__name__))
 
 
 def _pointers(dat_name, map_name, arity, dim, i, flatten):

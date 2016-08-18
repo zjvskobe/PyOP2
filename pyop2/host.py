@@ -138,6 +138,14 @@ class Arg(base.Arg):
                     for i, pointer in enumerate(pointers):
                         init.append("{buf_name}[{i}] = {pointer};".format(buf_name=buf_name, i=i, pointer=pointer))
 
+            elif self.access == RW:
+                for i, pointer in enumerate(pointers):
+                    init.append("{buf_name}[{i}] = {value};".format(buf_name=buf_name, i=i, value=value_of(pointer)))
+
+                if self.idx:
+                    for i, pointer in enumerate(pointers):
+                        writeback.append("{value} = {buf_name}[{i}];".format(buf_name=buf_name, i=i, value=value_of(pointer)))
+
             else:
                 raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
 

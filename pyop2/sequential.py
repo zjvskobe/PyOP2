@@ -107,8 +107,12 @@ class JITModule(host.JITModule):
             return inits + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
 
         if isinstance(self._itspace._iterset, Subset):
-            body = ["for (int {0} = start; {0} < end; {0}++) {{".format('n')]
             wrapper_args.append("int *ssinds")
+        if self._itspace._extruded:
+            wrapper_args += ["int start_layer", "int end_layer", "int top_layer"]
+
+        if isinstance(self._itspace._iterset, Subset):
+            body = ["for (int {0} = start; {0} < end; {0}++) {{".format('n')]
             body.append('\t' + "int i = ssinds[n];")
             body.extend('\t' + line for line in loop_body('i'))
             body.append("}")

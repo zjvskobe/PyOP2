@@ -196,6 +196,10 @@ class Arg(base.Arg):
                     raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
 
             return init, writeback, buf_name
+        elif isinstance(self.data, DatView) and self.map is None:
+            dat_name, = args
+            kernel_arg = "{dat} + {c} * {dim} + {i}".format(dat=dat_name, c=c, dim=super(DatView, self.data).cdim, i=self.data.index)
+            return [], [], kernel_arg
         elif isinstance(self.data, Dat) and self.map is None:
             dat_name, = args
             kernel_arg = "{dat} + {c} * {dim}".format(dat=dat_name, c=c, dim=self.data.cdim)

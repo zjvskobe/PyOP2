@@ -154,44 +154,38 @@ class Arg(base.Arg):
             init = []
             writeback = []
 
-            if self.idx is not None:
-                assert isinstance(self.idx, IterationIndex) and self.idx.index == 0
-                star = ''
-                value_of = lambda x: "*({0})".format(x)
-            else:
-                star = '*'
-                value_of = lambda x: x
-
             pointers = _pointers(dat_name, map_name, self.map.arity, self.data.cdim, c, flatten=self._flatten)
             if self.idx is None and not self._flatten:
                 # Special case: reduced buffer length
                 pointers = pointers[::self.data.cdim]
 
-            init.append("{typename} {star}{buf}[{size}]{init};".format(typename=self.data.ctype, star=star, buf=buf_name, size=len(pointers), init=(' = {0.0}' if self.access in [WRITE, INC] and self.idx else '')))
-
-            if self.access == READ:
+            if self.idx is None:
+                init.append("{typename} *{buf}[{size}];".format(typename=self.data.ctype, buf=buf_name, size=len(pointers)))
                 for i, pointer in enumerate(pointers):
-                    init.append("{buf_name}[{i}] = {value};".format(buf_name=buf_name, i=i, value=value_of(pointer)))
-
-            elif self.access in [WRITE, INC]:
-                if self.idx:
-                    op = {WRITE: '=', INC: '+='}[self.access]
-                    for i, pointer in enumerate(pointers):
-                        writeback.append("{value} {op} {buf_name}[{i}];".format(buf_name=buf_name, i=i, value=value_of(pointer), op=op))
-                else:
-                    for i, pointer in enumerate(pointers):
-                        init.append("{buf_name}[{i}] = {pointer};".format(buf_name=buf_name, i=i, pointer=pointer))
-
-            elif self.access == RW:
-                for i, pointer in enumerate(pointers):
-                    init.append("{buf_name}[{i}] = {value};".format(buf_name=buf_name, i=i, value=value_of(pointer)))
-
-                if self.idx:
-                    for i, pointer in enumerate(pointers):
-                        writeback.append("{value} = {buf_name}[{i}];".format(buf_name=buf_name, i=i, value=value_of(pointer)))
+                    init.append("{buf_name}[{i}] = {pointer};".format(buf_name=buf_name, i=i, pointer=pointer))
 
             else:
-                raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
+                assert isinstance(self.idx, IterationIndex) and self.idx.index == 0
+
+                initializer = ''
+                if self.access in [WRITE, INC]:  # TSFC expects zero buffer for WRITE
+                    initializer = ' = {0.0}'
+                init.append("{typename} {buf}[{size}]{initializer};".format(typename=self.data.ctype, buf=buf_name, size=len(pointers), initializer=initializer))
+
+                if self.access in [READ, RW]:
+                    for i, pointer in enumerate(pointers):
+                        init.append("{buf_name}[{i}] = *({pointer});".format(buf_name=buf_name, i=i, pointer=pointer))
+
+                if self.access in [RW, WRITE, INC]:
+                    op = '='
+                    if self.access == INC:
+                        op = '+='
+
+                    for i, pointer in enumerate(pointers):
+                        writeback.append("*({pointer}) {op} {buf_name}[{i}];".format(buf_name=buf_name, i=i, pointer=pointer, op=op))
+
+                else:
+                    raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
 
             return init, writeback, buf_name
         elif isinstance(self.data, Dat) and self.map is None:

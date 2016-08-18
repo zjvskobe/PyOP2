@@ -79,43 +79,49 @@ class JITModule(host.JITModule):
 
     def generate_wrapper(self):
         wrapper_args = []
-        kernel_args = []
-        inits = []
-        writebacks = []
 
         unique_name = UniqueNameGenerator()
 
-        def loop_body(c):
-            loop = "\tfor (int {0} = start; {0} < end; {0}++) {{\n{1}\n\t}}\n"
-            body = '\n'.join('\t\t' + init(c) + ';' for init in inits)
-            return loop.format(c, body)
+        def loop_body(index_name):
+            kernel_args = []
+            inits = []
+            writebacks = []
 
-        for i, arg in enumerate(self._args):
-            prefix = 'arg{0}_'.format(i)
-            namer = lambda sn: unique_name(prefix + sn)
+            for i, arg in enumerate(self._args):
+                prefix = 'arg{0}_'.format(i)
+                namer = lambda sn: unique_name(prefix + sn)
 
-            c_typenames, _1, _2 = arg.wrapper_args()
+                c_typenames, _1, _2 = arg.wrapper_args()
 
-            arg_names = []
-            for j, typ in enumerate(c_typenames):
-                name = namer(str(j))
-                arg_names.append(name)
-                wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))
+                arg_names = []
+                for j, typ in enumerate(c_typenames):
+                    name = namer(str(j))
+                    arg_names.append(name)
+                    wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
-            init, writeback, kernel_arg = arg.init_and_writeback(arg_names, 'i', namer)
-            inits.extend(init)
-            writebacks.extend(writeback)
-            kernel_args.append(kernel_arg)
+                init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, namer)
+                inits.extend(init)
+                writebacks.extend(writeback)
+                kernel_args.append(kernel_arg)
+
+            return inits + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
+
+        if isinstance(self._itspace._iterset, Subset):
+            body = ["for (int {0} = start; {0} < end; {0}++) {{".format('n')]
+            wrapper_args.append("int *ssinds")
+            body.append('\t' + "int i = ssinds[n];")
+            body.extend('\t' + line for line in loop_body('i'))
+            body.append("}")
+        else:
+            body = ["for (int {0} = start; {0} < end; {0}++) {{".format('i')]
+            body.extend('\t' + line for line in loop_body('i'))
+            body.append("}")
 
         return ''.join(["void ", self._wrapper_name,
                         "(int start, int end, ",
                         ', '.join(wrapper_args),
                         ")\n{\n",
-                        "\tfor (int {0} = start; {0} < end; {0}++) {{\n".format('i'),
-                        '\n'.join('\t\t' + init for init in inits),
-                        '\n' + self._kernel.name + '(' + ', '.join(kernel_args) + ');\n',
-                        '\n'.join('\t\t' + writeback for writeback in writebacks),
-                        "\n\t}\n",
+                        '\n'.join('\t' + line for line in body),
                         "}\n"])
 
     def set_argtypes(self, iterset, *args):

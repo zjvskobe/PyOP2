@@ -140,10 +140,90 @@ class Arg(base.Arg):
                         'size1': size[0],
                         'size2': size[1]}]
 
-                writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1} + {c} * {arity1},
-\t\t\t{arity2}, {map2} + {c} * {arity2},
-\t\t\t(const PetscScalar *){tmp_name},
-\t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=arity[0], arity2=arity[1], map1=map1_name, map2=map2_name, c=c)]
+                rmap, cmap = self.map
+                nrows, ncols = arity
+                rdim, cdim = dim
+                if rmap.vector_index is not None or cmap.vector_index is not None:
+                    rows_str = "rowmap"
+                    cols_str = "colmap"
+                    addto = "MatSetValuesLocal"
+                    fdict = {'nrows': nrows,
+                             'ncols': ncols,
+                             'rdim': rdim,
+                             'cdim': cdim,
+                             'rowmap': map1_name,
+                             'colmap': map2_name,
+                             'drop_full_row': 0 if rmap.vector_index is not None else 1,
+                             'drop_full_col': 0 if cmap.vector_index is not None else 1}
+                    # Horrible hack alert
+                    # To apply BCs to a component of a Dat with cdim > 1
+                    # we encode which components to apply things to in the
+                    # high bits of the map value
+                    # The value that comes in is:
+                    # -(row + 1 + sum_i 2 ** (30 - i))
+                    # where i are the components to zero
+                    #
+                    # So, the actual row (if it's negative) is:
+                    # (~input) & ~0x70000000
+                    # And we can determine which components to zero by
+                    # inspecting the high bits (1 << 30 - i)
+                    writeback.append("""
+                    PetscInt rowmap[%(nrows)d*%(rdim)d];
+                    PetscInt colmap[%(ncols)d*%(cdim)d];
+                    int discard, tmp, block_row, block_col;
+                    for ( int j = 0; j < %(nrows)d; j++ ) {
+                        block_row = %(rowmap)s[i*%(nrows)d + j];
+                        discard = 0;
+                        if ( block_row < 0 ) {
+                            tmp = -(block_row + 1);
+                            discard = 1;
+                            block_row = tmp & ~0x70000000;
+                        }
+                        for ( int k = 0; k < %(rdim)d; k++ ) {
+                            if ( discard && (%(drop_full_row)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+                                rowmap[j*%(rdim)d + k] = -1;
+                            } else {
+                                rowmap[j*%(rdim)d + k] = (block_row)*%(rdim)d + k;
+                            }
+                        }
+                    }
+                    for ( int j = 0; j < %(ncols)d; j++ ) {
+                        discard = 0;
+                        block_col = %(colmap)s[i*%(ncols)d + j];
+                        if ( block_col < 0 ) {
+                            tmp = -(block_col + 1);
+                            discard = 1;
+                            block_col = tmp & ~0x70000000;
+                        }
+                        for ( int k = 0; k < %(cdim)d; k++ ) {
+                            if ( discard && (%(drop_full_col)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+                                colmap[j*%(rdim)d + k] = -1;
+                            } else {
+                                colmap[j*%(cdim)d + k] = (block_col)*%(cdim)d + k;
+                            }
+                        }
+                    }
+                    """ % fdict)
+                    nrows *= rdim
+                    ncols *= cdim
+
+                    writeback.append("""%(addto)s(%(mat)s, %(nrows)s, %(rows)s,
+                                             %(ncols)s, %(cols)s,
+                                             (const PetscScalar *)%(vals)s,
+                                             %(insert)s);""" %
+                                  {'mat': mat_name,
+                                   'vals': tmp_name,
+                                   'addto': addto,
+                                   'nrows': nrows,
+                                   'ncols': ncols,
+                                   'rows': rows_str,
+                                   'cols': cols_str,
+                                   'insert': {WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]})
+                else:
+                    writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1} + {c} * {arity1},
+    \t\t\t{arity2}, {map2} + {c} * {arity2},
+    \t\t\t(const PetscScalar *){tmp_name},
+    \t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=arity[0], arity2=arity[1], map1=map1_name, map2=map2_name, c=c)]
 
             return init, writeback, buf_name
 

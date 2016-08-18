@@ -167,7 +167,7 @@ class Arg(base.Arg):
                 # Special case: reduced buffer length
                 pointers = pointers[::self.data.cdim]
 
-            init.append("{typename} {star}{buf}[{size}]{init};".format(typename=self.data.ctype, star=star, buf=buf_name, size=len(pointers), init=(' = {0.0}' if self.access == INC else '')))
+            init.append("{typename} {star}{buf}[{size}]{init};".format(typename=self.data.ctype, star=star, buf=buf_name, size=len(pointers), init=(' = {0.0}' if self.access in [WRITE, INC] and self.idx else '')))
 
             if self.access == READ:
                 for i, pointer in enumerate(pointers):

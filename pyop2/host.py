@@ -114,6 +114,29 @@ class Arg(base.Arg):
                     writeback.append(str.format("xtr_map1[{i}] = {map1}[{c} * {arity1} + {i}] + {j} * {off};",
                                                 i=i, map1=map1_name, c=c, j=col, arity1=arity[0], off=off))
                 map1_expr = "xtr_map1"
+
+                import numpy
+                m = self.map[0]
+                bottom_mask = numpy.zeros(m.arity)
+                top_mask = numpy.zeros(m.arity)
+                for location, name in m.implicit_bcs:
+                    if location == "bottom":
+                        bottom_mask += m.bottom_mask[name]
+                    elif location == "top":
+                        top_mask += m.top_mask[name]
+                if any(bottom_mask):
+                    writeback.append("if (j == 0) {")
+                    for i, neg in enumerate(bottom_mask):
+                        if neg < 0:
+                            writeback.append("xtr_map1[{i}] = -1;".format(i=i))
+                    writeback.append("}")
+                if any(top_mask):
+                    writeback.append("if (j == top_layer - 1) {")
+                    for i, neg in enumerate(top_mask):
+                        if neg < 0:
+                            writeback.append("xtr_map1[{i}] = -1;".format(i=i))
+                    writeback.append("}")
+
             if self.map[1].offset is None:
                 map2_expr = "{map2} + {c} * {arity2}".format(map2=map2_name, arity2=arity[1], c=c)
             else:
@@ -123,6 +146,28 @@ class Arg(base.Arg):
                     writeback.append(str.format("xtr_map2[{i}] = {map2}[{c} * {arity2} + {i}] + {j} * {off};",
                                                 i=i, map2=map2_name, c=c, j=col, arity2=arity[1], off=off))
                 map2_expr = "xtr_map2"
+
+                import numpy
+                m = self.map[1]
+                bottom_mask = numpy.zeros(m.arity)
+                top_mask = numpy.zeros(m.arity)
+                for location, name in m.implicit_bcs:
+                    if location == "bottom":
+                        bottom_mask += m.bottom_mask[name]
+                    elif location == "top":
+                        top_mask += m.top_mask[name]
+                if any(bottom_mask):
+                    writeback.append("if (j == 0) {")
+                    for i, neg in enumerate(bottom_mask):
+                        if neg < 0:
+                            writeback.append("xtr_map1[{i}] = -1;".format(i=i))
+                    writeback.append("}")
+                if any(top_mask):
+                    writeback.append("if (j == top_layer - 1) {")
+                    for i, neg in enumerate(top_mask):
+                        if neg < 0:
+                            writeback.append("xtr_map2[{i}] = -1;".format(i=i))
+                    writeback.append("}")
 
             if all(d == 1 for d in dim):
                 writeback += ["""MatSetValuesLocal({mat}, {arity1}, {map1_expr},

@@ -99,7 +99,8 @@ class JITModule(host.JITModule):
                     arg_names.append(name)
                     wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
-                init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, namer)
+                col_name = 'j' if self._itspace._extruded else None
+                init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer)
                 inits.extend(init)
                 writebacks.extend(writeback)
                 kernel_args.append(kernel_arg)
@@ -111,14 +112,21 @@ class JITModule(host.JITModule):
         if self._itspace._extruded:
             wrapper_args += ["int start_layer", "int end_layer", "int top_layer"]
 
+        if self._itspace._extruded:
+            body2 = ["for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('j')]
+            body2.extend('\t' + line for line in loop_body('i'))
+            body2.append("}")
+        else:
+            body2 = loop_body('i')
+
         if isinstance(self._itspace._iterset, Subset):
             body = ["for (int {0} = start; {0} < end; {0}++) {{".format('n')]
             body.append('\t' + "int i = ssinds[n];")
-            body.extend('\t' + line for line in loop_body('i'))
+            body.extend('\t' + line for line in body2)
             body.append("}")
         else:
             body = ["for (int {0} = start; {0} < end; {0}++) {{".format('i')]
-            body.extend('\t' + line for line in loop_body('i'))
+            body.extend('\t' + line for line in body2)
             body.append("}")
 
         return ''.join(["void ", self._wrapper_name,
@@ -126,7 +134,7 @@ class JITModule(host.JITModule):
                         ', '.join(wrapper_args),
                         ")\n{\n",
                         '\n'.join('\t' + line for line in body),
-                        "}\n"])
+                        "\n}\n"])
 
     def set_argtypes(self, iterset, *args):
         argtypes = [ctypes.c_int, ctypes.c_int]

@@ -35,7 +35,6 @@
 common to backends executing on the host."""
 
 from copy import deepcopy as dcopy
-from itertools import product
 
 import base
 import compilation
@@ -88,7 +87,7 @@ class Arg(base.Arg):
                     values.append(m._values.ctypes.data)
         return c_typenames, types, values
 
-    def init_and_writeback(self, args, c, namer):
+    def init_and_writeback(self, args, c, col, namer):
         if isinstance(self.data, Mat):
             assert self._flatten
             assert self.idx is not None
@@ -105,11 +104,31 @@ class Arg(base.Arg):
             init = ["double {buf}[{size1}][{size2}] __attribute__((aligned(16))) = {{0.0}};".format(
                 buf=buf_name, size1=size[0], size2=size[1])]
 
+            writeback = []
+            if self.map[0].offset is None:
+                map1_expr = "{map1} + {c} * {arity1}".format(map1=map1_name, arity1=arity[0], c=c)
+            else:
+                assert arity[0] == len(self.map[0].offset)
+                writeback.append("int xtr_map1[{arity1}];".format(arity1=arity[0]))
+                for i, off in enumerate(self.map[0].offset):
+                    writeback.append(str.format("xtr_map1[{i}] = {map1}[{c} * {arity1} + {i}] + {j} * {off};",
+                                                i=i, map1=map1_name, c=c, j=col, arity1=arity[0], off=off))
+                map1_expr = "xtr_map1"
+            if self.map[1].offset is None:
+                map2_expr = "{map2} + {c} * {arity2}".format(map2=map2_name, arity2=arity[1], c=c)
+            else:
+                assert arity[1] == len(self.map[1].offset)
+                writeback.append("int xtr_map2[{arity2}];".format(arity2=arity[1]))
+                for i, off in enumerate(self.map[1].offset):
+                    writeback.append(str.format("xtr_map2[{i}] = {map2}[{c} * {arity2} + {i}] + {j} * {off};",
+                                                i=i, map2=map2_name, c=c, j=col, arity2=arity[1], off=off))
+                map2_expr = "xtr_map2"
+
             if all(d == 1 for d in dim):
-                writeback = ["""MatSetValuesLocal({mat}, {arity1}, {map1} + {c} * {arity1},
-\t\t\t{arity2}, {map2} + {c} * {arity2},
+                writeback += ["""MatSetValuesLocal({mat}, {arity1}, {map1_expr},
+\t\t\t{arity2}, {map2_expr},
 \t\t\t(const PetscScalar *){buf},
-\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity[0], arity2=arity[1], map1=map1_name, map2=map2_name, c=c)]
+\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity[0], arity2=arity[1], map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
             else:
                 tmp_name = namer('tmp_buffer')
 
@@ -119,7 +138,7 @@ class Arg(base.Arg):
                 idx_r = idx % {'ridx': "j + %d*k" % arity[0],
                                'cidx': "l + %d*m" % arity[1]}
                 # Shuffle xxx yyy zzz into xyz xyz xyz
-                writeback = ["""
+                writeback += ["""
                 double %(tmp_name)s[%(size1)d][%(size2)d] __attribute__((aligned(16)));
                 for ( int j = 0; j < %(nrows)d; j++ ) {
                    for ( int k = 0; k < %(rbs)d; k++ ) {
@@ -211,14 +230,14 @@ class Arg(base.Arg):
                                              %(ncols)s, %(cols)s,
                                              (const PetscScalar *)%(vals)s,
                                              %(insert)s);""" %
-                                  {'mat': mat_name,
-                                   'vals': tmp_name,
-                                   'addto': addto,
-                                   'nrows': nrows,
-                                   'ncols': ncols,
-                                   'rows': rows_str,
-                                   'cols': cols_str,
-                                   'insert': {WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]})
+                                     {'mat': mat_name,
+                                      'vals': tmp_name,
+                                      'addto': addto,
+                                      'nrows': nrows,
+                                      'ncols': ncols,
+                                      'rows': rows_str,
+                                      'cols': cols_str,
+                                      'insert': {WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]})
                 else:
                     writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1} + {c} * {arity1},
     \t\t\t{arity2}, {map2} + {c} * {arity2},
@@ -241,7 +260,7 @@ class Arg(base.Arg):
             buf_name = namer('vec')
 
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-                pointers_ = _pointers(dat_name, map_name, map_.arity, dat.cdim, c, flatten=self._flatten)
+                pointers_ = _pointers(dat_name, map_name, map_.arity, dat.cdim, map_.offset, c, col, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length
                     pointers_ = pointers_[::dat.cdim]
@@ -291,14 +310,20 @@ class Arg(base.Arg):
             raise NotImplementedError("How to handle {0}?".format(type(self.data).__name__))
 
 
-def _pointers(dat_name, map_name, arity, dim, i, flatten):
-    template = "{dat_name} + {map_name}[{i} * {arity} + {r}] * {dim} + {d}"
-    if flatten:
-        ordering = ((r, d) for d, r in product(range(dim), range(arity)))
+def _pointers(dat_name, map_name, arity, dim, offset, i, j, flatten):
+    if offset is None:
+        offset = [None] * arity
+        template = "{dat_name} + {map_name}[{i} * {arity} + {r}] * {dim} + {d}"
     else:
-        ordering = ((r, d) for r, d in product(range(arity), range(dim)))
+        assert j is not None
+        template = "{dat_name} + ({map_name}[{i} * {arity} + {r}] + {j} * {offset}) * {dim} + {d}"
+    if flatten:
+        ordering = ((r, d) for d in range(dim) for r in range(arity))
+    else:
+        ordering = ((r, d) for r in range(arity) for d in range(dim))
     return [template.format(dat_name=dat_name, map_name=map_name,
-                            arity=arity, dim=dim, i=i, r=r, d=d)
+                            arity=arity, dim=dim, offset=offset[r],
+                            i=i, j=j, r=r, d=d)
             for r, d in ordering]
 
 

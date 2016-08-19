@@ -87,7 +87,7 @@ class Arg(base.Arg):
                     values.append(m._values.ctypes.data)
         return c_typenames, types, values
 
-    def init_and_writeback(self, args, c, col, namer):
+    def init_and_writeback(self, args, c, col, namer, is_facet=False):
         if isinstance(self.data, Mat):
             assert self._flatten
             assert self.idx is not None
@@ -305,7 +305,7 @@ class Arg(base.Arg):
             buf_name = namer('vec')
 
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-                pointers_ = _pointers(dat_name, map_name, map_.arity, dat.cdim, map_.offset, c, col, flatten=self._flatten)
+                pointers_ = _pointers(dat_name, map_name, map_.arity, dat.cdim, map_.offset, c, col, flatten=self._flatten, is_facet=is_facet)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length
                     pointers_ = pointers_[::dat.cdim]
@@ -355,21 +355,22 @@ class Arg(base.Arg):
             raise NotImplementedError("How to handle {0}?".format(type(self.data).__name__))
 
 
-def _pointers(dat_name, map_name, arity, dim, offset, i, j, flatten):
+def _pointers(dat_name, map_name, arity, dim, offset, i, j, flatten, is_facet=False):
+    fs = [0, 1] if is_facet else [0]
     if offset is None:
         offset = [None] * arity
         template = "{dat_name} + {map_name}[{i} * {arity} + {r}] * {dim} + {d}"
     else:
         assert j is not None
-        template = "{dat_name} + ({map_name}[{i} * {arity} + {r}] + {j} * {offset}) * {dim} + {d}"
+        template = "{dat_name} + ({map_name}[{i} * {arity} + {r}] + ({j} + {f}) * {offset}) * {dim} + {d}"
     if flatten:
-        ordering = ((r, d) for d in range(dim) for r in range(arity))
+        ordering = ((f, r, d) for d in range(dim) for f in fs for r in range(arity))
     else:
-        ordering = ((r, d) for r in range(arity) for d in range(dim))
+        ordering = ((f, r, d) for f in fs for r in range(arity) for d in range(dim))
     return [template.format(dat_name=dat_name, map_name=map_name,
                             arity=arity, dim=dim, offset=offset[r],
-                            i=i, j=j, r=r, d=d)
-            for r, d in ordering]
+                            i=i, j=j, r=r, d=d, f=f)
+            for f, r, d in ordering]
 
 
 class JITModule(base.JITModule):

@@ -78,6 +78,8 @@ class UniqueNameGenerator(object):
 class JITModule(host.JITModule):
 
     def generate_wrapper(self):
+        is_facet = (self._iteration_region == ON_INTERIOR_FACETS)
+
         wrapper_args = []
 
         unique_name = UniqueNameGenerator()
@@ -100,7 +102,7 @@ class JITModule(host.JITModule):
                     wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
                 col_name = 'j' if self._itspace._extruded else None
-                init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer)
+                init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet)
                 inits.extend(init)
                 writebacks.extend(writeback)
                 kernel_args.append(kernel_arg)

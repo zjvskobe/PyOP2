@@ -239,10 +239,10 @@ class Arg(base.Arg):
                                       'cols': cols_str,
                                       'insert': {WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]})
                 else:
-                    writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1} + {c} * {arity1},
-    \t\t\t{arity2}, {map2} + {c} * {arity2},
+                    writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
+    \t\t\t{arity2}, {map2_expr},
     \t\t\t(const PetscScalar *){tmp_name},
-    \t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=arity[0], arity2=arity[1], map1=map1_name, map2=map2_name, c=c)]
+    \t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=arity[0], arity2=arity[1], map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
 
             return init, writeback, buf_name
 

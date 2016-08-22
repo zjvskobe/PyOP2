@@ -35,6 +35,7 @@
 common to backends executing on the host."""
 
 from copy import deepcopy as dcopy
+from itertools import product
 
 import base
 import compilation
@@ -91,15 +92,18 @@ class Arg(base.Arg):
         if isinstance(self.data, Mat):
             assert self._flatten
             assert self.idx is not None
+            assert not self._is_mixed_mat
 
             arity = [m.arity for m in self.map]
             dim = self.data.dims[0][0]
 
             assert len(arity) == len(dim)
-            size = [n * d for n, d in zip(arity, dim)]
+            size = [n * d * (1 + int(is_facet)) for n, d in zip(arity, dim)]
 
             mat_name, map1_name, map2_name = args
             buf_name = namer('buffer')
+
+            fs = [0, 1] if is_facet else [0]
 
             init = ["double {buf}[{size1}][{size2}] __attribute__((aligned(16))) = {{0.0}};".format(
                 buf=buf_name, size1=size[0], size2=size[1])]
@@ -109,10 +113,10 @@ class Arg(base.Arg):
                 map1_expr = "{map1} + {c} * {arity1}".format(map1=map1_name, arity1=arity[0], c=c)
             else:
                 assert arity[0] == len(self.map[0].offset)
-                writeback.append("int xtr_map1[{arity1}];".format(arity1=arity[0]))
-                for i, off in enumerate(self.map[0].offset):
-                    writeback.append(str.format("xtr_map1[{i}] = {map1}[{c} * {arity1} + {i}] + {j} * {off};",
-                                                i=i, map1=map1_name, c=c, j=col, arity1=arity[0], off=off))
+                writeback.append("int xtr_map1[{arity1}];".format(arity1=(arity[0] * (1 + int(is_facet)))))
+                for i, (f, off) in enumerate(product(fs, self.map[0].offset)):
+                    writeback.append(str.format("xtr_map1[{i}] = {map1}[{c} * {arity1} + {iii}] + ({j} + {f}) * {off};",
+                                                i=i, iii=(i % arity[0]), map1=map1_name, c=c, j=col, arity1=arity[0], off=off, f=f))
                 map1_expr = "xtr_map1"
 
                 import numpy
@@ -125,26 +129,26 @@ class Arg(base.Arg):
                     elif location == "top":
                         top_mask += m.top_mask[name]
                 if any(bottom_mask):
-                    writeback.append("if (j == 0) {")
+                    writeback.append("if (jjj == 0) {")
                     for i, neg in enumerate(bottom_mask):
                         if neg < 0:
                             writeback.append("xtr_map1[{i}] = -1;".format(i=i))
                     writeback.append("}")
                 if any(top_mask):
-                    writeback.append("if (j == top_layer - 1) {")
+                    writeback.append("if (jjj == top_layer - 1) {")
                     for i, neg in enumerate(top_mask):
                         if neg < 0:
-                            writeback.append("xtr_map1[{i}] = -1;".format(i=i))
+                            writeback.append("xtr_map1[{i}] = -1;".format(i=(m.arity + i if is_facet else i)))
                     writeback.append("}")
 
             if self.map[1].offset is None or all(off is None for off in self.map[0].offset):
                 map2_expr = "{map2} + {c} * {arity2}".format(map2=map2_name, arity2=arity[1], c=c)
             else:
                 assert arity[1] == len(self.map[1].offset)
-                writeback.append("int xtr_map2[{arity2}];".format(arity2=arity[1]))
-                for i, off in enumerate(self.map[1].offset):
-                    writeback.append(str.format("xtr_map2[{i}] = {map2}[{c} * {arity2} + {i}] + {j} * {off};",
-                                                i=i, map2=map2_name, c=c, j=col, arity2=arity[1], off=off))
+                writeback.append("int xtr_map2[{arity2}];".format(arity2=(arity[1] * (1 + int(is_facet)))))
+                for i, (f, off) in enumerate(product(fs, self.map[1].offset)):
+                    writeback.append(str.format("xtr_map2[{i}] = {map2}[{c} * {arity2} + {iii}] + ({j} + {f}) * {off};",
+                                                i=i, iii=(i % arity[1]), map2=map2_name, c=c, j=col, arity2=arity[1], off=off, f=f))
                 map2_expr = "xtr_map2"
 
                 import numpy
@@ -157,31 +161,31 @@ class Arg(base.Arg):
                     elif location == "top":
                         top_mask += m.top_mask[name]
                 if any(bottom_mask):
-                    writeback.append("if (j == 0) {")
+                    writeback.append("if (jjj == 0) {")
                     for i, neg in enumerate(bottom_mask):
                         if neg < 0:
                             writeback.append("xtr_map1[{i}] = -1;".format(i=i))
                     writeback.append("}")
                 if any(top_mask):
-                    writeback.append("if (j == top_layer - 1) {")
+                    writeback.append("if (jjj == top_layer - 1) {")
                     for i, neg in enumerate(top_mask):
                         if neg < 0:
-                            writeback.append("xtr_map2[{i}] = -1;".format(i=i))
+                            writeback.append("xtr_map2[{i}] = -1;".format(i=(m.arity + i if is_facet else i)))
                     writeback.append("}")
 
             if all(d == 1 for d in dim):
                 writeback += ["""MatSetValuesLocal({mat}, {arity1}, {map1_expr},
 \t\t\t{arity2}, {map2_expr},
 \t\t\t(const PetscScalar *){buf},
-\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=arity[0], arity2=arity[1], map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
+\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=(arity[0] * (1 + int(is_facet))), arity2=(arity[1] * (1 + int(is_facet))), map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
             else:
                 tmp_name = namer('tmp_buffer')
 
                 idx = "[%(ridx)s][%(cidx)s]"
                 idx_l = idx % {'ridx': "%d*j + k" % dim[0],
                                'cidx': "%d*l + m" % dim[1]}
-                idx_r = idx % {'ridx': "j + %d*k" % arity[0],
-                               'cidx': "l + %d*m" % arity[1]}
+                idx_r = idx % {'ridx': "j + %d*k" % (arity[0] * (1 + int(is_facet)),),
+                               'cidx': "l + %d*m" % (arity[1] * (1 + int(is_facet)),)}
                 # Shuffle xxx yyy zzz into xyz xyz xyz
                 writeback += ["""
                 double %(tmp_name)s[%(size1)d][%(size2)d] __attribute__((aligned(16)));
@@ -193,8 +197,8 @@ class Arg(base.Arg):
                          }
                       }
                    }
-                }""" % {'nrows': arity[0],
-                        'ncols': arity[1],
+                }""" % {'nrows': arity[0] * (1 + int(is_facet)),
+                        'ncols': arity[1] * (1 + int(is_facet)),
                         'rbs': dim[0],
                         'cbs': dim[1],
                         'idx_l': idx_l,
@@ -287,7 +291,7 @@ class Arg(base.Arg):
                     writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
     \t\t\t{arity2}, {map2_expr},
     \t\t\t(const PetscScalar *){tmp_name},
-    \t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=arity[0], arity2=arity[1], map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
+    \t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=(arity[0] * (1 + int(is_facet))), arity2=(arity[1] * (1 + int(is_facet))), map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
 
             return init, writeback, buf_name
 

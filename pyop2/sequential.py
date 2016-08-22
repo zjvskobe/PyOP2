@@ -101,7 +101,7 @@ class JITModule(host.JITModule):
                     arg_names.append(name)
                     wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
-                col_name = 'j' if self._itspace._extruded else None
+                col_name = 'jjj' if self._itspace._extruded else None
                 init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet)
                 inits.extend(init)
                 writebacks.extend(writeback)
@@ -114,8 +114,8 @@ class JITModule(host.JITModule):
         if self._itspace._extruded:
             wrapper_args += ["int start_layer", "int end_layer", "int top_layer"]
 
-        if self._itspace._extruded:
-            body2 = ["for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('j')]
+        if self._itspace._extruded and any(arg._is_indirect or arg._is_mat for arg in self._args):
+            body2 = ["for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('jjj')]
             body2.extend('\t' + line for line in loop_body('i'))
             body2.append("}")
         else:

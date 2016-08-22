@@ -105,7 +105,7 @@ class Arg(base.Arg):
                 buf=buf_name, size1=size[0], size2=size[1])]
 
             writeback = []
-            if self.map[0].offset is None:
+            if self.map[0].offset is None or all(off is None for off in self.map[0].offset):
                 map1_expr = "{map1} + {c} * {arity1}".format(map1=map1_name, arity1=arity[0], c=c)
             else:
                 assert arity[0] == len(self.map[0].offset)
@@ -137,7 +137,7 @@ class Arg(base.Arg):
                             writeback.append("xtr_map1[{i}] = -1;".format(i=i))
                     writeback.append("}")
 
-            if self.map[1].offset is None:
+            if self.map[1].offset is None or all(off is None for off in self.map[0].offset):
                 map2_expr = "{map2} + {c} * {arity2}".format(map2=map2_name, arity2=arity[1], c=c)
             else:
                 assert arity[1] == len(self.map[1].offset)
@@ -357,7 +357,7 @@ class Arg(base.Arg):
 
 def _pointers(dat_name, map_name, arity, dim, offset, i, j, flatten, is_facet=False):
     fs = [0, 1] if is_facet else [0]
-    if offset is None:
+    if offset is None or all(off is None for off in offset):
         offset = [None] * arity
         template = "{dat_name} + {map_name}[{i} * {arity} + {r}] * {dim} + {d}"
     else:

@@ -430,22 +430,18 @@ class JITModule(base.JITModule):
                    'header': headers}
         code_to_compile = self.generate_wrapper()
 
-        _const_decs = '\n'.join([const._format_declaration()
-                                for const in Const._definitions()]) + '\n'
-
         code_to_compile = """
         #include <petsc.h>
         #include <stdbool.h>
         #include <math.h>
         %(sys_headers)s
-        %(consts)s
 
         %(kernel)s
 
         %(externc_open)s
         %(wrapper)s
         %(externc_close)s
-        """ % {'consts': _const_decs, 'kernel': kernel_code,
+        """ % {'kernel': kernel_code,
                'wrapper': code_to_compile,
                'externc_open': externc_open,
                'externc_close': externc_close,

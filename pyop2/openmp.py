@@ -742,11 +742,9 @@ void %(wrapper_name)s(int boffset,
                       int *nelems,
                       %(ssinds_arg)s
                       %(layer_arg)s
-                      %(wrapper_args)s
-                      %(const_args)s) {
+                      %(wrapper_args)s) {
   %(user_code)s
   %(wrapper_decs)s;
-  %(const_inits)s;
   #pragma omp parallel shared(boffset, nblocks, nelems, blkmap)
   {
     %(map_decl)s
@@ -801,9 +799,6 @@ void %(wrapper_name)s(int boffset,
         for arg in args:
             _1, types, _2 = arg.wrapper_args()
             argtypes.extend(types)
-
-        for c in Const._definitions():
-            argtypes.append(c._argtype)
 
         self._argtypes = argtypes
 
@@ -892,13 +887,6 @@ def wrapper_snippets(itspace, args,
     _wrapper_decs = ';\n'.join([arg.c_wrapper_dec() for arg in args])
 
     _vec_decs = ';\n'.join([arg.c_vec_dec(is_facet=is_facet) for arg in args if arg._is_vec_map])
-
-    if len(Const._defs) > 0:
-        _const_args = ', '
-        _const_args += ', '.join([c_const_arg(c) for c in Const._definitions()])
-    else:
-        _const_args = ''
-    _const_inits = ';\n'.join([c_const_init(c) for c in Const._definitions()])
 
     _intermediate_globals_decl = ';\n'.join(
         [arg.c_intermediate_globals_decl(count)
@@ -1064,8 +1052,6 @@ def wrapper_snippets(itspace, args,
             'wrapper_args': _wrapper_args,
             'user_code': user_code,
             'wrapper_decs': indent(_wrapper_decs, 1),
-            'const_args': _const_args,
-            'const_inits': indent(_const_inits, 1),
             'vec_inits': indent(_vec_inits, 2),
             'layer_arg': _layer_arg,
             'map_decl': indent(_map_decl, 2),
@@ -1116,8 +1102,6 @@ class ParLoop(device.ParLoop, host.ParLoop):
         for arg in self.args:
             _1, _2, values = arg.wrapper_args()
             arglist.extend(values)
-        for c in Const._definitions():
-            arglist.append(c._data.ctypes.data)
 
         return arglist
 

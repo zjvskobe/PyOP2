@@ -152,9 +152,6 @@ class JITModule(host.JITModule):
             _1, types, _2 = arg.wrapper_args()
             argtypes.extend(types)
 
-        for c in Const._definitions():
-            argtypes.append(c._argtype)
-
         self._argtypes = argtypes
 
 
@@ -188,9 +185,6 @@ class ParLoop(host.ParLoop):
         for arg in args:
             _1, _2, values = arg.wrapper_args()
             arglist.extend(values)
-
-        for c in Const._definitions():
-            arglist.append(c._data.ctypes.data)
 
         return arglist
 

@@ -207,7 +207,51 @@ class ParLoop(host.ParLoop):
 
 
 def generate_cell_wrapper(itspace, args, forward_args=(), kernel_name=None, wrapper_name=None):
-    raise NotImplementedError("How to generate cell wrapper?")
+    wrapper_fargs = ["{1} farg{0}".format(i, arg) for i, arg in enumerate(forward_args)]
+    kernel_fargs = ["farg{0}".format(i) for i in xrange(len(forward_args))]
+
+    unique_name = UniqueNameGenerator()
+    wrapper_args = wrapper_fargs[:]
+
+    def loop_body(index_name):
+        kernel_args = kernel_fargs[:]
+        inits = []
+        writebacks = []
+
+        for i, arg in enumerate(args):
+            prefix = 'arg{0}_'.format(i)
+            namer = lambda sn: unique_name(prefix + sn)
+
+            c_typenames, _1, _2 = arg.wrapper_args()
+
+            arg_names = []
+            for j, typ in enumerate(c_typenames):
+                name = namer(str(j))
+                arg_names.append(name)
+                wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
+
+            col_name = 'jjj' if itspace._extruded else None
+            init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer)
+            inits.extend(init)
+            writebacks.extend(writeback)
+            kernel_args.append(kernel_arg)
+
+        return inits + [kernel_name + '(' + ', '.join(kernel_args) + ');'] + writebacks
+
+    body = loop_body('i')
+
+    if itspace._extruded:
+        body = ["int i = cell / nlayers;", "int jjj = cell % nlayers;"] + body
+        wrapper_args.append("int nlayers")
+    else:
+        body.insert(0, "int i = cell;")
+    wrapper_args.append("int cell")
+
+    return ''.join(["void ", wrapper_name, "(",
+                    ', '.join(wrapper_args),
+                    ")\n{\n",
+                    '\n'.join('\t' + line for line in body),
+                    "\n}\n"])
 
 
 def _setup():

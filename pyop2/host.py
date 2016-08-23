@@ -151,7 +151,7 @@ class Arg(base.Arg):
     def c_local_tensor_name(self, i, j):
         return self.c_kernel_arg_name(i, j)
 
-    def c_kernel_arg(self, count, i=0, j=0, shape=(0,), layers=1):
+    def c_kernel_arg(self, count, i=0, j=0, shape=(0,), layers=1, extruded=False):
         if self._is_dat_view and not self._is_direct:
             raise NotImplementedError("Indirect DatView not implemented")
         if self._uses_itspace:
@@ -166,7 +166,7 @@ class Arg(base.Arg):
                 else:
                     raise RuntimeError("Don't know how to pass kernel arg %s" % self)
             else:
-                if self.data is not None and self.data.dataset._extruded:
+                if self.data is not None and extruded:
                     return self.c_ind_data_xtr("i_%d" % self.idx.index, i)
                 elif self._flatten:
                     return "%(name)s + %(map_name)s[i * %(arity)s + i_0 %% %(arity)d] * %(dim)s + (i_0 / %(arity)d)" % \
@@ -635,18 +635,18 @@ for ( int i = 0; i < %(dim)s; i++ ) %(combine)s;
              "align": " " + align,
              "init": init_expr}
 
-    def c_buffer_gather(self, size, idx, buf_name):
+    def c_buffer_gather(self, size, idx, buf_name, extruded=False):
         dim = 1 if self._flatten else self.data.cdim
         return ";\n".join(["%(name)s[i_0*%(dim)d%(ofs)s] = *(%(ind)s%(ofs)s);\n" %
                            {"name": buf_name,
                             "dim": dim,
-                            "ind": self.c_kernel_arg(idx),
+                            "ind": self.c_kernel_arg(idx, extruded=extruded),
                             "ofs": " + %s" % j if j else ""} for j in range(dim)])
 
-    def c_buffer_scatter_vec(self, count, i, j, mxofs, buf_name):
+    def c_buffer_scatter_vec(self, count, i, j, mxofs, buf_name, extruded=False):
         dim = self.data.split[i].cdim
         return ";\n".join(["*(%(ind)s%(nfofs)s) %(op)s %(name)s[i_0*%(dim)d%(nfofs)s%(mxofs)s]" %
-                           {"ind": self.c_kernel_arg(count, i, j),
+                           {"ind": self.c_kernel_arg(count, i, j, extruded=extruded),
                             "op": "=" if self.access == WRITE else "+=",
                             "name": buf_name,
                             "dim": dim,
@@ -654,8 +654,8 @@ for ( int i = 0; i < %(dim)s; i++ ) %(combine)s;
                             "mxofs": " + %d" % (mxofs[0] * dim) if mxofs else ""}
                            for o in range(dim)])
 
-    def c_buffer_scatter_offset(self, count, i, j, ofs_name):
-        if self.data.dataset._extruded:
+    def c_buffer_scatter_offset(self, count, i, j, ofs_name, extruded=False):
+        if extruded:
             return '%(ofs_name)s = %(map_name)s[i_0]' % {
                 'ofs_name': ofs_name,
                 'map_name': 'xtr_%s' % self.c_map_name(0, i),
@@ -958,10 +958,11 @@ def wrapper_snippets(itspace, args,
                                            init=False)
         if arg.access not in [WRITE, INC]:
             _itspace_loops = '\n'.join(['  ' * n + itspace_loop(n, e) for n, e in enumerate(_loop_size)])
-            _buf_gather[arg] = arg.c_buffer_gather(_buf_size, count, _buf_name[arg])
+            _buf_gather[arg] = arg.c_buffer_gather(_buf_size, count, _buf_name[arg], extruded=itspace._extruded)
             _itspace_loop_close = '\n'.join('  ' * n + '}' for n in range(len(_loop_size) - 1, -1, -1))
             _buf_gather[arg] = "\n".join([_itspace_loops, _buf_gather[arg], _itspace_loop_close])
-    _kernel_args = ', '.join([arg.c_kernel_arg(count) if not arg._uses_itspace else _buf_name[arg]
+    _kernel_args = ', '.join([arg.c_kernel_arg(count, extruded=itspace._extruded)
+                              if not arg._uses_itspace else _buf_name[arg]
                               for count, arg in enumerate(args)])
     _buf_gather = ";\n".join(_buf_gather.values())
     _buf_decl = ";\n".join(_buf_decl.values())
@@ -990,7 +991,7 @@ def wrapper_snippets(itspace, args,
                 shape = shape[0]
                 loop_size = shape*mult
                 _itspace_loops, _itspace_loop_close = itspace_loop(0, loop_size), '}'
-                _scatter_stmts = arg.c_buffer_scatter_vec(count, i, j, offsets, _buf_name[arg])
+                _scatter_stmts = arg.c_buffer_scatter_vec(count, i, j, offsets, _buf_name[arg], extruded=itspace._extruded)
                 _buf_offset, _buf_offset_decl = '', ''
             elif arg._is_dat:
                 dim, shape = arg.data.split[i].cdim, shape[0]
@@ -999,7 +1000,7 @@ def wrapper_snippets(itspace, args,
                 _buf_offset_name = 'offset_%d[%s]' % (count, '%s')
                 _buf_offset_decl = 'int %s' % _buf_offset_name % loop_size
                 _buf_offset_array = _buf_offset_name % 'i_0'
-                _buf_offset = '%s;' % arg.c_buffer_scatter_offset(count, i, j, _buf_offset_array)
+                _buf_offset = '%s;' % arg.c_buffer_scatter_offset(count, i, j, _buf_offset_array, extruded=itspace._extruded)
                 _scatter_stmts = arg.c_buffer_scatter_vec_flatten(count, i, j, offsets, _buf_name[arg],
                                                                   _buf_offset_array, loop_size)
             else:

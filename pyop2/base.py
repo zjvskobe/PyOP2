@@ -312,8 +312,7 @@ class Arg(object):
             self.cache_key = (self.data.dim, self.data.dtype,
                               map_arity, idx, view_idx, self.access)
         elif self._is_mat:
-            idxs = (self.idx[0].__class__, self.idx[0].index,
-                    self.idx[1].index)
+            idxs = tuple(self.idx)
             map_arities = (tuplify(self.map[0].offset) or self.map[0].arity,
                            tuplify(self.map[1].offset) or self.map[1].arity)
             # Implicit boundary conditions (extruded "top" or
@@ -2850,6 +2849,15 @@ class IterationIndex(object):
     def __init__(self, index=None):
         assert index is None or isinstance(index, int), "i must be an int"
         self._index = index
+
+    def __hash__(self):
+        return hash((IterationIndex, self._index))
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self._index == other._index
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __str__(self):
         return "OP2 IterationIndex: %s" % self._index

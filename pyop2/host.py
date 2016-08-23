@@ -91,7 +91,6 @@ class Arg(base.Arg):
     def init_and_writeback(self, args, c, col, namer, is_facet=False):
         if isinstance(self.data, Mat):
             assert self.idx is not None
-            assert self._flatten
             assert not self._is_mixed_mat
 
             mat_name = args[0]
@@ -145,17 +144,20 @@ class Arg(base.Arg):
                                                                                i=(m.arity + i if is_facet else i)))
                     writeback.append("}")
 
-            insert_name = namer('insert_buffer')
-            writeback.append(str.format("double {ins}[{s1}][{s2}] __attribute__((aligned(16)));",
-                                        ins=insert_name, s1=size[0], s2=size[1]))  # TODO
+            if self._flatten:
+                insert_name = namer('insert_buffer')
+                writeback.append(str.format("double {ins}[{s1}][{s2}] __attribute__((aligned(16)));",
+                                            ins=insert_name, s1=size[0], s2=size[1]))  # TODO
 
-            alphas = numpy.arange(arity[0] * dim[0]).reshape(dim[0], arity[0])
-            betas = numpy.arange(arity[1] * dim[1]).reshape(dim[1], arity[1])
-            for alpha_i, alpha_j in enumerate(alphas.transpose().flat):
-                for beta_i, beta_j in enumerate(betas.transpose().flat):
-                    writeback.append(str.format("{ins_name}[{ri}][{ci}] = {buf_name}[{rj}][{cj}];",
-                                                ins_name=insert_name, ri=alpha_i, ci=beta_i,
-                                                buf_name=buf_name, rj=alpha_j, cj=beta_j))
+                alphas = numpy.arange(arity[0] * dim[0]).reshape(dim[0], arity[0])
+                betas = numpy.arange(arity[1] * dim[1]).reshape(dim[1], arity[1])
+                for alpha_i, alpha_j in enumerate(alphas.transpose().flat):
+                    for beta_i, beta_j in enumerate(betas.transpose().flat):
+                        writeback.append(str.format("{ins_name}[{ri}][{ci}] = {buf_name}[{rj}][{cj}];",
+                                                    ins_name=insert_name, ri=alpha_i, ci=beta_i,
+                                                    buf_name=buf_name, rj=alpha_j, cj=beta_j))
+            else:
+                insert_name = buf_name
 
             nrows, ncols = arity
             rmap, cmap = self.map
@@ -240,7 +242,7 @@ class Arg(base.Arg):
                 writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
 \t\t\t{arity2}, {map2_expr},
 \t\t\t(const PetscScalar *){tmp_name},
-\t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=insert_name, arity1=arity[0], arity2=arity[1], map1_expr=lmap_names[0], map2_expr=lmap_names[1])]
+\t\t\t{insert});""".format(mat=mat_name, tmp_name=insert_name, arity1=arity[0], arity2=arity[1], map1_expr=lmap_names[0], map2_expr=lmap_names[1], insert={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access])]  # TODO: deduplicate code
 
             return init, writeback, buf_name
 
@@ -259,6 +261,8 @@ class Arg(base.Arg):
 
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
                 map_vec = _map_vec(map_name, map_.arity, map_.offset, c, col, is_facet=is_facet)
+                if isinstance(self.idx, int):
+                    map_vec = [map_vec[self.idx]]  # FIXME: interior_facet_horiz
                 pointers_ = _pointers(dat_name, dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length
@@ -271,7 +275,8 @@ class Arg(base.Arg):
                     init.append("{buf_name}[{i}] = {pointer};".format(buf_name=buf_name, i=i, pointer=pointer))
 
             else:
-                assert isinstance(self.idx, IterationIndex) and self.idx.index == 0
+                if isinstance(self.idx, IterationIndex):
+                    assert self.idx.index == 0
 
                 initializer = ''
                 if self.access in [WRITE, INC]:  # TSFC expects zero buffer for WRITE
@@ -290,7 +295,7 @@ class Arg(base.Arg):
                     for i, pointer in enumerate(pointers):
                         writeback.append("*({pointer}) {op} {buf_name}[{i}];".format(buf_name=buf_name, i=i, pointer=pointer, op=op))
 
-                else:
+                if self.access not in [READ, WRITE, RW, INC]:
                     raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
 
             return init, writeback, buf_name

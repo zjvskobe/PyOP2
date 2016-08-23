@@ -309,7 +309,8 @@ class Arg(base.Arg):
             buf_name = namer('vec')
 
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-                pointers_ = _pointers(dat_name, map_name, map_.arity, dat.cdim, map_.offset, c, col, flatten=self._flatten, is_facet=is_facet)
+                map_vec = _map_vec(map_name, map_.arity, map_.offset, c, col, is_facet=is_facet)
+                pointers_ = _pointers(dat_name, dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length
                     pointers_ = pointers_[::dat.cdim]
@@ -359,22 +360,44 @@ class Arg(base.Arg):
             raise NotImplementedError("How to handle {0}?".format(type(self.data).__name__))
 
 
-def _pointers(dat_name, map_name, arity, dim, offset, i, j, flatten, is_facet=False):
-    fs = [0, 1] if is_facet else [0]
-    if offset is None or all(off is None for off in offset):
-        offset = [None] * arity
-        template = "{dat_name} + {map_name}[{i} * {arity} + {r}] * {dim} + {d}"
+def _map_vec(map_name, arity, offset, element_index, column_index, is_facet=False):
+    extruded = offset and any(offset)
+    result = []
+    if not extruded:
+        template = "{map_name}[{e} * {arity} + {r}]"
+        for r in range(arity):
+            result.append(template.format(map_name=map_name,
+                                          arity=arity,
+                                          e=element_index, r=r))
     else:
-        assert j is not None
-        template = "{dat_name} + ({map_name}[{i} * {arity} + {r}] + ({j} + {f}) * {offset}) * {dim} + {d}"
+        assert column_index is not None
+        template = "{map_name}[{e} * {arity} + {r}] + {col} * {offset}"
+        for r in range(arity):
+            result.append(template.format(map_name=map_name,
+                                          arity=arity,
+                                          e=element_index, r=r,
+                                          col=column_index,
+                                          offset=offset[r]))
+        if is_facet:
+            template = "{map_name}[{e} * {arity} + {r}] + ({col} + 1) * {offset}"
+            for r in range(arity):
+                result.append(template.format(map_name=map_name,
+                                              arity=arity,
+                                              e=element_index, r=r,
+                                              col=column_index,
+                                              offset=offset[r]))
+    return result
+
+
+def _pointers(dat_name, dim, map_vec, flatten=False):
+    template = "{dat_name} + {map_item} * {dim} + {d}"
     if flatten:
-        ordering = ((f, r, d) for d in range(dim) for f in fs for r in range(arity))
+        ordering = ((i, d) for d in range(dim) for i in range(len(map_vec)))
     else:
-        ordering = ((f, r, d) for f in fs for r in range(arity) for d in range(dim))
-    return [template.format(dat_name=dat_name, map_name=map_name,
-                            arity=arity, dim=dim, offset=offset[r],
-                            i=i, j=j, r=r, d=d, f=f)
-            for f, r, d in ordering]
+        ordering = ((i, d) for i in range(len(map_vec)) for d in range(dim))
+    return [template.format(dat_name=dat_name, dim=dim,
+                            map_item=map_vec[i], d=d)
+            for i, d in ordering]
 
 
 class JITModule(base.JITModule):

@@ -35,7 +35,7 @@
 common to backends executing on the host."""
 
 from copy import deepcopy as dcopy
-from itertools import product
+import numpy
 
 import base
 import compilation
@@ -90,37 +90,40 @@ class Arg(base.Arg):
 
     def init_and_writeback(self, args, c, col, namer, is_facet=False):
         if isinstance(self.data, Mat):
-            assert self._flatten
             assert self.idx is not None
+            assert self._flatten
             assert not self._is_mixed_mat
 
-            arity = [m.arity for m in self.map]
-            dim = self.data.dims[0][0]
-
-            assert len(arity) == len(dim)
-            size = [n * d * (1 + int(is_facet)) for n, d in zip(arity, dim)]
-
-            mat_name, map1_name, map2_name = args
+            mat_name = args[0]
+            map_names = args[1:]
             buf_name = namer('buffer')
 
-            fs = [0, 1] if is_facet else [0]
+            dim = self.data.dims[0][0]  # TODO
 
-            init = ["double {buf}[{size1}][{size2}] __attribute__((aligned(16))) = {{0.0}};".format(
-                buf=buf_name, size1=size[0], size2=size[1])]
+            map_vecs = [_map_vec(name, m.arity, m.offset, c, col, is_facet=is_facet)
+                        for m, name in zip(self.map, map_names)]
+            arity = [len(m) for m in map_vecs]
 
+            assert len(arity) == len(dim)
+            size = [n * d for n, d in zip(arity, dim)]
+
+            init = [str.format("double {buf}[{s1}][{s2}] __attribute__((aligned(16))) = {{{{0.0}}}};",
+                               buf=buf_name, s1=size[0], s2=size[1])]  # TODO
             writeback = []
-            if self.map[0].offset is None or all(off is None for off in self.map[0].offset):
-                map1_expr = "{map1} + {c} * {arity1}".format(map1=map1_name, arity1=arity[0], c=c)
-            else:
-                assert arity[0] == len(self.map[0].offset)
-                writeback.append("int xtr_map1[{arity1}];".format(arity1=(arity[0] * (1 + int(is_facet)))))
-                for i, (f, off) in enumerate(product(fs, self.map[0].offset)):
-                    writeback.append(str.format("xtr_map1[{i}] = {map1}[{c} * {arity1} + {iii}] + ({j} + {f}) * {off};",
-                                                i=i, iii=(i % arity[0]), map1=map1_name, c=c, j=col, arity1=arity[0], off=off, f=f))
-                map1_expr = "xtr_map1"
 
-                import numpy
-                m = self.map[0]
+            lmap_names = []
+            for r in range(2):
+                local_map_name = namer('lmap')
+                lmap_names.append(local_map_name)
+                writeback.append(str.format("int {lmap_name}[{arity}];",
+                                            lmap_name=local_map_name,
+                                            arity=arity[r]))
+                for i, map_value in enumerate(map_vecs[r]):
+                    writeback.append(str.format("{lmap_name}[{i}] = {value};",
+                                                lmap_name=local_map_name,
+                                                i=i, value=map_value))
+
+                m = self.map[r]
                 bottom_mask = numpy.zeros(m.arity)
                 top_mask = numpy.zeros(m.arity)
                 for location, name in m.implicit_bcs:
@@ -129,169 +132,119 @@ class Arg(base.Arg):
                     elif location == "top":
                         top_mask += m.top_mask[name]
                 if any(bottom_mask):
-                    writeback.append("if (jjj == 0) {")
+                    writeback.append("if ({col} == 0) {{".format(col=col))
                     for i, neg in enumerate(bottom_mask):
                         if neg < 0:
-                            writeback.append("xtr_map1[{i}] = -1;".format(i=i))
+                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map_name, i=i))
                     writeback.append("}")
                 if any(top_mask):
-                    writeback.append("if (jjj == top_layer - 1) {")
+                    writeback.append("if ({col} == top_layer - 1) {{".format(col=col))
                     for i, neg in enumerate(top_mask):
                         if neg < 0:
-                            writeback.append("xtr_map1[{i}] = -1;".format(i=(m.arity + i if is_facet else i)))
+                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map_name,
+                                                                               i=(m.arity + i if is_facet else i)))
                     writeback.append("}")
 
-            if self.map[1].offset is None or all(off is None for off in self.map[0].offset):
-                map2_expr = "{map2} + {c} * {arity2}".format(map2=map2_name, arity2=arity[1], c=c)
-            else:
-                assert arity[1] == len(self.map[1].offset)
-                writeback.append("int xtr_map2[{arity2}];".format(arity2=(arity[1] * (1 + int(is_facet)))))
-                for i, (f, off) in enumerate(product(fs, self.map[1].offset)):
-                    writeback.append(str.format("xtr_map2[{i}] = {map2}[{c} * {arity2} + {iii}] + ({j} + {f}) * {off};",
-                                                i=i, iii=(i % arity[1]), map2=map2_name, c=c, j=col, arity2=arity[1], off=off, f=f))
-                map2_expr = "xtr_map2"
+            insert_name = namer('insert_buffer')
+            writeback.append(str.format("double {ins}[{s1}][{s2}] __attribute__((aligned(16)));",
+                                        ins=insert_name, s1=size[0], s2=size[1]))  # TODO
 
-                import numpy
-                m = self.map[1]
-                bottom_mask = numpy.zeros(m.arity)
-                top_mask = numpy.zeros(m.arity)
-                for location, name in m.implicit_bcs:
-                    if location == "bottom":
-                        bottom_mask += m.bottom_mask[name]
-                    elif location == "top":
-                        top_mask += m.top_mask[name]
-                if any(bottom_mask):
-                    writeback.append("if (jjj == 0) {")
-                    for i, neg in enumerate(bottom_mask):
-                        if neg < 0:
-                            writeback.append("xtr_map1[{i}] = -1;".format(i=i))
-                    writeback.append("}")
-                if any(top_mask):
-                    writeback.append("if (jjj == top_layer - 1) {")
-                    for i, neg in enumerate(top_mask):
-                        if neg < 0:
-                            writeback.append("xtr_map2[{i}] = -1;".format(i=(m.arity + i if is_facet else i)))
-                    writeback.append("}")
+            alphas = numpy.arange(arity[0] * dim[0]).reshape(dim[0], arity[0])
+            betas = numpy.arange(arity[1] * dim[1]).reshape(dim[1], arity[1])
+            for alpha_i, alpha_j in enumerate(alphas.transpose().flat):
+                for beta_i, beta_j in enumerate(betas.transpose().flat):
+                    writeback.append(str.format("{ins_name}[{ri}][{ci}] = {buf_name}[{rj}][{cj}];",
+                                                ins_name=insert_name, ri=alpha_i, ci=beta_i,
+                                                buf_name=buf_name, rj=alpha_j, cj=beta_j))
 
-            if all(d == 1 for d in dim):
-                writeback += ["""MatSetValuesLocal({mat}, {arity1}, {map1_expr},
+            rmap, cmap = self.map
+            if rmap.vector_index is not None or cmap.vector_index is not None:
+                raise NotImplementedError("No BCs yet.")
+
+            # nrows, ncols = arity
+            # rmap, cmap = self.map
+            # rdim, cdim = dim
+            # if rmap.vector_index is not None or cmap.vector_index is not None:
+            #     rows_str = "rowmap"
+            #     cols_str = "colmap"
+            #     addto = "MatSetValuesLocal"
+            #     fdict = {'nrows': nrows,
+            #              'ncols': ncols,
+            #              'rdim': rdim,
+            #              'cdim': cdim,
+            #              'rowmap': map1_name,
+            #              'colmap': map2_name,
+            #              'drop_full_row': 0 if rmap.vector_index is not None else 1,
+            #              'drop_full_col': 0 if cmap.vector_index is not None else 1}
+            #     # Horrible hack alert
+            #     # To apply BCs to a component of a Dat with cdim > 1
+            #     # we encode which components to apply things to in the
+            #     # high bits of the map value
+            #     # The value that comes in is:
+            #     # -(row + 1 + sum_i 2 ** (30 - i))
+            #     # where i are the components to zero
+            #     #
+            #     # So, the actual row (if it's negative) is:
+            #     # (~input) & ~0x70000000
+            #     # And we can determine which components to zero by
+            #     # inspecting the high bits (1 << 30 - i)
+            #     writeback.append("""
+            #     PetscInt rowmap[%(nrows)d*%(rdim)d];
+            #     PetscInt colmap[%(ncols)d*%(cdim)d];
+            #     int discard, tmp, block_row, block_col;
+            #     for ( int j = 0; j < %(nrows)d; j++ ) {
+            #         block_row = %(rowmap)s[i*%(nrows)d + j];
+            #         discard = 0;
+            #         if ( block_row < 0 ) {
+            #             tmp = -(block_row + 1);
+            #             discard = 1;
+            #             block_row = tmp & ~0x70000000;
+            #         }
+            #         for ( int k = 0; k < %(rdim)d; k++ ) {
+            #             if ( discard && (%(drop_full_row)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+            #                 rowmap[j*%(rdim)d + k] = -1;
+            #             } else {
+            #                 rowmap[j*%(rdim)d + k] = (block_row)*%(rdim)d + k;
+            #             }
+            #         }
+            #     }
+            #     for ( int j = 0; j < %(ncols)d; j++ ) {
+            #         discard = 0;
+            #         block_col = %(colmap)s[i*%(ncols)d + j];
+            #         if ( block_col < 0 ) {
+            #             tmp = -(block_col + 1);
+            #             discard = 1;
+            #             block_col = tmp & ~0x70000000;
+            #         }
+            #         for ( int k = 0; k < %(cdim)d; k++ ) {
+            #             if ( discard && (%(drop_full_col)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+            #                 colmap[j*%(rdim)d + k] = -1;
+            #             } else {
+            #                 colmap[j*%(cdim)d + k] = (block_col)*%(cdim)d + k;
+            #             }
+            #         }
+            #     }
+            #     """ % fdict)
+            #     nrows *= rdim
+            #     ncols *= cdim
+
+            #     writeback.append("""%(addto)s(%(mat)s, %(nrows)s, %(rows)s,
+            #                              %(ncols)s, %(cols)s,
+            #                              (const PetscScalar *)%(vals)s,
+            #                              %(insert)s);""" %
+            #                      {'mat': mat_name,
+            #                       'vals': tmp_name,
+            #                       'addto': addto,
+            #                       'nrows': nrows,
+            #                       'ncols': ncols,
+            #                       'rows': rows_str,
+            #                       'cols': cols_str,
+            #                       'insert': {WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]})
+            # else:
+            writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
 \t\t\t{arity2}, {map2_expr},
-\t\t\t(const PetscScalar *){buf},
-\t\t\tADD_VALUES);""".format(mat=mat_name, buf=buf_name, arity1=(arity[0] * (1 + int(is_facet))), arity2=(arity[1] * (1 + int(is_facet))), map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
-            else:
-                tmp_name = namer('tmp_buffer')
-
-                idx = "[%(ridx)s][%(cidx)s]"
-                idx_l = idx % {'ridx': "%d*j + k" % dim[0],
-                               'cidx': "%d*l + m" % dim[1]}
-                idx_r = idx % {'ridx': "j + %d*k" % (arity[0] * (1 + int(is_facet)),),
-                               'cidx': "l + %d*m" % (arity[1] * (1 + int(is_facet)),)}
-                # Shuffle xxx yyy zzz into xyz xyz xyz
-                writeback += ["""
-                double %(tmp_name)s[%(size1)d][%(size2)d] __attribute__((aligned(16)));
-                for ( int j = 0; j < %(nrows)d; j++ ) {
-                   for ( int k = 0; k < %(rbs)d; k++ ) {
-                      for ( int l = 0; l < %(ncols)d; l++ ) {
-                         for ( int m = 0; m < %(cbs)d; m++ ) {
-                            %(tmp_name)s%(idx_l)s = %(buf_name)s%(idx_r)s;
-                         }
-                      }
-                   }
-                }""" % {'nrows': arity[0] * (1 + int(is_facet)),
-                        'ncols': arity[1] * (1 + int(is_facet)),
-                        'rbs': dim[0],
-                        'cbs': dim[1],
-                        'idx_l': idx_l,
-                        'idx_r': idx_r,
-                        'buf_name': buf_name,
-                        'tmp_name': tmp_name,
-                        'size1': size[0],
-                        'size2': size[1]}]
-
-                rmap, cmap = self.map
-                nrows, ncols = arity
-                rdim, cdim = dim
-                if rmap.vector_index is not None or cmap.vector_index is not None:
-                    rows_str = "rowmap"
-                    cols_str = "colmap"
-                    addto = "MatSetValuesLocal"
-                    fdict = {'nrows': nrows,
-                             'ncols': ncols,
-                             'rdim': rdim,
-                             'cdim': cdim,
-                             'rowmap': map1_name,
-                             'colmap': map2_name,
-                             'drop_full_row': 0 if rmap.vector_index is not None else 1,
-                             'drop_full_col': 0 if cmap.vector_index is not None else 1}
-                    # Horrible hack alert
-                    # To apply BCs to a component of a Dat with cdim > 1
-                    # we encode which components to apply things to in the
-                    # high bits of the map value
-                    # The value that comes in is:
-                    # -(row + 1 + sum_i 2 ** (30 - i))
-                    # where i are the components to zero
-                    #
-                    # So, the actual row (if it's negative) is:
-                    # (~input) & ~0x70000000
-                    # And we can determine which components to zero by
-                    # inspecting the high bits (1 << 30 - i)
-                    writeback.append("""
-                    PetscInt rowmap[%(nrows)d*%(rdim)d];
-                    PetscInt colmap[%(ncols)d*%(cdim)d];
-                    int discard, tmp, block_row, block_col;
-                    for ( int j = 0; j < %(nrows)d; j++ ) {
-                        block_row = %(rowmap)s[i*%(nrows)d + j];
-                        discard = 0;
-                        if ( block_row < 0 ) {
-                            tmp = -(block_row + 1);
-                            discard = 1;
-                            block_row = tmp & ~0x70000000;
-                        }
-                        for ( int k = 0; k < %(rdim)d; k++ ) {
-                            if ( discard && (%(drop_full_row)d || ((tmp & (1 << (30 - k))) != 0)) ) {
-                                rowmap[j*%(rdim)d + k] = -1;
-                            } else {
-                                rowmap[j*%(rdim)d + k] = (block_row)*%(rdim)d + k;
-                            }
-                        }
-                    }
-                    for ( int j = 0; j < %(ncols)d; j++ ) {
-                        discard = 0;
-                        block_col = %(colmap)s[i*%(ncols)d + j];
-                        if ( block_col < 0 ) {
-                            tmp = -(block_col + 1);
-                            discard = 1;
-                            block_col = tmp & ~0x70000000;
-                        }
-                        for ( int k = 0; k < %(cdim)d; k++ ) {
-                            if ( discard && (%(drop_full_col)d || ((tmp & (1 << (30 - k))) != 0)) ) {
-                                colmap[j*%(rdim)d + k] = -1;
-                            } else {
-                                colmap[j*%(cdim)d + k] = (block_col)*%(cdim)d + k;
-                            }
-                        }
-                    }
-                    """ % fdict)
-                    nrows *= rdim
-                    ncols *= cdim
-
-                    writeback.append("""%(addto)s(%(mat)s, %(nrows)s, %(rows)s,
-                                             %(ncols)s, %(cols)s,
-                                             (const PetscScalar *)%(vals)s,
-                                             %(insert)s);""" %
-                                     {'mat': mat_name,
-                                      'vals': tmp_name,
-                                      'addto': addto,
-                                      'nrows': nrows,
-                                      'ncols': ncols,
-                                      'rows': rows_str,
-                                      'cols': cols_str,
-                                      'insert': {WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]})
-                else:
-                    writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
-    \t\t\t{arity2}, {map2_expr},
-    \t\t\t(const PetscScalar *){tmp_name},
-    \t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=tmp_name, arity1=(arity[0] * (1 + int(is_facet))), arity2=(arity[1] * (1 + int(is_facet))), map1_expr=map1_expr, map2_expr=map2_expr, c=c)]
+\t\t\t(const PetscScalar *){tmp_name},
+\t\t\tADD_VALUES);""".format(mat=mat_name, tmp_name=insert_name, arity1=arity[0], arity2=arity[1], map1_expr=lmap_names[0], map2_expr=lmap_names[1])]
 
             return init, writeback, buf_name
 
@@ -361,7 +314,7 @@ class Arg(base.Arg):
 
 
 def _map_vec(map_name, arity, offset, element_index, column_index, is_facet=False):
-    extruded = offset and any(offset)
+    extruded = offset is not None and any(offset)
     result = []
     if not extruded:
         template = "{map_name}[{e} * {arity} + {r}]"
@@ -371,6 +324,7 @@ def _map_vec(map_name, arity, offset, element_index, column_index, is_facet=Fals
                                           e=element_index, r=r))
     else:
         assert column_index is not None
+        assert arity == len(offset)
         template = "{map_name}[{e} * {arity} + {r}] + {col} * {offset}"
         for r in range(arity):
             result.append(template.format(map_name=map_name,
@@ -390,7 +344,7 @@ def _map_vec(map_name, arity, offset, element_index, column_index, is_facet=Fals
 
 
 def _pointers(dat_name, dim, map_vec, flatten=False):
-    template = "{dat_name} + {map_item} * {dim} + {d}"
+    template = "{dat_name} + ({map_item}) * {dim} + {d}"
     if flatten:
         ordering = ((i, d) for d in range(dim) for i in range(len(map_vec)))
     else:

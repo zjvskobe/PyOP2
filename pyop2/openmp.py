@@ -38,6 +38,7 @@ import math
 import numpy as np
 import os
 from subprocess import Popen, PIPE
+from textwrap import dedent
 
 from base import ON_BOTTOM, ON_TOP, ON_INTERIOR_FACETS
 from exceptions import *
@@ -48,6 +49,8 @@ from logger import warning
 import plan as _plan
 from petsc_base import *
 from utils import *
+
+import coffee.system
 
 # hard coded value to max openmp threads
 _max_threads = 32

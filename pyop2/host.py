@@ -236,7 +236,7 @@ class Arg(base.Arg):
 
             mat_name = args[0]
             map_names = args[1:]
-            buf_name = namer('buffer')
+            buf_name = namer('buf')
 
             dim = self.data.dims[0][0]  # TODO
 
@@ -280,20 +280,22 @@ class Arg(base.Arg):
                                                                                i=(m.arity + i if is_facet else i)))
                     writeback.append("}")
 
-            if self._flatten:
-                insert_name = namer('insert_buffer')
+            if self._flatten and any(a > 1 and d > 1 for a, d in zip(arity, dim)):
+                ins_name = namer('ins')
                 writeback.append(str.format("double {ins}[{s1}][{s2}] __attribute__((aligned(16)));",
-                                            ins=insert_name, s1=size[0], s2=size[1]))  # TODO
+                                            ins=ins_name, s1=size[0], s2=size[1]))  # TODO
 
-                alphas = numpy.arange(arity[0] * dim[0]).reshape(dim[0], arity[0])
-                betas = numpy.arange(arity[1] * dim[1]).reshape(dim[1], arity[1])
-                for alpha_i, alpha_j in enumerate(alphas.transpose().flat):
-                    for beta_i, beta_j in enumerate(betas.transpose().flat):
-                        writeback.append(str.format("{ins_name}[{ri}][{ci}] = {buf_name}[{rj}][{cj}];",
-                                                    ins_name=insert_name, ri=alpha_i, ci=beta_i,
-                                                    buf_name=buf_name, rj=alpha_j, cj=beta_j))
+                for j in range(arity[0]):
+                    for k in range(dim[0]):
+                        for l in range(arity[1]):
+                            for m in range(dim[1]):
+                                line = str.format("{0}[{2}][{3}] = {1}[{4}][{5}];",
+                                                  ins_name, buf_name,
+                                                  dim[0]*j + k, dim[1]*l + m,
+                                                  arity[0]*k + j, arity[1]*m + l)
+                                writeback.append(line)
             else:
-                insert_name = buf_name
+                ins_name = buf_name
 
             nrows, ncols = arity
             rmap, cmap = self.map
@@ -367,7 +369,7 @@ class Arg(base.Arg):
                                          (const PetscScalar *)%(vals)s,
                                          %(insert)s);""" %
                                  {'mat': mat_name,
-                                  'vals': insert_name,
+                                  'vals': ins_name,
                                   'addto': addto,
                                   'nrows': nrows,
                                   'ncols': ncols,
@@ -378,7 +380,7 @@ class Arg(base.Arg):
                 writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
 \t\t\t{arity2}, {map2_expr},
 \t\t\t(const PetscScalar *){tmp_name},
-\t\t\t{insert});""".format(mat=mat_name, tmp_name=insert_name, arity1=arity[0], arity2=arity[1], map1_expr=local_maps[0].expr, map2_expr=local_maps[1].expr, insert={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access])]  # TODO: deduplicate code
+\t\t\t{insert});""".format(mat=mat_name, tmp_name=ins_name, arity1=arity[0], arity2=arity[1], map1_expr=local_maps[0].expr, map2_expr=local_maps[1].expr, insert={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access])]  # TODO: deduplicate code
 
             return init, writeback, buf_name
 

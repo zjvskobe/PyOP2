@@ -101,7 +101,7 @@ class JITModule(host.JITModule):
                     arg_names.append(name)
                     wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
-                col_name = 'jjj' if self._itspace._extruded else None
+                col_name = 'j_0' if self._itspace._extruded else None
                 init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet)
                 inits.extend(init)
                 writebacks.extend(writeback)
@@ -115,7 +115,7 @@ class JITModule(host.JITModule):
             wrapper_args += ["int start_layer", "int end_layer", "int top_layer"]
 
         if self._itspace._extruded and any(arg._is_indirect or arg._is_mat for arg in self._args):
-            body2 = ["for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('jjj')]
+            body2 = ["for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('j_0')]
             body2.extend('\t' + line for line in loop_body('i'))
             body2.append("}")
         else:
@@ -224,7 +224,7 @@ def generate_cell_wrapper(itspace, args, forward_args=(), kernel_name=None, wrap
                 arg_names.append(name)
                 wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
-            col_name = 'jjj' if itspace._extruded else None
+            col_name = 'j_0' if itspace._extruded else None
             init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer)
             inits.extend(init)
             writebacks.extend(writeback)
@@ -235,7 +235,7 @@ def generate_cell_wrapper(itspace, args, forward_args=(), kernel_name=None, wrap
     body = loop_body('i')
 
     if itspace._extruded:
-        body = ["int i = cell / nlayers;", "int jjj = cell % nlayers;"] + body
+        body = ["int i = cell / nlayers;", "int j_0 = cell % nlayers;"] + body
         wrapper_args.append("int nlayers")
     else:
         body.insert(0, "int i = cell;")

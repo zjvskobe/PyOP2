@@ -170,14 +170,25 @@ def _map_vec(map_name, arity, offset, iteration_index, element_index, column_ind
 
 
 def _pointers(dat_name, dim, map_vec, flatten=False):
-    template = "{dat_name} + ({map_item}) * {dim} + {d}"
-    if flatten:
-        ordering = ((i, d) for d in range(dim) for i in range(len(map_vec)))
+    if map_vec.size == 1:
+        start = "({0})*{1}".format(map_vec.as_list().values[0], dim)
+        indices = Range(map_vec.value_type, start, dim)
+    elif dim == 1:
+        indices = map_vec
     else:
-        ordering = ((i, d) for i in range(len(map_vec)) for d in range(dim))
-    return [template.format(dat_name=dat_name, dim=dim,
-                            map_item=map_vec[i], d=d)
-            for i, d in ordering]
+        if flatten:
+            ordering = ((i, d) for d in range(dim) for i in range(map_vec.size))
+        else:
+            ordering = ((i, d) for i in range(map_vec.size) for d in range(dim))
+        map_vec = map_vec.as_list()
+        indices = List(map_vec.value_type,
+                       [str.format("({map_item})*{dim} + {d}",
+                                   map_item=map_vec.values[i],
+                                   dim=dim, d=d)
+                        for i, d in ordering])
+
+    g_dat = Singleton("double*", dat_name)  # FIXME: C typename
+    return add(g_dat, indices).as_list().values
 
 
 class Kernel(base.Kernel):
@@ -386,7 +397,6 @@ class Arg(base.Arg):
 
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
                 map_vec = _map_vec(map_name, map_.arity, map_.offset, self.idx, c, col, is_facet=is_facet)
-                map_vec = map_vec.as_list().values
                 pointers_ = _pointers(dat_name, dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length

@@ -140,23 +140,28 @@ def add(x, y):
                              for a, b in zip(x.values, y.values)])
 
 
-def _map_vec(map_name, arity, offset, element_index, column_index, is_facet=False):
+def _map_vec(map_name, arity, offset, iteration_index, element_index, column_index, is_facet=False):
     g_map = Singleton("int*", map_name)
     l_map = deref(add(g_map, Range("int", "{0}*{1}".format(element_index, arity), arity)))
+    if isinstance(iteration_index, int):
+        l_map = List(l_map.value_type, [l_map.as_list().values[iteration_index]])
 
     if offset is not None and any(offset):
         assert column_index is not None
         assert arity == len(offset)
         lb_map = l_map
 
+        if isinstance(iteration_index, int):
+            offset = [offset[iteration_index]]
+
         offset_list = List("int", ["{0}*{1}".format(column_index, offset[r])
-                                   for r in range(arity)])
+                                   for r in range(len(offset))])
         l_map = add(lb_map, offset_list)
 
         if is_facet:
             offset1_list = List("int",
                                 ["({0} + 1)*{1}".format(column_index, offset[r])
-                                 for r in range(arity)])
+                                 for r in range(len(offset))])
             l1_map = add(lb_map, offset1_list)
             l_map = List(l_map.value_type,
                          l_map.as_list().values + l1_map.as_list().values)
@@ -224,8 +229,8 @@ class Arg(base.Arg):
 
             dim = self.data.dims[0][0]  # TODO
 
-            map_vecs = [_map_vec(name, m.arity, m.offset, c, col, is_facet=is_facet)
-                        for m, name in zip(self.map, map_names)]
+            map_vecs = [_map_vec(name, m.arity, m.offset, idx, c, col, is_facet=is_facet)
+                        for m, name, idx in zip(self.map, map_names, self.idx)]
             arity = [len(m) for m in map_vecs]
 
             assert len(arity) == len(dim)
@@ -385,9 +390,7 @@ class Arg(base.Arg):
             buf_name = namer('vec')
 
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-                map_vec = _map_vec(map_name, map_.arity, map_.offset, c, col, is_facet=is_facet)
-                if isinstance(self.idx, int):
-                    map_vec = [map_vec[self.idx]]  # FIXME: interior_facet_horiz
+                map_vec = _map_vec(map_name, map_.arity, map_.offset, self.idx, c, col, is_facet=is_facet)
                 pointers_ = _pointers(dat_name, dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length

@@ -34,6 +34,7 @@
 """Base classes extending those from the :mod:`base` module with functionality
 common to backends executing on the host."""
 
+from collections import namedtuple
 from copy import deepcopy as dcopy
 import numpy
 
@@ -48,6 +49,130 @@ from utils import as_tuple
 
 import coffee.system
 from coffee.plan import ASTKernel
+
+
+integer_types = {"int"}
+
+
+class Singleton(namedtuple('Singleton', ['value_type', 'value'])):
+    def repeat(self, n):
+        return List(self.value_type, [self.value] * n)
+
+
+class List(namedtuple('List', ['value_type', 'values'])):
+    @property
+    def size(self):
+        return len(self.values)
+
+    def as_list(self):
+        return self
+
+    def as_slice(self, name_thunk):
+        buf = name_thunk()
+        statements = ["{0} {1}[{2}];".format(self.value_type, buf, self.size)]
+        for i, expr in enumerate(self.values):
+            statements.append("{0}[{1}] = {2};".format(buf, i, expr))
+        return statements, Slice(self.value_type, buf, self.size)
+
+
+class Range(namedtuple('Range', ['value_type', 'expr', 'size'])):
+    def as_list(self):
+        return List(self.value_type,
+                    ['{0} + {1}'.format(self.expr, n)
+                     for n in range(self.size)])
+
+    def as_slice(self, name_thunk):
+        return self.as_list().as_slice(name_thunk)
+
+
+class Slice(namedtuple('Slice', ['value_type', 'expr', 'size'])):
+    def as_list(self):
+        return List(self.value_type,
+                    ['({0})[{1}]'.format(self.expr, n)
+                     for n in range(self.size)])
+
+    def as_slice(self, name_thunk):
+        return [], self
+
+
+def deref(expr_vec):
+    if not expr_vec.value_type.endswith('*'):
+        raise ValueError("Can only dereference pointer types, not {0}".format(expr_vec.value_type))
+    value_type = expr_vec.value_type[:-1]  # drop star
+
+    if isinstance(expr_vec, Range):
+        return Slice(value_type, expr_vec.expr, expr_vec.size)
+    else:
+        expr_vec = expr_vec.as_list()
+        return List(value_type, ["*({0})".format(e) for e in expr_vec.values])
+
+
+def add(x, y):
+    if x.value_type == y.value_type and x.value_type in integer_types:
+        value_type = x.value_type
+    elif x.value_type.endswith('*') and y.value_type in integer_types:
+        value_type = x.value_type
+    elif y.value_type.endswith('*') and x.value_type in integer_types:
+        value_type = y.value_type
+    else:
+        raise RuntimeError("Type mismatch: '{0}' + '{1}'".format(x.value_type, y.value_type))
+
+    if isinstance(x, Singleton) and isinstance(y, Singleton):
+        return Singleton(value_type, "{0} + {1}".format(x.value, y.value))
+
+    if isinstance(x, Range) and isinstance(y, Singleton):
+        x, y = y, x
+
+    if isinstance(x, Singleton) and isinstance(y, Range):
+        return Range(value_type, "{0} + {1}".format(x.value, y.expr), y.size)
+
+    if isinstance(x, Singleton):
+        x = x.repeat(y.size)
+    else:
+        x = x.as_list()
+
+    if isinstance(y, Singleton):
+        y = y.repeat(x.size)
+    else:
+        y = y.as_list()
+
+    return List(value_type, ["{0} + {1}".format(a, b)
+                             for a, b in zip(x.values, y.values)])
+
+
+def _map_vec(map_name, arity, offset, element_index, column_index, is_facet=False):
+    g_map = Singleton("int*", map_name)
+    l_map = deref(add(g_map, Range("int", "{0}*{1}".format(element_index, arity), arity)))
+
+    if offset is not None and any(offset):
+        assert column_index is not None
+        assert arity == len(offset)
+        lb_map = l_map
+
+        offset_list = List("int", ["{0}*{1}".format(column_index, offset[r])
+                                   for r in range(arity)])
+        l_map = add(lb_map, offset_list)
+
+        if is_facet:
+            offset1_list = List("int",
+                                ["({0} + 1)*{1}".format(column_index, offset[r])
+                                 for r in range(arity)])
+            l1_map = add(lb_map, offset1_list)
+            l_map = List(l_map.value_type,
+                         l_map.as_list().values + l1_map.as_list().values)
+
+    return l_map.as_list().values
+
+
+def _pointers(dat_name, dim, map_vec, flatten=False):
+    template = "{dat_name} + ({map_item}) * {dim} + {d}"
+    if flatten:
+        ordering = ((i, d) for d in range(dim) for i in range(len(map_vec)))
+    else:
+        ordering = ((i, d) for i in range(len(map_vec)) for d in range(dim))
+    return [template.format(dat_name=dat_name, dim=dim,
+                            map_item=map_vec[i], d=d)
+            for i, d in ordering]
 
 
 class Kernel(base.Kernel):
@@ -312,47 +437,6 @@ class Arg(base.Arg):
             return [], [], arg_name
         else:
             raise NotImplementedError("How to handle {0}?".format(type(self.data).__name__))
-
-
-def _map_vec(map_name, arity, offset, element_index, column_index, is_facet=False):
-    extruded = offset is not None and any(offset)
-    result = []
-    if not extruded:
-        template = "{map_name}[{e} * {arity} + {r}]"
-        for r in range(arity):
-            result.append(template.format(map_name=map_name,
-                                          arity=arity,
-                                          e=element_index, r=r))
-    else:
-        assert column_index is not None
-        assert arity == len(offset)
-        template = "{map_name}[{e} * {arity} + {r}] + {col} * {offset}"
-        for r in range(arity):
-            result.append(template.format(map_name=map_name,
-                                          arity=arity,
-                                          e=element_index, r=r,
-                                          col=column_index,
-                                          offset=offset[r]))
-        if is_facet:
-            template = "{map_name}[{e} * {arity} + {r}] + ({col} + 1) * {offset}"
-            for r in range(arity):
-                result.append(template.format(map_name=map_name,
-                                              arity=arity,
-                                              e=element_index, r=r,
-                                              col=column_index,
-                                              offset=offset[r]))
-    return result
-
-
-def _pointers(dat_name, dim, map_vec, flatten=False):
-    template = "{dat_name} + ({map_item}) * {dim} + {d}"
-    if flatten:
-        ordering = ((i, d) for d in range(dim) for i in range(len(map_vec)))
-    else:
-        ordering = ((i, d) for i in range(len(map_vec)) for d in range(dim))
-    return [template.format(dat_name=dat_name, dim=dim,
-                            map_item=map_vec[i], d=d)
-            for i, d in ordering]
 
 
 class JITModule(base.JITModule):

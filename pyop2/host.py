@@ -191,6 +191,76 @@ def _pointers(dat_name, dim, map_vec, flatten=False):
     return add(g_dat, indices).as_list().values
 
 
+def vfs_component_bcs(maps, dim, local_maps):
+    rmap, cmap = maps
+    if rmap.vector_index is None and cmap.vector_index is None:
+        # Nothing to do here
+        return [], "MatSetValuesBlockedLocal", local_maps
+
+    # Horrible hack alert
+    # To apply BCs to a component of a Dat with cdim > 1
+    # we encode which components to apply things to in the
+    # high bits of the map value
+    # The value that comes in is:
+    # -(row + 1 + sum_i 2 ** (30 - i))
+    # where i are the components to zero
+    #
+    # So, the actual row (if it's negative) is:
+    # (~input) & ~0x70000000
+    # And we can determine which components to zero by
+    # inspecting the high bits (1 << 30 - i)
+    template = """
+    PetscInt rowmap[%(nrows)d*%(rdim)d];
+    PetscInt colmap[%(ncols)d*%(cdim)d];
+    int discard, tmp, block_row, block_col;
+    for ( int j = 0; j < %(nrows)d; j++ ) {
+        block_row = %(rowmap)s[i*%(nrows)d + j];
+        discard = 0;
+        if ( block_row < 0 ) {
+            tmp = -(block_row + 1);
+            discard = 1;
+            block_row = tmp & ~0x70000000;
+        }
+        for ( int k = 0; k < %(rdim)d; k++ ) {
+            if ( discard && (%(drop_full_row)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+                rowmap[j*%(rdim)d + k] = -1;
+            } else {
+                rowmap[j*%(rdim)d + k] = (block_row)*%(rdim)d + k;
+            }
+        }
+    }
+    for ( int j = 0; j < %(ncols)d; j++ ) {
+        discard = 0;
+        block_col = %(colmap)s[i*%(ncols)d + j];
+        if ( block_col < 0 ) {
+            tmp = -(block_col + 1);
+            discard = 1;
+            block_col = tmp & ~0x70000000;
+        }
+        for ( int k = 0; k < %(cdim)d; k++ ) {
+            if ( discard && (%(drop_full_col)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+                colmap[j*%(rdim)d + k] = -1;
+            } else {
+                colmap[j*%(cdim)d + k] = (block_col)*%(cdim)d + k;
+            }
+        }
+    }
+    """
+    fdict = {'nrows': rmap.arity,
+             'ncols': cmap.arity,
+             'rdim': dim[0],
+             'cdim': dim[1],
+             'rowmap': local_maps[0].expr,
+             'colmap': local_maps[1].expr,
+             'drop_full_row': 0 if rmap.vector_index is not None else 1,
+             'drop_full_col': 0 if cmap.vector_index is not None else 1}
+    bcs_ops = [template % fdict]
+
+    rmap_ = Slice(rmap.value_type, "rowmap", rmap.arity * dim[0])
+    cmap_ = Slice(cmap.value_type, "colmap", cmap.arity * dim[1])
+    return bcs_ops, "MatSetValuesLocal", (rmap_, cmap_)
+
+
 class Kernel(base.Kernel):
 
     def _ast_to_c(self, ast, opts={}):
@@ -297,90 +367,20 @@ class Arg(base.Arg):
             else:
                 ins_name = buf_name
 
-            nrows, ncols = arity
-            rmap, cmap = self.map
-            rdim, cdim = dim
-            if rmap.vector_index is not None or cmap.vector_index is not None:
-                rows_str = "rowmap"
-                cols_str = "colmap"
-                addto = "MatSetValuesLocal"
-                fdict = {'nrows': nrows,
-                         'ncols': ncols,
-                         'rdim': rdim,
-                         'cdim': cdim,
-                         'rowmap': map_names[0],
-                         'colmap': map_names[1],
-                         'drop_full_row': 0 if rmap.vector_index is not None else 1,
-                         'drop_full_col': 0 if cmap.vector_index is not None else 1}
-                # Horrible hack alert
-                # To apply BCs to a component of a Dat with cdim > 1
-                # we encode which components to apply things to in the
-                # high bits of the map value
-                # The value that comes in is:
-                # -(row + 1 + sum_i 2 ** (30 - i))
-                # where i are the components to zero
-                #
-                # So, the actual row (if it's negative) is:
-                # (~input) & ~0x70000000
-                # And we can determine which components to zero by
-                # inspecting the high bits (1 << 30 - i)
-                writeback.append("""
-                PetscInt rowmap[%(nrows)d*%(rdim)d];
-                PetscInt colmap[%(ncols)d*%(cdim)d];
-                int discard, tmp, block_row, block_col;
-                for ( int j = 0; j < %(nrows)d; j++ ) {
-                    block_row = %(rowmap)s[i*%(nrows)d + j];
-                    discard = 0;
-                    if ( block_row < 0 ) {
-                        tmp = -(block_row + 1);
-                        discard = 1;
-                        block_row = tmp & ~0x70000000;
-                    }
-                    for ( int k = 0; k < %(rdim)d; k++ ) {
-                        if ( discard && (%(drop_full_row)d || ((tmp & (1 << (30 - k))) != 0)) ) {
-                            rowmap[j*%(rdim)d + k] = -1;
-                        } else {
-                            rowmap[j*%(rdim)d + k] = (block_row)*%(rdim)d + k;
-                        }
-                    }
-                }
-                for ( int j = 0; j < %(ncols)d; j++ ) {
-                    discard = 0;
-                    block_col = %(colmap)s[i*%(ncols)d + j];
-                    if ( block_col < 0 ) {
-                        tmp = -(block_col + 1);
-                        discard = 1;
-                        block_col = tmp & ~0x70000000;
-                    }
-                    for ( int k = 0; k < %(cdim)d; k++ ) {
-                        if ( discard && (%(drop_full_col)d || ((tmp & (1 << (30 - k))) != 0)) ) {
-                            colmap[j*%(rdim)d + k] = -1;
-                        } else {
-                            colmap[j*%(cdim)d + k] = (block_col)*%(cdim)d + k;
-                        }
-                    }
-                }
-                """ % fdict)
-                nrows *= rdim
-                ncols *= cdim
+            # VFS component BCs
+            bcs_ops, mat_func, local_maps = vfs_component_bcs(self.map, dim, local_maps)
+            writeback.extend(bcs_ops)
 
-                writeback.append("""%(addto)s(%(mat)s, %(nrows)s, %(rows)s,
-                                         %(ncols)s, %(cols)s,
-                                         (const PetscScalar *)%(vals)s,
-                                         %(insert)s);""" %
-                                 {'mat': mat_name,
-                                  'vals': ins_name,
-                                  'addto': addto,
-                                  'nrows': nrows,
-                                  'ncols': ncols,
-                                  'rows': rows_str,
-                                  'cols': cols_str,
-                                  'insert': {WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]})
-            else:
-                writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
-\t\t\t{arity2}, {map2_expr},
-\t\t\t(const PetscScalar *){tmp_name},
-\t\t\t{insert});""".format(mat=mat_name, tmp_name=ins_name, arity1=arity[0], arity2=arity[1], map1_expr=local_maps[0].expr, map2_expr=local_maps[1].expr, insert={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access])]  # TODO: deduplicate code
+            # Writeback
+            template = "{mat_func}({mat}, {map1_size}, {map1_expr}, {map2_size}, {map2_expr}, (const PetscScalar *){ins}, {mode});"
+            writeback.append(template.format(
+                mat_func=mat_func,
+                mat=mat_name, ins=ins_name,
+                map1_size=local_maps[0].size,
+                map1_expr=local_maps[0].expr,
+                map2_size=local_maps[1].size,
+                map2_expr=local_maps[1].expr,
+                mode={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]))
 
             return init, writeback, buf_name
 

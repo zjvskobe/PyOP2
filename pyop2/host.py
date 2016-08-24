@@ -166,7 +166,7 @@ def _map_vec(map_name, arity, offset, iteration_index, element_index, column_ind
             l_map = List(l_map.value_type,
                          l_map.as_list().values + l1_map.as_list().values)
 
-    return l_map.as_list().values
+    return l_map
 
 
 def _pointers(dat_name, dim, map_vec, flatten=False):
@@ -231,7 +231,7 @@ class Arg(base.Arg):
 
             map_vecs = [_map_vec(name, m.arity, m.offset, idx, c, col, is_facet=is_facet)
                         for m, name, idx in zip(self.map, map_names, self.idx)]
-            arity = [len(m) for m in map_vecs]
+            arity = [m.size for m in map_vecs]
 
             assert len(arity) == len(dim)
             size = [n * d for n, d in zip(arity, dim)]
@@ -240,17 +240,12 @@ class Arg(base.Arg):
                                buf=buf_name, s1=size[0], s2=size[1])]  # TODO
             writeback = []
 
-            lmap_names = []
+            local_maps = []
             for r in range(2):
-                local_map_name = namer('lmap')
-                lmap_names.append(local_map_name)
-                writeback.append(str.format("int {lmap_name}[{arity}];",
-                                            lmap_name=local_map_name,
-                                            arity=arity[r]))
-                for i, map_value in enumerate(map_vecs[r]):
-                    writeback.append(str.format("{lmap_name}[{i}] = {value};",
-                                                lmap_name=local_map_name,
-                                                i=i, value=map_value))
+                name_thunk = lambda: namer('local_map' + str(r))
+                slice_init, local_map = map_vecs[r].as_slice(name_thunk)
+                writeback.extend(slice_init)
+                local_maps.append(local_map)
 
                 m = self.map[r]
                 bottom_mask = numpy.zeros(m.arity)
@@ -264,13 +259,13 @@ class Arg(base.Arg):
                     writeback.append("if ({col} == 0) {{".format(col=col))
                     for i, neg in enumerate(bottom_mask):
                         if neg < 0:
-                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map_name, i=i))
+                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map.expr, i=i))
                     writeback.append("}")
                 if any(top_mask):
                     writeback.append("if ({col} == top_layer - 1) {{".format(col=col))
                     for i, neg in enumerate(top_mask):
                         if neg < 0:
-                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map_name,
+                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map.expr,
                                                                                i=(m.arity + i if is_facet else i)))
                     writeback.append("}")
 
@@ -372,7 +367,7 @@ class Arg(base.Arg):
                 writeback += ["""MatSetValuesBlockedLocal({mat}, {arity1}, {map1_expr},
 \t\t\t{arity2}, {map2_expr},
 \t\t\t(const PetscScalar *){tmp_name},
-\t\t\t{insert});""".format(mat=mat_name, tmp_name=insert_name, arity1=arity[0], arity2=arity[1], map1_expr=lmap_names[0], map2_expr=lmap_names[1], insert={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access])]  # TODO: deduplicate code
+\t\t\t{insert});""".format(mat=mat_name, tmp_name=insert_name, arity1=arity[0], arity2=arity[1], map1_expr=local_maps[0].expr, map2_expr=local_maps[1].expr, insert={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access])]  # TODO: deduplicate code
 
             return init, writeback, buf_name
 
@@ -391,6 +386,7 @@ class Arg(base.Arg):
 
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
                 map_vec = _map_vec(map_name, map_.arity, map_.offset, self.idx, c, col, is_facet=is_facet)
+                map_vec = map_vec.as_list().values
                 pointers_ = _pointers(dat_name, dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length

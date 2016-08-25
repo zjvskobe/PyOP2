@@ -214,7 +214,7 @@ def vfs_component_bcs(maps, dim, local_maps):
     PetscInt colmap[%(ncols)d*%(cdim)d];
     int discard, tmp, block_row, block_col;
     for ( int j = 0; j < %(nrows)d; j++ ) {
-        block_row = %(rowmap)s[i*%(nrows)d + j];
+        block_row = (%(rowmap)s)[j];
         discard = 0;
         if ( block_row < 0 ) {
             tmp = -(block_row + 1);
@@ -231,7 +231,7 @@ def vfs_component_bcs(maps, dim, local_maps):
     }
     for ( int j = 0; j < %(ncols)d; j++ ) {
         discard = 0;
-        block_col = %(colmap)s[i*%(ncols)d + j];
+        block_col = (%(colmap)s)[j];
         if ( block_col < 0 ) {
             tmp = -(block_col + 1);
             discard = 1;
@@ -256,8 +256,8 @@ def vfs_component_bcs(maps, dim, local_maps):
              'drop_full_col': 0 if cmap.vector_index is not None else 1}
     bcs_ops = [template % fdict]
 
-    rmap_ = Slice(rmap.value_type, "rowmap", rmap.arity * dim[0])
-    cmap_ = Slice(cmap.value_type, "colmap", cmap.arity * dim[1])
+    rmap_ = Slice(local_maps[0].value_type, "rowmap", rmap.arity * dim[0])
+    cmap_ = Slice(local_maps[1].value_type, "colmap", cmap.arity * dim[1])
     return bcs_ops, "MatSetValuesLocal", (rmap_, cmap_)
 
 

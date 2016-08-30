@@ -86,6 +86,7 @@ class JITModule(host.JITModule):
 
         def loop_body(index_name):
             kernel_args = []
+            base_inits = []
             inits = []
             writebacks = []
 
@@ -103,23 +104,28 @@ class JITModule(host.JITModule):
 
                 col_name = 'j_0' if self._itspace._extruded else None
                 init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet)
-                inits.extend(init)
+                if arg.map and any(m.offset is not None and any(m.offset) for m in arg.map):
+                    inits.extend(init)
+                else:
+                    base_inits.extend(init)
                 writebacks.extend(writeback)
                 kernel_args.append(kernel_arg)
 
-            return inits + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
+            return base_inits, inits + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
 
         if isinstance(self._itspace._iterset, Subset):
             wrapper_args.append("int *ssinds")
         if self._itspace._extruded:
             wrapper_args += ["int start_layer", "int end_layer", "int top_layer"]
 
+        base_inits, body3 = loop_body('i')
         if self._itspace._extruded and any(arg._is_indirect or arg._is_mat for arg in self._args):
-            body2 = ["for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('j_0')]
-            body2.extend('\t' + line for line in loop_body('i'))
+            body2 = base_inits[:]
+            body2.append("for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('j_0'))
+            body2.extend('\t' + line for line in body3)
             body2.append("}")
         else:
-            body2 = loop_body('i')
+            body2 = base_inits + body3
 
         if isinstance(self._itspace._iterset, Subset):
             body = ["for (int {0} = start; {0} < end; {0}++) {{".format('n')]

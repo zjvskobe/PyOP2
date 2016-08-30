@@ -140,6 +140,21 @@ def add(x, y):
                              for a, b in zip(x.values, y.values)])
 
 
+def concat(l, *ls):
+    if ls:
+        value_type = l.value_type
+        values = []
+
+        ls = (l,) + ls
+        for l in ls:
+            if l.value_type != value_type:
+                raise ValueError("type mismatch: '{0}' != '{1}'".format(value_type, l.value_type))
+            values.extend(l.as_list().values)
+        return List(value_type, values)
+    else:
+        return l
+
+
 def _map_vec(map_name, arity, offset, iteration_index, element_index, column_index, is_facet=False):
     g_map = Singleton("int*", map_name)
     l_map = deref(add(g_map, Range("int", "{0}*{1}".format(element_index, arity), arity)))
@@ -169,26 +184,23 @@ def _map_vec(map_name, arity, offset, iteration_index, element_index, column_ind
     return l_map
 
 
-def _pointers(dat_name, dim, map_vec, flatten=False):
+def _indices(dim, map_vec, flatten=False):
     if map_vec.size == 1:
         start = "({0})*{1}".format(map_vec.as_list().values[0], dim)
-        indices = Range(map_vec.value_type, start, dim)
+        return Range(map_vec.value_type, start, dim)
     elif dim == 1:
-        indices = map_vec
+        return map_vec
     else:
         if flatten:
             ordering = ((i, d) for d in range(dim) for i in range(map_vec.size))
         else:
             ordering = ((i, d) for i in range(map_vec.size) for d in range(dim))
         map_vec = map_vec.as_list()
-        indices = List(map_vec.value_type,
-                       [str.format("({map_item})*{dim} + {d}",
-                                   map_item=map_vec.values[i],
-                                   dim=dim, d=d)
-                        for i, d in ordering])
-
-    g_dat = Singleton("double*", dat_name)  # FIXME: C typename
-    return add(g_dat, indices).as_list().values
+        return List(map_vec.value_type,
+                    [str.format("({map_item})*{dim} + {d}",
+                                map_item=map_vec.values[i],
+                                dim=dim, d=d)
+                     for i, d in ordering])
 
 
 def vfs_component_bcs(maps, dim, local_maps):
@@ -390,49 +402,50 @@ class Arg(base.Arg):
             dat_names = args[:M]
             map_names = args[M:]
 
-            pointers = []
-
-            init = []
-            writeback = []
-
             buf_name = namer('vec')
 
+            pointers = []
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
                 map_vec = _map_vec(map_name, map_.arity, map_.offset, self.idx, c, col, is_facet=is_facet)
-                pointers_ = _pointers(dat_name, dat.cdim, map_vec, flatten=self._flatten)
+                indices = _indices(dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length
-                    pointers_ = pointers_[::dat.cdim]
-                pointers.extend(pointers_)
+                    indices = List(indices.value_type, indices.as_list().values[::dat.cdim])
+                g_dat = Singleton("{0}*".format(self.data.ctype), dat_name)
+                pointers.append(add(g_dat, indices))
+            pointers = concat(*pointers)
 
             if self.idx is None:
-                init.append("{typename} *{buf}[{size}];".format(typename=self.data.ctype, buf=buf_name, size=len(pointers)))
-                for i, pointer in enumerate(pointers):
-                    init.append("{buf_name}[{i}] = {pointer};".format(buf_name=buf_name, i=i, pointer=pointer))
+                init, kernel_buf = pointers.as_slice(lambda: buf_name)
+                return init, [], kernel_buf.expr
 
+            if isinstance(self.idx, IterationIndex):
+                assert self.idx.index == 0
+            lvalues = deref(pointers)
+
+            if isinstance(lvalues, Slice):
+                return [], [], lvalues.expr
+
+            if self.access in [READ, RW]:
+                init, buf_slice = lvalues.as_slice(lambda: buf_name)
+            elif self.access in [WRITE, INC]:
+                # TSFC expects zero buffer for WRITE, too.
+                init = [str.format("{typename} {buf}[{size}] = {{0.0}};",
+                                   typename=self.data.ctype, buf=buf_name,
+                                   size=lvalues.size)]
             else:
-                if isinstance(self.idx, IterationIndex):
-                    assert self.idx.index == 0
+                raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
 
-                initializer = ''
-                if self.access in [WRITE, INC]:  # TSFC expects zero buffer for WRITE
-                    initializer = ' = {0.0}'
-                init.append("{typename} {buf}[{size}]{initializer};".format(typename=self.data.ctype, buf=buf_name, size=len(pointers), initializer=initializer))
+            writeback = []
+            if self.access in [RW, WRITE, INC]:
+                op = '='
+                if self.access == INC:
+                    op = '+='
 
-                if self.access in [READ, RW]:
-                    for i, pointer in enumerate(pointers):
-                        init.append("{buf_name}[{i}] = *({pointer});".format(buf_name=buf_name, i=i, pointer=pointer))
-
-                if self.access in [RW, WRITE, INC]:
-                    op = '='
-                    if self.access == INC:
-                        op = '+='
-
-                    for i, pointer in enumerate(pointers):
-                        writeback.append("*({pointer}) {op} {buf_name}[{i}];".format(buf_name=buf_name, i=i, pointer=pointer, op=op))
-
-                if self.access not in [READ, WRITE, RW, INC]:
-                    raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
+                for i, lvalue in enumerate(lvalues.as_list().values):
+                    writeback.append(str.format("{lvalue} {op} {buf_name}[{i}];",
+                                                buf_name=buf_name, i=i,
+                                                lvalue=lvalue, op=op))
 
             return init, writeback, buf_name
         elif isinstance(self.data, DatView) and self.map is None:

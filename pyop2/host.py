@@ -155,32 +155,44 @@ def concat(l, *ls):
         return l
 
 
-def _map_vec(map_name, arity, offset, iteration_index, element_index, column_index, is_facet=False):
+def _map_vec_split(map_name, arity, offset, iteration_index, element_index, is_facet=False):
     g_map = Singleton("int*", map_name)
     l_map = deref(add(g_map, Range("int", "{0}*{1}".format(element_index, arity), arity)))
     if isinstance(iteration_index, int):
         l_map = List(l_map.value_type, [l_map.as_list().values[iteration_index]])
 
-    if offset is not None and any(offset):
-        assert column_index is not None
+    if offset is None or not any(offset):
+        return l_map, None
+    else:
         assert arity == len(offset)
-        lb_map = l_map
 
         if isinstance(iteration_index, int):
             offset = [offset[iteration_index]]
 
-        offset_list = List("int", ["{0}*{1}".format(column_index, offset[r])
-                                   for r in range(len(offset))])
-        l_map = add(lb_map, offset_list)
+        if not is_facet:
+            return l_map, offset
+        else:
+            return concat(l_map, add(l_map, List("int", offset))), list(offset) * 2
 
-        if is_facet:
-            offset1_list = List("int",
-                                ["({0} + 1)*{1}".format(column_index, offset[r])
-                                 for r in range(len(offset))])
-            l1_map = add(lb_map, offset1_list)
-            l_map = List(l_map.value_type,
-                         l_map.as_list().values + l1_map.as_list().values)
 
+def _map_vec_incr(map_name, arity, offset, iteration_index, element_index, start_layer, is_facet=False):
+    l_map, offset = _map_vec_split(map_name, arity, offset,
+                                   iteration_index, element_index,
+                                   is_facet=is_facet)
+
+    if offset is None:
+        return l_map, None
+    else:
+        assert start_layer is not None
+        return add(l_map, List("int", ["{0}*{1}".format(start_layer, o)
+                                       for o in offset])), offset
+
+
+def _map_vec(map_name, arity, offset, iteration_index, element_index, column_index, is_facet=False):
+    l_map, offset = _map_vec_incr(map_name, arity, offset,
+                                  iteration_index, element_index,
+                                  start_layer=column_index,
+                                  is_facet=is_facet)
     return l_map
 
 

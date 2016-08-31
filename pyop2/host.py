@@ -373,7 +373,8 @@ class Arg(base.Arg):
                             writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map.expr, i=i))
                     writeback.append("}")
                 if any(top_mask):
-                    writeback.append("if ({col} == top_layer - 1) {{".format(col=col))
+                    top_layer = "nlayers - 1" if is_facet else "nlayers"
+                    writeback.append("if ({col} == {top_layer} - 1) {{".format(col=col, top_layer=top_layer))
                     for i, neg in enumerate(top_mask):
                         if neg < 0:
                             writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map.expr,

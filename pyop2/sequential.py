@@ -114,12 +114,27 @@ class JITModule(host.JITModule):
         if isinstance(self._itspace._iterset, Subset):
             wrapper_args.append("int *ssinds")
         if self._itspace._extruded:
-            wrapper_args += ["int start_layer", "int end_layer", "int top_layer"]
+            wrapper_args += ["int nlayers"]
+
+            region = self._iteration_region
+            # Set up appropriate layer iteration bounds
+            if region is ON_BOTTOM:
+                start_layer = 0
+                end_layer = 1
+            elif region is ON_TOP:
+                start_layer = "nlayers - 1"
+                end_layer = "nlayers"
+            elif region is ON_INTERIOR_FACETS:
+                start_layer = 0
+                end_layer = "nlayers - 1"
+            else:
+                start_layer = 0
+                end_layer = "nlayers"
 
         base_inits, body3 = loop_body('i')
         if self._itspace._extruded and any(arg._is_indirect or arg._is_mat for arg in self._args):
             body2 = base_inits[:]
-            body2.append("for (int {0} = start_layer; {0} < end_layer; {0}++) {{".format('j_0'))
+            body2.append("for (int {0} = {1}; {0} < {2}; {0}++) {{".format('j_0', start_layer, end_layer))
             body2.extend('\t' + line for line in body3)
             body2.append("}")
         else:
@@ -149,8 +164,6 @@ class JITModule(host.JITModule):
             argtypes.append(iterset._argtype)
         if iterset._extruded:
             argtypes.append(ctypes.c_int)
-            argtypes.append(ctypes.c_int)
-            argtypes.append(ctypes.c_int)
 
         for arg in args:
             _1, types, _2 = arg.wrapper_args()
@@ -167,24 +180,7 @@ class ParLoop(host.ParLoop):
         if isinstance(iterset, Subset):
             arglist.append(iterset._indices.ctypes.data)
         if iterset._extruded:
-            region = self.iteration_region
-            # Set up appropriate layer iteration bounds
-            if region is ON_BOTTOM:
-                arglist.append(0)
-                arglist.append(1)
-                arglist.append(iterset.layers - 1)
-            elif region is ON_TOP:
-                arglist.append(iterset.layers - 2)
-                arglist.append(iterset.layers - 1)
-                arglist.append(iterset.layers - 1)
-            elif region is ON_INTERIOR_FACETS:
-                arglist.append(0)
-                arglist.append(iterset.layers - 2)
-                arglist.append(iterset.layers - 2)
-            else:
-                arglist.append(0)
-                arglist.append(iterset.layers - 1)
-                arglist.append(iterset.layers - 1)
+            arglist.append(iterset.layers - 1)
 
         for arg in args:
             _1, _2, values = arg.wrapper_args()

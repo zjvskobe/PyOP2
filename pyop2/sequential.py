@@ -86,8 +86,8 @@ class JITModule(host.JITModule):
 
         def loop_body(index_name):
             kernel_args = []
-            base_inits = []
             inits = []
+            init_layers = []
             writebacks = []
 
             for i, arg in enumerate(self._args):
@@ -103,15 +103,13 @@ class JITModule(host.JITModule):
                     wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
                 col_name = 'j_0' if self._itspace._extruded else None
-                init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet)
-                if arg.map and any(m.offset is not None and any(m.offset) for m in arg.map):
-                    inits.extend(init)
-                else:
-                    base_inits.extend(init)
-                writebacks.extend(writeback)
+                arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet)
+                inits.extend(arg_wrapper.init)
+                init_layers.extend(arg_wrapper.init_layer)
+                writebacks.extend(arg_wrapper.writeback)
                 kernel_args.append(kernel_arg)
 
-            return base_inits, inits + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
+            return inits, init_layers + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
 
         if isinstance(self._itspace._iterset, Subset):
             wrapper_args.append("int *ssinds")
@@ -231,9 +229,10 @@ def generate_cell_wrapper(itspace, args, forward_args=(), kernel_name=None, wrap
                 wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
             col_name = 'j_0' if itspace._extruded else None
-            init, writeback, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer)
-            inits.extend(init)
-            writebacks.extend(writeback)
+            arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer)
+            inits.extend(arg_wrapper.init)
+            inits.extend(arg_wrapper.init_layer)
+            writebacks.extend(arg_wrapper.writeback)
             kernel_args.append(kernel_arg)
 
         return inits + [kernel_name + '(' + ', '.join(kernel_args) + ');'] + writebacks

@@ -175,7 +175,7 @@ def _map_vec_split(map_name, arity, offset, iteration_index, element_index, is_f
             return concat(l_map, add(l_map, List("int", offset))), list(offset) * 2
 
 
-def _map_vec_incr(map_name, arity, offset, iteration_index, element_index, start_layer, is_facet=False):
+def _map_vec(map_name, arity, offset, iteration_index, element_index, start_layer, is_facet=False):
     l_map, offset = _map_vec_split(map_name, arity, offset,
                                    iteration_index, element_index,
                                    is_facet=is_facet)
@@ -186,14 +186,6 @@ def _map_vec_incr(map_name, arity, offset, iteration_index, element_index, start
         assert start_layer is not None
         return add(l_map, List("int", ["{0}*{1}".format(start_layer, o)
                                        for o in offset])), offset
-
-
-def _map_vec(map_name, arity, offset, iteration_index, element_index, column_index, is_facet=False):
-    l_map, offset = _map_vec_incr(map_name, arity, offset,
-                                  iteration_index, element_index,
-                                  start_layer=column_index,
-                                  is_facet=is_facet)
-    return l_map
 
 
 def _indices(dim, map_vec, flatten=False):
@@ -296,6 +288,20 @@ class Kernel(base.Kernel):
         return ast_handler.gencode()
 
 
+class ArgWrapper(object):
+    def __init__(self, init=None, init_layer=None, writeback=None):
+        if init is None:
+            init = []
+        if init_layer is None:
+            init_layer = []
+        if writeback is None:
+            writeback = []
+
+        self.init = init
+        self.init_layer = init_layer
+        self.writeback = writeback
+
+
 class Arg(base.Arg):
 
     def wrapper_args(self):
@@ -334,8 +340,8 @@ class Arg(base.Arg):
 
             dim = self.data.dims[0][0]  # TODO
 
-            map_vecs = [_map_vec(name, m.arity, m.offset, idx, c, col, is_facet=is_facet)
-                        for m, name, idx in zip(self.map, map_names, self.idx)]
+            map_vecs, offsets = zip(*[_map_vec(name, m.arity, m.offset, idx, c, col, is_facet=is_facet)
+                                      for m, name, idx in zip(self.map, map_names, self.idx)])
             arity = [m.size for m in map_vecs]
 
             assert len(arity) == len(dim)
@@ -406,7 +412,10 @@ class Arg(base.Arg):
                 map2_expr=local_maps[1].expr,
                 mode={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]))
 
-            return init, writeback, buf_name
+            if all(offset is None for offset in offsets):
+                return ArgWrapper(init=init, writeback=writeback), buf_name
+            else:
+                return ArgWrapper(init_layer=init, writeback=writeback), buf_name
 
         elif isinstance(self.data, Dat) and self.map is not None:
             assert len(self.data) == len(self.map)
@@ -417,8 +426,10 @@ class Arg(base.Arg):
             buf_name = namer('vec')
 
             pointers = []
+            offsets = []
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-                map_vec = _map_vec(map_name, map_.arity, map_.offset, self.idx, c, col, is_facet=is_facet)
+                map_vec, offset = _map_vec(map_name, map_.arity, map_.offset, self.idx, c, col, is_facet=is_facet)
+                offsets.append(offset)
                 indices = _indices(dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length
@@ -429,14 +440,17 @@ class Arg(base.Arg):
 
             if self.idx is None:
                 init, kernel_buf = pointers.as_slice(lambda: buf_name)
-                return init, [], kernel_buf.expr
+                if all(offset is None for offset in offsets):
+                    return ArgWrapper(init=init), kernel_buf.expr
+                else:
+                    return ArgWrapper(init_layer=init), kernel_buf.expr
 
             if isinstance(self.idx, IterationIndex):
                 assert self.idx.index == 0
             lvalues = deref(pointers)
 
             if isinstance(lvalues, Slice):
-                return [], [], lvalues.expr
+                return ArgWrapper(), lvalues.expr
 
             if self.access in [READ, RW]:
                 init, buf_slice = lvalues.as_slice(lambda: buf_name)
@@ -459,18 +473,21 @@ class Arg(base.Arg):
                                                 buf_name=buf_name, i=i,
                                                 lvalue=lvalue, op=op))
 
-            return init, writeback, buf_name
+            if all(offset is None for offset in offsets):
+                return ArgWrapper(init=init, writeback=writeback), buf_name
+            else:
+                return ArgWrapper(init_layer=init, writeback=writeback), buf_name
         elif isinstance(self.data, DatView) and self.map is None:
             dat_name, = args
             kernel_arg = "{dat} + {c} * {dim} + {i}".format(dat=dat_name, c=c, dim=super(DatView, self.data).cdim, i=self.data.index)
-            return [], [], kernel_arg
+            return ArgWrapper(), kernel_arg
         elif isinstance(self.data, Dat) and self.map is None:
             dat_name, = args
             kernel_arg = "{dat} + {c} * {dim}".format(dat=dat_name, c=c, dim=self.data.cdim)
-            return [], [], kernel_arg
+            return ArgWrapper(), kernel_arg
         elif isinstance(self.data, Global):
             arg_name, = args
-            return [], [], arg_name
+            return ArgWrapper(), arg_name
         else:
             raise NotImplementedError("How to handle {0}?".format(type(self.data).__name__))
 

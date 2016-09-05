@@ -289,17 +289,20 @@ class Kernel(base.Kernel):
 
 
 class ArgWrapper(object):
-    def __init__(self, init=None, init_layer=None, writeback=None):
+    def __init__(self, init=None, init_layer=None, writeback=None, post_writeback=None):
         if init is None:
             init = []
         if init_layer is None:
             init_layer = []
         if writeback is None:
             writeback = []
+        if post_writeback is None:
+            post_writeback = []
 
         self.init = init
         self.init_layer = init_layer
         self.writeback = writeback
+        self.post_writeback = post_writeback
 
 
 class DirectLayerAccess(object):
@@ -311,11 +314,16 @@ class DirectLayerAccess(object):
             assert len(offset) == base.size
             column = ["{j}*{off}".format(j=self.layer_index, off=off)
                       for i, off in enumerate(offset)]
-            init, writeback, kernel_arg = use(add(base, List("int", column)))
-            return ArgWrapper(init_layer=init, writeback=writeback), kernel_arg
+            arg_wrapper, payload = use(add(base, List("int", column)))
+            assert not arg_wrapper.init_layer
+
+            # Move init to init_layer
+            arg_wrapper.init_layer = arg_wrapper.init
+            arg_wrapper.init = []
+            return arg_wrapper, payload
         else:
-            init, writeback, kernel_arg = use(base)
-            return ArgWrapper(init=init, writeback=writeback), kernel_arg
+            arg_wrapper, payload = use(base)
+            return arg_wrapper, payload
 
 
 class IncrementalLayerLoop(object):
@@ -333,13 +341,19 @@ class IncrementalLayerLoop(object):
                 start = ["{j}*{off}".format(j=self.start_layer, off=off)
                          for i, off in enumerate(offset)]
                 init, direct = add(base, List("int", start)).as_slice(name_thunk)
-            init_layer, writeback, kernel_arg = use(direct)
-            for i, off in enumerate(offset):
-                writeback.append("{0}[{1}] += {2};".format(direct.expr, i, off))
-            return ArgWrapper(init=init, init_layer=init_layer, writeback=writeback), kernel_arg
+            arg_wrapper, payload = use(direct)
+            assert not arg_wrapper.init_layer
+
+            post_writeback = arg_wrapper.post_writeback[:]
+            post_writeback += ["{0}[{1}] += {2};".format(direct.expr, i, off)
+                               for i, off in enumerate(offset)]
+            return ArgWrapper(init=init,
+                              init_layer=arg_wrapper.init,
+                              writeback=arg_wrapper.writeback,
+                              post_writeback=post_writeback), payload
         else:
-            init, writeback, kernel_arg = use(base)
-            return ArgWrapper(init=init, writeback=writeback), kernel_arg
+            arg_wrapper, payload = use(base)
+            return arg_wrapper, payload
 
 
 class Arg(base.Arg):
@@ -380,7 +394,12 @@ class Arg(base.Arg):
 
             dim = self.data.dims[0][0]  # TODO
 
-            map_vecs, offsets = zip(*[_map_vec(name, m.arity, m.offset, idx, c, col, is_facet=is_facet)
+            if start_layer is None:
+                layer = DirectLayerAccess(col)
+            else:
+                layer = IncrementalLayerLoop(start_layer, namer)
+
+            map_vecs, offsets = zip(*[_map_vec_split(name, m.arity, m.offset, idx, c, is_facet=is_facet)
                                       for m, name, idx in zip(self.map, map_names, self.idx)])
             arity = [m.size for m in map_vecs]
 
@@ -391,35 +410,53 @@ class Arg(base.Arg):
                                buf=buf_name, s1=size[0], s2=size[1])]  # TODO
             writeback = []
 
+            w_init = []
+            w_init_layer = []
+            w_writeback = []
+            w_post_writeback = []
             local_maps = []
             for r in range(2):
-                name_thunk = lambda: namer('local_map' + str(r))
-                slice_init, local_map = map_vecs[r].as_slice(name_thunk)
-                writeback.extend(slice_init)
-                local_maps.append(local_map)
+                def use(direct):
+                    name_thunk = lambda: namer('local_map' + str(r))
+                    writeback, local_map = direct.as_slice(name_thunk)
+                    post_writeback = []
 
-                m = self.map[r]
-                bottom_mask = numpy.zeros(m.arity)
-                top_mask = numpy.zeros(m.arity)
-                for location, name in m.implicit_bcs:
-                    if location == "bottom":
-                        bottom_mask += m.bottom_mask[name]
-                    elif location == "top":
-                        top_mask += m.top_mask[name]
-                if any(bottom_mask):
-                    writeback.append("if ({col} == 0) {{".format(col=col))
-                    for i, neg in enumerate(bottom_mask):
-                        if neg < 0:
-                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map.expr, i=i))
-                    writeback.append("}")
-                if any(top_mask):
-                    top_layer = "(nlayers - 1)" if is_facet else "nlayers"
-                    writeback.append("if ({col} == {top_layer} - 1) {{".format(col=col, top_layer=top_layer))
-                    for i, neg in enumerate(top_mask):
-                        if neg < 0:
-                            writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map.expr,
-                                                                               i=(m.arity + i if is_facet else i)))
-                    writeback.append("}")
+                    m = self.map[r]
+                    bottom_mask = numpy.zeros(m.arity)
+                    top_mask = numpy.zeros(m.arity)
+                    for location, name in m.implicit_bcs:
+                        if location == "bottom":
+                            bottom_mask += m.bottom_mask[name]
+                        elif location == "top":
+                            top_mask += m.top_mask[name]
+                    if any(bottom_mask):
+                        writeback.append("if ({col} == 0) {{".format(col=col))
+                        post_writeback.append("if ({col} == 0) {{".format(col=col))
+                        for i, neg in enumerate(bottom_mask):
+                            if neg < 0:
+                                writeback.append("\t{lmap_name}[{i}] -= 10000000;".format(lmap_name=local_map.expr, i=i))
+                                post_writeback.append("\t{lmap_name}[{i}] += 10000000;".format(lmap_name=local_map.expr, i=i))
+                        writeback.append("}")
+                        post_writeback.append("}")
+                    if any(top_mask):
+                        top_layer = "(nlayers - 1)" if is_facet else "nlayers"
+                        writeback.append("if ({col} == {top_layer} - 1) {{".format(col=col, top_layer=top_layer))
+                        post_writeback.append("if ({col} == {top_layer} - 1) {{".format(col=col, top_layer=top_layer))
+                        for i, neg in enumerate(top_mask):
+                            if neg < 0:
+                                writeback.append("\t{lmap_name}[{i}] -= 10000000;".format(lmap_name=local_map.expr,
+                                                                                          i=(m.arity + i if is_facet else i)))
+                                post_writeback.append("\t{lmap_name}[{i}] += 10000000;".format(lmap_name=local_map.expr,
+                                                                                               i=(m.arity + i if is_facet else i)))
+                        writeback.append("}")
+                        post_writeback.append("}")
+                    return ArgWrapper(writeback=writeback, post_writeback=post_writeback), local_map
+                arg_wrapper, local_map = layer(use, map_vecs[r], offsets[r])
+                w_init.extend(arg_wrapper.init)
+                w_init_layer.extend(arg_wrapper.init_layer)
+                w_writeback.extend(arg_wrapper.writeback)
+                w_post_writeback.extend(arg_wrapper.post_writeback)
+                local_maps.append(local_map)
 
             if self._flatten and any(a > 1 and d > 1 for a, d in zip(arity, dim)):
                 ins_name = namer('ins')
@@ -454,9 +491,9 @@ class Arg(base.Arg):
                 mode={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]))
 
             if all(offset is None for offset in offsets):
-                return ArgWrapper(init=init, writeback=writeback), buf_name
+                return ArgWrapper(init=init+w_init, init_layer=w_init_layer, writeback=w_writeback+writeback, post_writeback=w_post_writeback), buf_name
             else:
-                return ArgWrapper(init_layer=init, writeback=writeback), buf_name
+                return ArgWrapper(init=w_init, init_layer=init+w_init_layer, writeback=w_writeback+writeback, post_writeback=w_post_writeback), buf_name
 
         elif isinstance(self.data, Dat) and self.map is not None:
             assert len(self.data) == len(self.map)
@@ -499,7 +536,7 @@ class Arg(base.Arg):
             if self.idx is None:
                 def use(direct):
                     init, kernel_buf = direct.as_slice(lambda: buf_name)
-                    return init, [], kernel_buf.expr
+                    return ArgWrapper(init=init), kernel_buf.expr
                 return layer(use, pointers, offsets)
 
             if isinstance(self.idx, IterationIndex):
@@ -509,7 +546,7 @@ class Arg(base.Arg):
                 lvalues = deref(direct)
 
                 if isinstance(lvalues, Slice):
-                    return [], [], lvalues.expr
+                    return ArgWrapper(), lvalues.expr
 
                 if self.access in [READ, RW]:
                     init, buf_slice = lvalues.as_slice(lambda: buf_name)
@@ -532,7 +569,7 @@ class Arg(base.Arg):
                                                     buf_name=buf_name, i=i,
                                                     lvalue=lvalue, op=op))
 
-                return init, writeback, buf_name
+                return ArgWrapper(init=init, writeback=writeback), buf_name
             return layer(use, pointers, offsets)
         elif isinstance(self.data, DatView) and self.map is None:
             dat_name, = args

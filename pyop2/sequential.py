@@ -109,6 +109,7 @@ class JITModule(host.JITModule):
             inits = []
             init_layers = []
             writebacks = []
+            post_writebacks = []
 
             for i, arg in enumerate(self._args):
                 prefix = 'arg{0}_'.format(i)
@@ -128,9 +129,10 @@ class JITModule(host.JITModule):
                 inits.extend(arg_wrapper.init)
                 init_layers.extend(arg_wrapper.init_layer)
                 writebacks.extend(arg_wrapper.writeback)
+                post_writebacks.extend(arg_wrapper.post_writeback)
                 kernel_args.append(kernel_arg)
 
-            return inits, init_layers + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
+            return inits, init_layers + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks + post_writebacks
 
         base_inits, body3 = loop_body('i')
         if self._itspace._extruded and any(arg._is_indirect or arg._is_mat for arg in self._args):

@@ -84,6 +84,26 @@ class JITModule(host.JITModule):
 
         unique_name = UniqueNameGenerator()
 
+        if isinstance(self._itspace._iterset, Subset):
+            wrapper_args.append("int *ssinds")
+        if self._itspace._extruded:
+            wrapper_args += ["int nlayers"]
+
+            region = self._iteration_region
+            # Set up appropriate layer iteration bounds
+            if region is ON_BOTTOM:
+                start_layer = 0
+                end_layer = 1
+            elif region is ON_TOP:
+                start_layer = "(nlayers - 1)"
+                end_layer = "nlayers"
+            elif region is ON_INTERIOR_FACETS:
+                start_layer = 0
+                end_layer = "(nlayers - 1)"
+            else:
+                start_layer = 0
+                end_layer = "nlayers"
+
         def loop_body(index_name):
             kernel_args = []
             inits = []
@@ -103,33 +123,14 @@ class JITModule(host.JITModule):
                     wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
                 col_name = 'j_0' if self._itspace._extruded else None
-                arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet)
+                begin_here = start_layer if self._itspace._extruded else None
+                arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet, start_layer=begin_here)
                 inits.extend(arg_wrapper.init)
                 init_layers.extend(arg_wrapper.init_layer)
                 writebacks.extend(arg_wrapper.writeback)
                 kernel_args.append(kernel_arg)
 
             return inits, init_layers + [self._kernel.name + '(' + ', '.join(kernel_args) + ');'] + writebacks
-
-        if isinstance(self._itspace._iterset, Subset):
-            wrapper_args.append("int *ssinds")
-        if self._itspace._extruded:
-            wrapper_args += ["int nlayers"]
-
-            region = self._iteration_region
-            # Set up appropriate layer iteration bounds
-            if region is ON_BOTTOM:
-                start_layer = 0
-                end_layer = 1
-            elif region is ON_TOP:
-                start_layer = "nlayers - 1"
-                end_layer = "nlayers"
-            elif region is ON_INTERIOR_FACETS:
-                start_layer = 0
-                end_layer = "nlayers - 1"
-            else:
-                start_layer = 0
-                end_layer = "nlayers"
 
         base_inits, body3 = loop_body('i')
         if self._itspace._extruded and any(arg._is_indirect or arg._is_mat for arg in self._args):

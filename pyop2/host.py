@@ -329,7 +329,7 @@ class Arg(base.Arg):
                     values.append(m._values.ctypes.data)
         return c_typenames, types, values
 
-    def init_and_writeback(self, args, c, col, namer, is_facet=False):
+    def init_and_writeback(self, args, c, col, namer, is_facet=False, start_layer=None):
         if isinstance(self.data, Mat):
             assert self.idx is not None
             assert not self._is_mixed_mat
@@ -373,7 +373,7 @@ class Arg(base.Arg):
                             writeback.append("\t{lmap_name}[{i}] = -1;".format(lmap_name=local_map.expr, i=i))
                     writeback.append("}")
                 if any(top_mask):
-                    top_layer = "nlayers - 1" if is_facet else "nlayers"
+                    top_layer = "(nlayers - 1)" if is_facet else "nlayers"
                     writeback.append("if ({col} == {top_layer} - 1) {{".format(col=col, top_layer=top_layer))
                     for i, neg in enumerate(top_mask):
                         if neg < 0:
@@ -426,11 +426,27 @@ class Arg(base.Arg):
 
             buf_name = namer('vec')
 
+            if start_layer is None or self.idx is not None:
+                layer_index = col
+            else:
+                layer_index = start_layer
+
             pointers = []
             offsets = []
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-                map_vec, offset = _map_vec(map_name, map_.arity, map_.offset, self.idx, c, col, is_facet=is_facet)
-                offsets.append(offset)
+                map_vec, offset = _map_vec(map_name, map_.arity,
+                                           map_.offset, self.idx, c,
+                                           layer_index, is_facet=is_facet)
+                if offset is None:
+                    offset = [0] * map_.arity
+                offset = numpy.array(offset) * dat.cdim
+                if self.idx is not None or self._flatten:
+                    if self._flatten:
+                        offsets.extend(numpy.hstack([offset] * dat.cdim).flat)
+                    else:
+                        offsets.extend(numpy.vstack([offset] * dat.cdim).transpose().flat)
+                else:
+                    offsets.extend(offset)
                 indices = _indices(dat.cdim, map_vec, flatten=self._flatten)
                 if self.idx is None and not self._flatten:
                     # Special case: reduced buffer length
@@ -441,10 +457,17 @@ class Arg(base.Arg):
 
             if self.idx is None:
                 init, kernel_buf = pointers.as_slice(lambda: buf_name)
-                if all(offset is None for offset in offsets):
-                    return ArgWrapper(init=init), kernel_buf.expr
-                else:
+                if start_layer is not None:
+                    assert kernel_buf.size == len(offsets)
+                    writeback = []
+                    if any(offsets):
+                        for i in range(kernel_buf.size):
+                            writeback.append("{buf_name}[{i}] += {offset};".format(buf_name=kernel_buf.expr, i=i, offset=offsets[i]))
+                    return ArgWrapper(init=init, writeback=writeback), kernel_buf.expr
+                elif any(offsets):
                     return ArgWrapper(init_layer=init), kernel_buf.expr
+                else:
+                    return ArgWrapper(init=init), kernel_buf.expr
 
             if isinstance(self.idx, IterationIndex):
                 assert self.idx.index == 0
@@ -474,10 +497,10 @@ class Arg(base.Arg):
                                                 buf_name=buf_name, i=i,
                                                 lvalue=lvalue, op=op))
 
-            if all(offset is None for offset in offsets):
-                return ArgWrapper(init=init, writeback=writeback), buf_name
-            else:
+            if any(offsets):
                 return ArgWrapper(init_layer=init, writeback=writeback), buf_name
+            else:
+                return ArgWrapper(init=init, writeback=writeback), buf_name
         elif isinstance(self.data, DatView) and self.map is None:
             dat_name, = args
             kernel_arg = "{dat} + {c} * {dim} + {i}".format(dat=dat_name, c=c, dim=super(DatView, self.data).cdim, i=self.data.index)

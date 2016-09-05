@@ -302,6 +302,46 @@ class ArgWrapper(object):
         self.writeback = writeback
 
 
+class DirectLayerAccess(object):
+    def __init__(self, layer_index):
+        self.layer_index = layer_index
+
+    def __call__(self, use, base, offset):
+        if offset is not None and any(offset):
+            assert len(offset) == base.size
+            column = ["{j}*{off}".format(j=self.layer_index, off=off)
+                      for i, off in enumerate(offset)]
+            init, writeback, kernel_arg = use(add(base, List("int", column)))
+            return ArgWrapper(init_layer=init, writeback=writeback), kernel_arg
+        else:
+            init, writeback, kernel_arg = use(base)
+            return ArgWrapper(init=init, writeback=writeback), kernel_arg
+
+
+class IncrementalLayerLoop(object):
+    def __init__(self, start_layer, unique_name):
+        self.start_layer = start_layer
+        self.unique_name = unique_name
+
+    def __call__(self, use, base, offset):
+        if offset is not None and any(offset):
+            assert len(offset) == base.size
+            name_thunk = lambda: self.unique_name('direct')
+            if self.start_layer == 0:
+                init, direct = base.as_list().as_slice(name_thunk)
+            else:
+                start = ["{j}*{off}".format(j=self.start_layer, off=off)
+                         for i, off in enumerate(offset)]
+                init, direct = add(base, List("int", start)).as_slice(name_thunk)
+            init_layer, writeback, kernel_arg = use(direct)
+            for i, off in enumerate(offset):
+                writeback.append("{0}[{1}] += {2};".format(direct.expr, i, off))
+            return ArgWrapper(init=init, init_layer=init_layer, writeback=writeback), kernel_arg
+        else:
+            init, writeback, kernel_arg = use(base)
+            return ArgWrapper(init=init, writeback=writeback), kernel_arg
+
+
 class Arg(base.Arg):
 
     def wrapper_args(self):
@@ -426,10 +466,10 @@ class Arg(base.Arg):
 
             buf_name = namer('vec')
 
-            if start_layer is None or self.idx is not None:
+            if self.idx is not None:
                 layer_index = col
             else:
-                layer_index = start_layer
+                layer_index = 0
 
             pointers = []
             offsets = []
@@ -456,18 +496,15 @@ class Arg(base.Arg):
             pointers = concat(*pointers)
 
             if self.idx is None:
-                init, kernel_buf = pointers.as_slice(lambda: buf_name)
-                if start_layer is not None:
-                    assert kernel_buf.size == len(offsets)
-                    writeback = []
-                    if any(offsets):
-                        for i in range(kernel_buf.size):
-                            writeback.append("{buf_name}[{i}] += {offset};".format(buf_name=kernel_buf.expr, i=i, offset=offsets[i]))
-                    return ArgWrapper(init=init, writeback=writeback), kernel_buf.expr
-                elif any(offsets):
-                    return ArgWrapper(init_layer=init), kernel_buf.expr
+                if start_layer is None:
+                    layer = DirectLayerAccess(col)
                 else:
-                    return ArgWrapper(init=init), kernel_buf.expr
+                    layer = IncrementalLayerLoop(start_layer, namer)
+
+                def use(direct):
+                    init, kernel_buf = direct.as_slice(lambda: buf_name)
+                    return init, [], kernel_buf.expr
+                return layer(use, pointers, offsets)
 
             if isinstance(self.idx, IterationIndex):
                 assert self.idx.index == 0

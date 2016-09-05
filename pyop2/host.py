@@ -466,17 +466,18 @@ class Arg(base.Arg):
 
             buf_name = namer('vec')
 
-            if self.idx is not None:
-                layer_index = col
+            if start_layer is None:
+                layer = DirectLayerAccess(col)
             else:
-                layer_index = 0
+                layer = IncrementalLayerLoop(start_layer, namer)
 
             pointers = []
             offsets = []
             for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-                map_vec, offset = _map_vec(map_name, map_.arity,
-                                           map_.offset, self.idx, c,
-                                           layer_index, is_facet=is_facet)
+                map_vec, offset = _map_vec_split(map_name, map_.arity,
+                                                 map_.offset,
+                                                 self.idx, c,
+                                                 is_facet=is_facet)
                 if offset is None:
                     offset = [0] * map_.arity
                 offset = numpy.array(offset) * dat.cdim
@@ -496,11 +497,6 @@ class Arg(base.Arg):
             pointers = concat(*pointers)
 
             if self.idx is None:
-                if start_layer is None:
-                    layer = DirectLayerAccess(col)
-                else:
-                    layer = IncrementalLayerLoop(start_layer, namer)
-
                 def use(direct):
                     init, kernel_buf = direct.as_slice(lambda: buf_name)
                     return init, [], kernel_buf.expr
@@ -508,36 +504,36 @@ class Arg(base.Arg):
 
             if isinstance(self.idx, IterationIndex):
                 assert self.idx.index == 0
-            lvalues = deref(pointers)
 
-            if isinstance(lvalues, Slice):
-                return ArgWrapper(), lvalues.expr
+            def use(direct):
+                lvalues = deref(direct)
 
-            if self.access in [READ, RW]:
-                init, buf_slice = lvalues.as_slice(lambda: buf_name)
-            elif self.access in [WRITE, INC]:
-                # TSFC expects zero buffer for WRITE, too.
-                init = [str.format("{typename} {buf}[{size}] = {{0.0}};",
-                                   typename=self.data.ctype, buf=buf_name,
-                                   size=lvalues.size)]
-            else:
-                raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
+                if isinstance(lvalues, Slice):
+                    return [], [], lvalues.expr
 
-            writeback = []
-            if self.access in [RW, WRITE, INC]:
-                op = '='
-                if self.access == INC:
-                    op = '+='
+                if self.access in [READ, RW]:
+                    init, buf_slice = lvalues.as_slice(lambda: buf_name)
+                elif self.access in [WRITE, INC]:
+                    # TSFC expects zero buffer for WRITE, too.
+                    init = [str.format("{typename} {buf}[{size}] = {{0.0}};",
+                                       typename=self.data.ctype, buf=buf_name,
+                                       size=lvalues.size)]
+                else:
+                    raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
 
-                for i, lvalue in enumerate(lvalues.as_list().values):
-                    writeback.append(str.format("{lvalue} {op} {buf_name}[{i}];",
-                                                buf_name=buf_name, i=i,
-                                                lvalue=lvalue, op=op))
+                writeback = []
+                if self.access in [RW, WRITE, INC]:
+                    op = '='
+                    if self.access == INC:
+                        op = '+='
 
-            if any(offsets):
-                return ArgWrapper(init_layer=init, writeback=writeback), buf_name
-            else:
-                return ArgWrapper(init=init, writeback=writeback), buf_name
+                    for i, lvalue in enumerate(lvalues.as_list().values):
+                        writeback.append(str.format("{lvalue} {op} {buf_name}[{i}];",
+                                                    buf_name=buf_name, i=i,
+                                                    lvalue=lvalue, op=op))
+
+                return init, writeback, buf_name
+            return layer(use, pointers, offsets)
         elif isinstance(self.data, DatView) and self.map is None:
             dat_name, = args
             kernel_arg = "{dat} + {c} * {dim} + {i}".format(dat=dat_name, c=c, dim=super(DatView, self.data).cdim, i=self.data.index)

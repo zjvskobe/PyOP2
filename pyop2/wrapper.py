@@ -41,22 +41,36 @@ from collections import namedtuple
 
 
 integer_types = {"int"}
+"""Set of C typenames recognised as integer types"""
 
 
 class Singleton(namedtuple('Singleton', ['value_type', 'value'])):
+    """A single value with type"""
+
     def repeat(self, n):
+        """Construct a :py:class:`List` by repeating this value ``n`` times."""
         return List(self.value_type, [self.value] * n)
 
 
 class List(namedtuple('List', ['value_type', 'values'])):
+    """An array of (unrelated) values of the same type"""
+
     @property
     def size(self):
+        """Array length"""
         return len(self.values)
 
     def as_list(self):
-        return self
+        """Cast to :py:class:`List`."""
+        return self  # no-op
 
     def as_slice(self, name_thunk):
+        """Cast to :py:class:`Slice`.
+
+        :arg name_thunk: A thunk that returns a buffer name.
+        :returns: List of operations to fill the buffer, and a
+                  :py:class:`Slice` object.
+        """
         buf = name_thunk()
         statements = ["{0} {1}[{2}];".format(self.value_type, buf, self.size)]
         for i, expr in enumerate(self.values):
@@ -65,23 +79,43 @@ class List(namedtuple('List', ['value_type', 'values'])):
 
 
 class Range(namedtuple('Range', ['value_type', 'expr', 'size'])):
+    """An array of consecutive integral values of the same type.
+
+    For example, [12, 13, 14, 15] represented as (expr=12, size=4).
+    """
     def as_list(self):
+        """Cast to :py:class:`List`."""
         return List(self.value_type,
                     ['{0} + {1}'.format(self.expr, n)
                      for n in range(self.size)])
 
     def as_slice(self, name_thunk):
+        """Cast to :py:class:`Slice`.
+
+        :arg name_thunk: A thunk that returns a buffer name.
+        :returns: List of operations to fill the buffer, and a
+                  :py:class:`Slice` object.
+        """
         return self.as_list().as_slice(name_thunk)
 
 
 class Slice(namedtuple('Slice', ['value_type', 'expr', 'size'])):
+    """An array in memory, i.e. an array of lvalues with consecutive
+    locations in memory."""
+
     def as_list(self):
+        """Cast to :py:class:`List`."""
         return List(self.value_type,
                     ['({0})[{1}]'.format(self.expr, n)
                      for n in range(self.size)])
 
     def as_slice(self, name_thunk):
-        return [], self
+        """Cast to :py:class:`Slice`.
+
+        :arg name_thunk: A thunk that returns a buffer name (not called).
+        :returns: Empty list and ``self``.
+        """
+        return [], self  # no-op
 
 
 class ArgWrapper(object):
@@ -153,18 +187,22 @@ class IncrementalLayerLoop(object):
 
 
 def deref(expr_vec):
+    """Dereference each element of an array expression."""
     if not expr_vec.value_type.endswith('*'):
         raise ValueError("Can only dereference pointer types, not {0}".format(expr_vec.value_type))
     value_type = expr_vec.value_type[:-1]  # drop star
 
     if isinstance(expr_vec, Range):
+        # Dereferencing a Range yields a Slice
         return Slice(value_type, expr_vec.expr, expr_vec.size)
     else:
+        # General case
         expr_vec = expr_vec.as_list()
         return List(value_type, ["*({0})".format(e) for e in expr_vec.values])
 
 
 def add(x, y):
+    """Add two array or singleton expressions."""
     if x.value_type == y.value_type and x.value_type in integer_types:
         value_type = x.value_type
     elif x.value_type.endswith('*') and y.value_type in integer_types:
@@ -198,6 +236,7 @@ def add(x, y):
 
 
 def concat(l, *ls):
+    """Concatenate arrays."""
     if ls:
         value_type = l.value_type
         values = []

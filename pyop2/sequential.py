@@ -33,17 +33,20 @@
 
 """OP2 sequential backend."""
 
+from __future__ import absolute_import, print_function, division
+
 import ctypes
 import itertools
 
-from base import ON_BOTTOM, ON_TOP, ON_INTERIOR_FACETS
-from exceptions import *
-import host
-from mpi import collective
-from petsc_base import *
-from profiling import timed_region
-from host import Kernel, Arg  # noqa: needed by BackendSelector
-from utils import cached_property
+from pyop2.base import ON_BOTTOM, ON_TOP, ON_INTERIOR_FACETS
+from pyop2.exceptions import *
+from pyop2 import host
+from pyop2.mpi import collective
+from pyop2.petsc_base import *
+from pyop2.profiling import timed_region
+from pyop2.host import Kernel, Arg  # noqa: needed by BackendSelector
+from pyop2.utils import cached_property
+from pyop2.wrapper import DirectLayerAccess, IncrementalLayerLoop
 
 
 def _alternative_names(name):
@@ -83,6 +86,7 @@ class JITModule(host.JITModule):
         wrapper_args = []
 
         unique_name = UniqueNameGenerator()
+        start_layer = None
 
         if isinstance(self._itspace._iterset, Subset):
             wrapper_args.append("int *ssinds")
@@ -124,8 +128,9 @@ class JITModule(host.JITModule):
                     wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
                 col_name = 'j_0' if self._itspace._extruded else None
-                begin_here = start_layer if self._itspace._extruded else None
-                arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, is_facet=is_facet, start_layer=begin_here)
+                # layer_access = DirectLayerAccess(col_name)
+                layer_access = IncrementalLayerLoop(start_layer, namer)
+                arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, layer_access, is_facet=is_facet)
                 inits.extend(arg_wrapper.init)
                 init_layers.extend(arg_wrapper.init_layer)
                 writebacks.extend(arg_wrapper.writeback)
@@ -228,7 +233,8 @@ def generate_cell_wrapper(itspace, args, forward_args=(), kernel_name=None, wrap
                 wrapper_args.append("{typ} *{name}".format(typ=typ, name=name))  # ugh, side effect
 
             col_name = 'j_0' if itspace._extruded else None
-            arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer)
+            layer_access = DirectLayerAccess(col_name)
+            arg_wrapper, kernel_arg = arg.init_and_writeback(arg_names, index_name, col_name, namer, layer_access)
             inits.extend(arg_wrapper.init)
             inits.extend(arg_wrapper.init_layer)
             writebacks.extend(arg_wrapper.writeback)

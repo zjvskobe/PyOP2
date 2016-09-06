@@ -50,9 +50,8 @@ from pyop2.petsc_base import ParLoop  # noqa: pass-through
 from pyop2.mpi import collective
 from pyop2.configuration import configuration
 from pyop2.utils import as_tuple
-from pyop2.wrapper import (ArgWrapper, DirectLayerAccess,
-                           IncrementalLayerLoop, List, Singleton,
-                           Slice, add, concat, deref, _map_vec, _indices)
+from pyop2.wrapper import (ArgWrapper, List, Singleton, Slice, add,
+                           concat, deref, _map_vec, _indices)
 
 
 def vfs_component_bcs(maps, dim, local_maps):
@@ -163,7 +162,7 @@ class Arg(base.Arg):
                     values.append(m._values.ctypes.data)
         return c_typenames, types, values
 
-    def init_and_writeback(self, args, c, col, namer, is_facet=False, start_layer=None):
+    def init_and_writeback(self, args, c, col, namer, layer, is_facet=False):
         if isinstance(self.data, Mat):
             assert self.idx is not None
             assert not self._is_mixed_mat
@@ -173,11 +172,6 @@ class Arg(base.Arg):
             buf_name = namer('buf')
 
             dim = self.data.dims[0][0]  # TODO
-
-            if start_layer is None:
-                layer = DirectLayerAccess(col)
-            else:
-                layer = IncrementalLayerLoop(start_layer, namer)
 
             map_vecs, offsets = zip(*[_map_vec(name, m.arity, m.offset, idx, c, is_facet=is_facet)
                                       for m, name, idx in zip(self.map, map_names, self.idx)])
@@ -282,11 +276,6 @@ class Arg(base.Arg):
             map_names = args[M:]
 
             buf_name = namer('vec')
-
-            if start_layer is None:
-                layer = DirectLayerAccess(col)
-            else:
-                layer = IncrementalLayerLoop(start_layer, namer)
 
             pointers = []
             offsets = []

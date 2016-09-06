@@ -36,25 +36,29 @@ information which is backend independent. Individual runtime backends should
 subclass these as required to implement backend-specific features.
 """
 
-import itertools
-import weakref
-import numpy as np
+from __future__ import absolute_import, print_function, division
+
 import ctypes
+import itertools
 import operator
+import weakref
 import types
+from collections import namedtuple
 from hashlib import md5
 
-from configuration import configuration
-from caching import Cached, ObjectCached
-from versioning import Versioned, modifies, modifies_argn, CopyOnWrite, \
-    shallow_copy, _force_copies
-from exceptions import *
-from utils import *
-from backends import _make_object
-from mpi import MPI, collective, dup_comm
-from profiling import timed_region, timed_function
-from sparsity import build_sparsity
-from version import __version__ as version
+import numpy as np
+
+from pyop2.configuration import configuration
+from pyop2.caching import Cached, ObjectCached
+from pyop2.versioning import (Versioned, modifies, modifies_argn,
+                              CopyOnWrite, shallow_copy, _force_copies)
+from pyop2.exceptions import *
+from pyop2.utils import *
+from pyop2.backends import _make_object
+from pyop2.mpi import MPI, collective, dup_comm
+from pyop2.profiling import timed_region, timed_function
+from pyop2.sparsity import build_sparsity
+from pyop2.version import __version__ as version
 
 from coffee.base import Node
 from coffee.visitors import FindInstances, EstimateFlops
@@ -228,6 +232,54 @@ invocations."""
 
 # Data API
 
+_ArgDataCacheKey = namedtuple('_ArgDataCacheKey',
+                              ['cls', 'dtype', 'dim', 'view_idx'])
+
+
+def data_key(d):
+    if isinstance(d, Mat):
+        dim = d.dims
+    else:
+        dim = d.cdim
+    if isinstance(d, DatView):
+        view_idx = d.index
+    else:
+        view_idx = None
+    return _ArgDataCacheKey(type(d), d.dtype, dim, view_idx)
+
+
+_ArgMapCacheKey = namedtuple('_ArgMapCacheKey',
+                             ['arity', 'offset', 'implicit_bcs', 'vector_index'])
+
+
+def map_key(m):
+    if m is None:
+        return None
+
+    if m.offset is None:
+        offset = None
+    else:
+        offset = tuple(m.offset)
+    # Implicit boundary conditions (extruded "top" or "bottom") affect
+    # generated code, and therefore need to be part of cache key
+    return _ArgMapCacheKey(m.arity, offset, m.implicit_bcs, m.vector_index)
+
+
+_ArgCacheKey = namedtuple('_ArgCacheKey',
+                          ['data', 'map', 'access', 'idx', 'flatten'])
+
+
+def arg_key(a):
+    if isinstance(a.data, Global):
+        return _ArgCacheKey(data_key(a.data), None, a.access, None, None)
+    elif isinstance(a.data, Dat):
+        return _ArgCacheKey(data_key(a.data), map_key(a.map),
+                            a.access, a.idx, a._flatten)
+    elif isinstance(a.data, Mat):
+        return _ArgCacheKey(data_key(a.data),
+                            (map_key(a.map[0]), map_key(a.map[1])),
+                            a.access, tuple(a.idx), a._flatten)
+
 
 class Arg(object):
 
@@ -297,31 +349,7 @@ class Arg(object):
             self._block_shape = None
 
         # Cache key
-        if self._is_global:
-            self.cache_key = (self.data.dim, self.data.dtype, self.access)
-        elif self._is_dat:
-            if isinstance(self.idx, IterationIndex):
-                idx = (self.idx.__class__, self.idx.index)
-            else:
-                idx = self.idx
-            map_arity = self.map and (tuplify(self.map.offset) or self.map.arity)
-            if self._is_dat_view:
-                view_idx = self.data.index
-            else:
-                view_idx = None
-            self.cache_key = (self.data.dim, self.data.dtype,
-                              map_arity, idx, view_idx, self.access)
-        elif self._is_mat:
-            idxs = tuple(self.idx)
-            map_arities = (tuplify(self.map[0].offset) or self.map[0].arity,
-                           tuplify(self.map[1].offset) or self.map[1].arity)
-            # Implicit boundary conditions (extruded "top" or
-            # "bottom") affect generated code, and therefore need
-            # to be part of cache key
-            map_bcs = (self.map[0].implicit_bcs, self.map[1].implicit_bcs)
-            map_cmpts = (self.map[0].vector_index, self.map[1].vector_index)
-            self.cache_key = (self.data.dims, self.data.dtype, idxs,
-                              map_arities, map_bcs, map_cmpts, self.access)
+        self.cache_key = arg_key(self)
 
     def __eq__(self, other):
         """:class:`Arg`\s compare equal of they are defined on the same data,
@@ -4351,6 +4379,6 @@ class Solver(object):
 @collective
 def par_loop(kernel, it_space, *args, **kwargs):
     if isinstance(kernel, types.FunctionType):
-        import pyparloop
+        from pyop2 import pyparloop
         return pyparloop.ParLoop(pyparloop.Kernel(kernel), it_space, *args, **kwargs).enqueue()
     return _make_object('ParLoop', kernel, it_space, *args, **kwargs).enqueue()

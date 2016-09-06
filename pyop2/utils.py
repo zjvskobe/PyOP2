@@ -33,17 +33,46 @@
 
 """Common utility classes/functions."""
 
-from __future__ import division
+from __future__ import absolute_import, print_function, division
 
+import argparse
+import itertools
 import os
 import sys
-import numpy as np
 from decorator import decorator
-import argparse
 from subprocess import Popen, PIPE
 
-from exceptions import DataTypeError, DataValueError
-from configuration import configuration
+import numpy as np
+
+from pyop2.exceptions import DataTypeError, DataValueError
+from pyop2.configuration import configuration
+
+
+class UniqueNameGenerator(object):
+    def __init__(self):
+        self.names = set()
+
+    def __call__(self, suggested_name):
+        for alt_name in alternative_names(suggested_name):
+            if alt_name not in self.names:
+                self.names.add(alt_name)
+                return alt_name
+
+
+def alternative_names(name):
+    """Given a suggested name, generates alternative names to avoid name
+    collisions."""
+    def unfiltered(name):
+        yield name
+        if len(name) >= 1 and name[-1] == '_':
+            name_underscore = name
+        else:
+            name_underscore = name + '_'
+            yield name_underscore
+        for i in itertools.count(1):
+            yield name_underscore + str(i)
+
+    return itertools.ifilter(lambda s: s not in ['', '_'], unfiltered(name))
 
 
 class cached_property(object):

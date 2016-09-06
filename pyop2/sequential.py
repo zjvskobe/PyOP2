@@ -36,7 +36,6 @@
 from __future__ import absolute_import, print_function, division
 
 import ctypes
-import itertools
 
 from pyop2.base import ON_BOTTOM, ON_TOP, ON_INTERIOR_FACETS
 from pyop2.exceptions import *
@@ -45,37 +44,8 @@ from pyop2.mpi import collective
 from pyop2.petsc_base import *
 from pyop2.profiling import timed_region
 from pyop2.host import Kernel, Arg  # noqa: needed by BackendSelector
-from pyop2.utils import cached_property
+from pyop2.utils import UniqueNameGenerator, cached_property
 from pyop2.wrapper import DirectLayerAccess, IncrementalLayerLoop
-
-
-def _alternative_names(name):
-    yield name
-    if len(name) >= 1 and name[-1] == '_':
-        name_underscore = name
-    else:
-        name_underscore = name + '_'
-        yield name_underscore
-    for i in itertools.count(1):
-        yield name_underscore + str(i)
-
-
-def alternative_names(name):
-    """Given a suggested name, generates alternative names to avoid name
-    collisions."""
-    return itertools.ifilter(lambda s: s not in ['', '_'],
-                             _alternative_names(name))
-
-
-class UniqueNameGenerator(object):
-    def __init__(self):
-        self.names = set()
-
-    def __call__(self, name):
-        for alt_name in alternative_names(name):
-            if alt_name not in self.names:
-                self.names.add(alt_name)
-                return alt_name
 
 
 class JITModule(host.JITModule):

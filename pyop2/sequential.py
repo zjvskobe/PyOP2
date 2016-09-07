@@ -100,7 +100,7 @@ class JITModule(host.JITModule):
                 col_name = 'j_0' if self._itspace._extruded else None
                 # layer_access = DirectLayerAccess(col_name)
                 layer_access = IncrementalLayerLoop(start_layer, namer)
-                arg_wrapper, kernel_arg = wrapper_Arg(arg, arg_names, index_name, col_name, namer, layer_access, is_facet=is_facet)
+                arg_wrapper, kernel_arg = wrapper_Arg(arg.cache_key, arg_names, index_name, col_name, namer, layer_access, is_facet=is_facet)
                 inits.extend(arg_wrapper.init)
                 init_layers.extend(arg_wrapper.init_layer)
                 writebacks.extend(arg_wrapper.writeback)
@@ -204,7 +204,7 @@ def generate_cell_wrapper(itspace, args, forward_args=(), kernel_name=None, wrap
 
             col_name = 'j_0' if itspace._extruded else None
             layer_access = DirectLayerAccess(col_name)
-            arg_wrapper, kernel_arg = wrapper_Arg(arg, arg_names, index_name, col_name, namer, layer_access)
+            arg_wrapper, kernel_arg = wrapper_Arg(arg.cache_key, arg_names, index_name, col_name, namer, layer_access)
             inits.extend(arg_wrapper.init)
             inits.extend(arg_wrapper.init_layer)
             writebacks.extend(arg_wrapper.writeback)

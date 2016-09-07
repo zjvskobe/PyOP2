@@ -1556,6 +1556,24 @@ class IterationSpace(object):
             isinstance(self._iterset, Subset)
 
 
+def c_typename(dtype):
+    # FIXME: Complex and float16 not supported
+    typemap = {"bool": "unsigned char",
+               "int": "int",
+               "int8": "char",
+               "int16": "short",
+               "int32": "int",
+               "int64": "long long",
+               "uint8": "unsigned char",
+               "uint16": "unsigned short",
+               "uint32": "unsigned int",
+               "uint64": "unsigned long",
+               "float": "double",
+               "float32": "float",
+               "float64": "double"}
+    return typemap[dtype.name]
+
+
 class DataCarrier(Versioned):
 
     """Abstract base class for OP2 data.
@@ -1591,21 +1609,7 @@ class DataCarrier(Versioned):
     @cached_property
     def ctype(self):
         """The c type of the data."""
-        # FIXME: Complex and float16 not supported
-        typemap = {"bool": "unsigned char",
-                   "int": "int",
-                   "int8": "char",
-                   "int16": "short",
-                   "int32": "int",
-                   "int64": "long long",
-                   "uint8": "unsigned char",
-                   "uint16": "unsigned short",
-                   "uint32": "unsigned int",
-                   "uint64": "unsigned long",
-                   "float": "double",
-                   "float32": "float",
-                   "float64": "double"}
-        return typemap[self.dtype.name]
+        return c_typename(self.dtype)
 
     @cached_property
     def name(self):

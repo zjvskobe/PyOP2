@@ -43,6 +43,7 @@ import numpy
 
 from pyop2.base import READ, WRITE, RW, INC
 from pyop2.base import Dat, DatView, Global, IterationIndex, Mat
+from pyop2.base import c_typename
 
 
 integer_types = {"int"}
@@ -365,38 +366,42 @@ def vfs_component_bcs(maps, dim, local_maps):
     return bcs_ops, "MatSetValuesLocal", (rmap_, cmap_)
 
 
-def wrapper_Arg(self, args, c, col, namer, layer, is_facet=False):
-    if isinstance(self.data, Mat):
-        return wrapper_Mat(self, args, c, col, namer, layer, is_facet=is_facet)
-    elif isinstance(self.data, Dat) and self.map is not None:
-        return wrapper_DatMap(self, args, c, col, namer, layer, is_facet=is_facet)
-    elif isinstance(self.data, DatView) and self.map is None:
+def wrapper_Arg(cache_key, args, c, col, namer, layer, is_facet=False):
+    data_key = cache_key.data[0]  # dispatch on the first Dat of a MixedDat
+    if issubclass(data_key.cls, Mat):
+        return wrapper_Mat(cache_key, args, c, col, namer, layer, is_facet=is_facet)
+    elif issubclass(data_key.cls, Dat) and cache_key.map is not None:
+        return wrapper_DatMap(cache_key, args, c, col, namer, layer, is_facet=is_facet)
+    elif issubclass(data_key.cls, DatView) and cache_key.map is None:
         dat_name, = args
-        kernel_arg = "{dat} + {c} * {dim} + {i}".format(dat=dat_name, c=c, dim=super(DatView, self.data).cdim, i=self.data.index)
+        data_key, = cache_key.data  # assert non-mixed
+        kernel_arg = "{dat} + {c} * {dim} + {i}".format(dat=dat_name, c=c, dim=data_key.dim, i=data_key.view_idx)
         return ArgWrapper(), kernel_arg
-    elif isinstance(self.data, Dat) and self.map is None:
+    elif issubclass(data_key.cls, Dat) and cache_key.map is None:
         dat_name, = args
-        kernel_arg = "{dat} + {c} * {dim}".format(dat=dat_name, c=c, dim=self.data.cdim)
+        data_key, = cache_key.data  # assert non-mixed
+        kernel_arg = "{dat} + {c} * {dim}".format(dat=dat_name, c=c, dim=data_key.dim)
         return ArgWrapper(), kernel_arg
-    elif isinstance(self.data, Global):
+    elif issubclass(data_key.cls, Global):
         arg_name, = args
+        data_key, = cache_key.data  # assert non-mixed
         return ArgWrapper(), arg_name
     else:
-        raise NotImplementedError("How to handle {0}?".format(type(self.data).__name__))
+        raise NotImplementedError("How to handle {0}?".format(data_key.cls.__name__))
 
 
-def wrapper_Mat(self, args, c, col, namer, layer, is_facet=False):
-    assert self.idx is not None
-    assert not self._is_mixed_mat
+def wrapper_Mat(cache_key, args, c, col, namer, layer, is_facet=False):
+    assert cache_key.idx is not None
 
     mat_name = args[0]
     map_names = args[1:]
     buf_name = namer('buf')
 
-    dim = self.data.dims[0][0]  # TODO
+    data_key, = cache_key.data
+    dim = data_key.dim[0][0]  # TODO
 
     map_vecs, offsets = zip(*[_map_vec(name, m.arity, m.offset, idx, c, is_facet=is_facet)
-                              for m, name, idx in zip(self.map, map_names, self.idx)])
+                              for m, name, idx in zip(cache_key.map, map_names, cache_key.idx)])
     arity = [m.size for m in map_vecs]
 
     assert len(arity) == len(dim)
@@ -417,14 +422,14 @@ def wrapper_Mat(self, args, c, col, namer, layer, is_facet=False):
             writeback, local_map = direct.as_slice(name_thunk)
             post_writeback = []
 
-            m = self.map[r]
+            m = cache_key.map[r]
             bottom_mask = numpy.zeros(m.arity)
             top_mask = numpy.zeros(m.arity)
             for location, name in m.implicit_bcs:
                 if location == "bottom":
-                    bottom_mask += m.bottom_mask[name]
+                    bottom_mask += dict(m.bottom_mask)[name]
                 elif location == "top":
-                    top_mask += m.top_mask[name]
+                    top_mask += dict(m.top_mask)[name]
             if any(bottom_mask):
                 writeback.append("if ({col} == 0) {{".format(col=col))
                 post_writeback.append("if ({col} == 0) {{".format(col=col))
@@ -454,7 +459,7 @@ def wrapper_Mat(self, args, c, col, namer, layer, is_facet=False):
         w_post_writeback.extend(arg_wrapper.post_writeback)
         local_maps.append(local_map)
 
-    if self._flatten and any(a > 1 and d > 1 for a, d in zip(arity, dim)):
+    if cache_key.flatten and any(a > 1 and d > 1 for a, d in zip(arity, dim)):
         ins_name = namer('ins')
         writeback.append(str.format("double {ins}[{s1}][{s2}] __attribute__((aligned(16)));",
                                     ins=ins_name, s1=size[0], s2=size[1]))  # TODO
@@ -472,7 +477,7 @@ def wrapper_Mat(self, args, c, col, namer, layer, is_facet=False):
         ins_name = buf_name
 
     # VFS component BCs
-    bcs_ops, mat_func, local_maps = vfs_component_bcs(self.map, dim, local_maps)
+    bcs_ops, mat_func, local_maps = vfs_component_bcs(cache_key.map, dim, local_maps)
     writeback.extend(bcs_ops)
 
     # Writeback
@@ -484,7 +489,7 @@ def wrapper_Mat(self, args, c, col, namer, layer, is_facet=False):
         map1_expr=local_maps[0].expr,
         map2_size=local_maps[1].size,
         map2_expr=local_maps[1].expr,
-        mode={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[self.access]))
+        mode={WRITE: "INSERT_VALUES", INC: "ADD_VALUES"}[cache_key.access]))
 
     if all(offset is None for offset in offsets):
         return ArgWrapper(init=init+w_init, init_layer=w_init_layer, writeback=w_writeback+writeback, post_writeback=w_post_writeback), buf_name
@@ -492,46 +497,49 @@ def wrapper_Mat(self, args, c, col, namer, layer, is_facet=False):
         return ArgWrapper(init=w_init, init_layer=init+w_init_layer, writeback=w_writeback+writeback, post_writeback=w_post_writeback), buf_name
 
 
-def wrapper_DatMap(self, args, c, col, namer, layer, is_facet=False):
-    assert len(self.data) == len(self.map)
-    M = len(self.data)
+def wrapper_DatMap(cache_key, args, c, col, namer, layer, is_facet=False):
+    assert len(cache_key.data) == len(cache_key.map)
+    M = len(cache_key.data)
     dat_names = args[:M]
     map_names = args[M:]
 
     buf_name = namer('vec')
 
+    typenames = set(c_typename(d.dtype) for d in cache_key.data)
+    typename, = list(typenames)
+
     pointers = []
     offsets = []
-    for dat_name, map_name, dat, map_ in zip(dat_names, map_names, self.data, self.map):
-        map_vec, offset = _map_vec(map_name, map_.arity,
-                                   map_.offset, self.idx, c,
+    for dat_name, map_name, data_key, map_key in zip(dat_names, map_names, cache_key.data, cache_key.map):
+        map_vec, offset = _map_vec(map_name, map_key.arity,
+                                   map_key.offset, cache_key.idx, c,
                                    is_facet=is_facet)
         if offset is None:
-            offset = [0] * map_.arity
-        offset = numpy.array(offset) * dat.cdim
-        if self.idx is not None or self._flatten:
-            if self._flatten:
-                offsets.extend(numpy.hstack([offset] * dat.cdim).flat)
+            offset = [0] * map_key.arity
+        offset = numpy.array(offset) * data_key.dim
+        if cache_key.idx is not None or cache_key.flatten:
+            if cache_key.flatten:
+                offsets.extend(numpy.hstack([offset] * data_key.dim).flat)
             else:
-                offsets.extend(numpy.vstack([offset] * dat.cdim).transpose().flat)
+                offsets.extend(numpy.vstack([offset] * data_key.dim).transpose().flat)
         else:
             offsets.extend(offset)
-        indices = _indices(dat.cdim, map_vec, flatten=self._flatten)
-        if self.idx is None and not self._flatten:
+        indices = _indices(data_key.dim, map_vec, flatten=cache_key.flatten)
+        if cache_key.idx is None and not cache_key.flatten:
             # Special case: reduced buffer length
-            indices = List(indices.value_type, indices.as_list().values[::dat.cdim])
-        g_dat = Singleton("{0}*".format(self.data.ctype), dat_name)
+            indices = List(indices.value_type, indices.as_list().values[::data_key.dim])
+        g_dat = Singleton("{0}*".format(typename), dat_name)
         pointers.append(add(g_dat, indices))
     pointers = concat(*pointers)
 
-    if self.idx is None:
+    if cache_key.idx is None:
         def use(direct):
             init, kernel_buf = direct.as_slice(lambda: buf_name)
             return ArgWrapper(init=init), kernel_buf.expr
         return layer(use, pointers, offsets)
 
-    if isinstance(self.idx, IterationIndex):
-        assert self.idx.index == 0
+    if isinstance(cache_key.idx, IterationIndex):
+        assert cache_key.idx.index == 0
 
     def use(direct):
         lvalues = deref(direct)
@@ -539,20 +547,20 @@ def wrapper_DatMap(self, args, c, col, namer, layer, is_facet=False):
         if isinstance(lvalues, Slice):
             return ArgWrapper(), lvalues.expr
 
-        if self.access in [READ, RW]:
+        if cache_key.access in [READ, RW]:
             init, buf_slice = lvalues.as_slice(lambda: buf_name)
-        elif self.access in [WRITE, INC]:
+        elif cache_key.access in [WRITE, INC]:
             # TSFC expects zero buffer for WRITE, too.
             init = [str.format("{typename} {buf}[{size}] = {{0.0}};",
-                               typename=self.data.ctype, buf=buf_name,
+                               typename=typename, buf=buf_name,
                                size=lvalues.size)]
         else:
-            raise NotImplementedError("Access descriptor {0} not implemented".format(self.access))
+            raise NotImplementedError("Access descriptor {0} not implemented".format(cache_key.access))
 
         writeback = []
-        if self.access in [RW, WRITE, INC]:
+        if cache_key.access in [RW, WRITE, INC]:
             op = '='
-            if self.access == INC:
+            if cache_key.access == INC:
                 op = '+='
 
             for i, lvalue in enumerate(lvalues.as_list().values):

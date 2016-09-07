@@ -239,17 +239,19 @@ _ArgDataCacheKey = namedtuple('_ArgDataCacheKey',
 def data_key(d):
     if isinstance(d, Mat):
         dim = d.dims
-    else:
-        dim = d.cdim
-    if isinstance(d, DatView):
+        view_idx = None
+    elif isinstance(d, DatView):
+        dim = super(DatView, d).cdim
         view_idx = d.index
     else:
+        dim = d.cdim
         view_idx = None
     return _ArgDataCacheKey(type(d), d.dtype, dim, view_idx)
 
 
 _ArgMapCacheKey = namedtuple('_ArgMapCacheKey',
-                             ['arity', 'offset', 'implicit_bcs', 'vector_index'])
+                             ['arity', 'offset', 'implicit_bcs',
+                              'bottom_mask', 'top_mask', 'vector_index'])
 
 
 def map_key(m):
@@ -262,7 +264,12 @@ def map_key(m):
         offset = tuple(m.offset)
     # Implicit boundary conditions (extruded "top" or "bottom") affect
     # generated code, and therefore need to be part of cache key
-    return _ArgMapCacheKey(m.arity, offset, m.implicit_bcs, m.vector_index)
+    bottom_mask = tuple(sorted((name, tuple(mask))
+                               for name, mask in m.bottom_mask.iteritems()))
+    top_mask = tuple(sorted((name, tuple(mask))
+                            for name, mask in m.top_mask.iteritems()))
+    return _ArgMapCacheKey(m.arity, offset, m.implicit_bcs,
+                           bottom_mask, top_mask, m.vector_index)
 
 
 _ArgCacheKey = namedtuple('_ArgCacheKey',
@@ -271,14 +278,23 @@ _ArgCacheKey = namedtuple('_ArgCacheKey',
 
 def arg_key(a):
     if isinstance(a.data, Global):
-        return _ArgCacheKey(data_key(a.data), None, a.access, None, None)
+        data_keys = tuple(map(data_key, a.data))
+        return _ArgCacheKey(data_keys, None, a.access, None, None)
     elif isinstance(a.data, Dat):
-        return _ArgCacheKey(data_key(a.data), map_key(a.map),
-                            a.access, a.idx, a._flatten)
+        data_keys = tuple(map(data_key, a.data))
+        if a.map is None:
+            map_keys = None
+        else:
+            map_keys = tuple(map(map_key, a.map))
+        return _ArgCacheKey(data_keys, map_keys, a.access,
+                            a.idx, a._flatten)
     elif isinstance(a.data, Mat):
-        return _ArgCacheKey(data_key(a.data),
-                            (map_key(a.map[0]), map_key(a.map[1])),
-                            a.access, tuple(a.idx), a._flatten)
+        data_keys = tuple(map(data_key, a.data))
+        map_keys = tuple(map(map_key, a.map))
+        return _ArgCacheKey(data_keys, map_keys, a.access,
+                            tuple(a.idx), a._flatten)
+    else:
+        raise NotImplementedError
 
 
 class Arg(object):

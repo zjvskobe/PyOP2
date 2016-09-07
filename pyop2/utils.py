@@ -128,6 +128,14 @@ def as_type(obj, typ):
             raise TypeError("Invalid type %s" % type(obj))
 
 
+def tuplify(xs):
+    """Turn a data structure into a tuple tree."""
+    try:
+        return tuple(tuplify(x) for x in xs)
+    except TypeError:
+        return xs
+
+
 class validate_base:
 
     """Decorator to validate arguments

@@ -277,22 +277,6 @@ def _map_vec(map_name, arity, offset, iteration_index, element_index, is_facet=F
             return concat(l_map, add(l_map, List("int", offset))), list(offset) * 2
 
 
-def _indices(dim, map_vec):
-    if map_vec.size == 1:
-        start = "({0})*{1}".format(map_vec.as_list().values[0], dim)
-        return Range(map_vec.value_type, start, dim)
-    elif dim == 1:
-        return map_vec
-    else:
-        ordering = ((i, d) for i in range(map_vec.size) for d in range(dim))
-        map_vec = map_vec.as_list()
-        return List(map_vec.value_type,
-                    [str.format("({map_item})*{dim} + {d}",
-                                map_item=map_vec.values[i],
-                                dim=dim, d=d)
-                     for i, d in ordering])
-
-
 def vfs_component_bcs(maps, dim, local_maps):
     rmap, cmap = maps
     if rmap.vector_index is None and cmap.vector_index is None:
@@ -456,8 +440,6 @@ def wrapper_Mat(cache_key, args, c, col, namer, layer, is_facet=False):
         w_post_writeback.extend(arg_wrapper.post_writeback)
         local_maps.append(local_map)
 
-    ins_name = buf_name
-
     # VFS component BCs
     bcs_ops, mat_func, local_maps = vfs_component_bcs(cache_key.map, dim, local_maps)
     writeback.extend(bcs_ops)
@@ -466,7 +448,7 @@ def wrapper_Mat(cache_key, args, c, col, namer, layer, is_facet=False):
     template = "{mat_func}({mat}, {map1_size}, {map1_expr}, {map2_size}, {map2_expr}, (const PetscScalar *){ins}, {mode});"
     writeback.append(template.format(
         mat_func=mat_func,
-        mat=mat_name, ins=ins_name,
+        mat=mat_name, ins=buf_name,
         map1_size=local_maps[0].size,
         map1_expr=local_maps[0].expr,
         map2_size=local_maps[1].size,
@@ -501,12 +483,24 @@ def wrapper_DatMap(cache_key, args, c, col, namer, layer, is_facet=False):
         offset = numpy.array(offset) * data_key.dim
         if cache_key.idx is not None:
             offsets.extend(numpy.vstack([offset] * data_key.dim).transpose().flat)
+            dim_len = data_key.dim
         else:
             offsets.extend(offset)
-        indices = _indices(data_key.dim, map_vec)
-        if cache_key.idx is None:
-            # Special case: reduced buffer length
-            indices = List(indices.value_type, indices.as_list().values[::data_key.dim])
+            dim_len = 1
+
+        if data_key.dim == 1:
+            indices = map_vec
+        elif map_vec.size == 1:
+            start = "({0})*{1}".format(map_vec.as_list().values[0], data_key.dim)
+            indices = Range(map_vec.value_type, start, dim_len)
+        else:
+            ordering = [(i, d) for i in range(map_vec.size) for d in range(dim_len)]
+            map_vec = map_vec.as_list()
+            indices = List(map_vec.value_type,
+                           [str.format("({map_item})*{dim} + {d}",
+                                       map_item=map_vec.values[i],
+                                       dim=data_key.dim, d=d)
+                            for i, d in ordering])
         g_dat = Singleton("{0}*".format(typename), dat_name)
         pointers.append(add(g_dat, indices))
     pointers = concat(*pointers)

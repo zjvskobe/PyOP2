@@ -283,9 +283,9 @@ def map_key(m):
     # Implicit boundary conditions (extruded "top" or "bottom") affect
     # generated code, and therefore need to be part of cache key
     bottom_mask = tuple(sorted((name, tuple(mask))
-                               for name, mask in m.bottom_mask.iteritems()))
+                               for name, mask in six.iteritems(m.bottom_mask)))
     top_mask = tuple(sorted((name, tuple(mask))
-                            for name, mask in m.top_mask.iteritems()))
+                            for name, mask in six.iteritems(m.top_mask)))
     return _ArgMapCacheKey(m.arity, offset, m.implicit_bcs,
                            bottom_mask, top_mask, m.vector_index)
 

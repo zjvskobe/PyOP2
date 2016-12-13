@@ -621,7 +621,7 @@ class TilingParLoop(ParLoop):
         for _globs, _args in zip(kwargs.get('reduced_globals', []), self._all_args):
             if not _globs:
                 continue
-            for i, glob in _globs.iteritems():
+            for i, glob in six.iteritems(_globs):
                 shadow_glob = _args[i].data
                 for j, data in enumerate([a.data for a in args]):
                     if shadow_glob is data:

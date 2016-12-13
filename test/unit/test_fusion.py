@@ -31,6 +31,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, print_function, division
+from six.moves import range
+
 import pytest
 import numpy as np
 import random
@@ -71,56 +74,56 @@ def diterset(iterset):
 
 @pytest.fixture
 def x(iterset):
-    return op2.Dat(iterset, range(nelems), np.uint32, "x")
+    return op2.Dat(iterset, list(range(nelems)), np.uint32, "x")
 
 
 @pytest.fixture
 def y(iterset):
-    return op2.Dat(iterset, range(nelems), np.uint32, "y")
+    return op2.Dat(iterset, list(range(nelems)), np.uint32, "y")
 
 
 @pytest.fixture
 def z(iterset):
-    return op2.Dat(iterset, range(nelems), np.uint32, "z")
+    return op2.Dat(iterset, list(range(nelems)), np.uint32, "z")
 
 
 @pytest.fixture
 def ix(indset):
-    return op2.Dat(indset, range(nelems), np.uint32, "ix")
+    return op2.Dat(indset, list(range(nelems)), np.uint32, "ix")
 
 
 @pytest.fixture
 def iy(indset):
-    return op2.Dat(indset, range(nelems), np.uint32, "iy")
+    return op2.Dat(indset, list(range(nelems)), np.uint32, "iy")
 
 
 @pytest.fixture
 def x2(iterset):
-    return op2.Dat(iterset ** 2, np.array([range(nelems), range(nelems)],
+    return op2.Dat(iterset ** 2, np.array([list(range(nelems)), list(range(nelems))],
                    dtype=np.uint32), np.uint32, "x2")
 
 
 @pytest.fixture
 def ix2(indset):
-    return op2.Dat(indset ** 2, np.array([range(nelems), range(nelems)],
+    return op2.Dat(indset ** 2, np.array([list(range(nelems)), list(range(nelems))],
                    dtype=np.uint32), np.uint32, "ix2")
 
 
 @pytest.fixture
 def bigx(bigiterset):
-    return op2.Dat(bigiterset, range(2*nelems), np.uint32, "bigx")
+    return op2.Dat(bigiterset, list(range(2*nelems)), np.uint32, "bigx")
 
 
 @pytest.fixture
 def mapd():
-    mapd = range(nelems)
+    mapd = list(range(nelems))
     random.shuffle(mapd, lambda: 0.02041724)
     return mapd
 
 
 @pytest.fixture
 def mapd2():
-    mapd = range(nelems)
+    mapd = list(range(nelems))
     random.shuffle(mapd, lambda: 0.03345714)
     return mapd
 
@@ -145,7 +148,7 @@ def bigiterset2indset(bigiterset, indset, mapd):
 
 @pytest.fixture
 def bigiterset2iterset(bigiterset, iterset):
-    u_map = np.array(np.concatenate((range(nelems), range(nelems))), dtype=np.uint32)
+    u_map = np.array(np.concatenate((list(range(nelems)), list(range(nelems)))), dtype=np.uint32)
     return op2.Map(bigiterset, iterset, 1, u_map, "bigiterset2iterset")
 
 
@@ -245,9 +248,7 @@ class TestSoftFusion:
     fused.
     """
 
-    backends = ['sequential', 'openmp']
-
-    def test_fusible_direct_loops(self, ker_init, ker_write, ker_inc, backend,
+    def test_fusible_direct_loops(self, ker_init, ker_write, ker_inc,
                                   iterset, x, y, z, skip_greedy):
         """Check that loops over the same iteration space presenting no indirect
         data dependencies are fused and produce the correct result."""
@@ -264,7 +265,7 @@ class TestSoftFusion:
                          z(op2.INC), x(op2.READ))
         assert np.all(y._data == z.data)
 
-    def test_fusible_fake_indirect_RAW(self, ker_write, ker_inc, backend, iterset,
+    def test_fusible_fake_indirect_RAW(self, ker_write, ker_inc, iterset,
                                        x, ix, iterset2indset, skip_greedy):
         """Check that two loops over the same iteration space with a "fake" dependency
         are fused. Here, the second loop performs an indirect increment, but since the
@@ -278,7 +279,7 @@ class TestSoftFusion:
         assert len(trace._trace) == 1
         assert sum(ix.data) == nelems + sum(range(nelems))
 
-    def test_fusible_fake_indirect_IAI(self, ker_inc, ker_write, backend, iterset,
+    def test_fusible_fake_indirect_IAI(self, ker_inc, ker_write, iterset,
                                        x, ix, iy, iterset2indset, skip_greedy):
         """Check that two loops over the same iteration space with a "fake" dependency
         are fused. Here, the first loop performs an indirect increment to D1, while the
@@ -297,7 +298,7 @@ class TestSoftFusion:
         assert np.all(ix.data == iy.data)
 
     def test_fusible_nontrivial_kernel(self, ker_write2d, ker_loc_reduce, ker_write,
-                                       backend, iterset, x2, y, z, skip_greedy):
+                                       iterset, x2, y, z, skip_greedy):
         """Check that loop fusion works properly when it comes to modify variable
         names within non-trivial kernels to avoid clashes."""
         with loop_fusion(force='soft'):
@@ -308,7 +309,7 @@ class TestSoftFusion:
         assert len(trace._trace) == 1
         assert sum(y.data) == nelems * 3
 
-    def test_unfusible_indirect_RAW(self, ker_inc, backend, iterset, x, y, ix,
+    def test_unfusible_indirect_RAW(self, ker_inc, iterset, x, y, ix,
                                     iterset2indset, skip_greedy):
         """Check that two loops over the same iteration space are not fused to an
         indirect read-after-write dependency."""
@@ -323,7 +324,7 @@ class TestSoftFusion:
         y.data
         assert len(trace._trace) == 0
 
-    def test_unfusible_different_itspace(self, ker_write, backend, iterset, indset,
+    def test_unfusible_different_itspace(self, ker_write, iterset, indset,
                                          x, ix, skip_greedy):
         """Check that two loops over different iteration spaces are not fused."""
         with loop_fusion(force='soft'):
@@ -341,9 +342,7 @@ class TestHardFusion:
     dependencies may be fused, even though they iterate over different spaces.
     """
 
-    backends = ['sequential', 'openmp']
-
-    def test_unfusible_direct_read(self, ker_inc, backend, iterset, indset,
+    def test_unfusible_direct_read(self, ker_inc, iterset, indset,
                                    iterset2indset, ix, iy, x, skip_greedy):
         """Check that loops characterized by an inc-after-inc dependency are not
         fused if one of the two loops is direct or the non-base loop performs at
@@ -356,7 +355,7 @@ class TestHardFusion:
         assert len(trace._trace) == 2
         ix.data
 
-    def test_fusible_IAI(self, ker_inc, ker_init, backend, iterset, indset, bigiterset,
+    def test_fusible_IAI(self, ker_inc, ker_init, iterset, indset, bigiterset,
                          iterset2indset, bigiterset2indset, bigiterset2iterset,
                          ix, iy, skip_greedy):
         """Check that two indirect loops with no direct reads characterized by
@@ -387,7 +386,7 @@ class TestTiling:
     """
 
     def test_fallback_if_no_slope(self, ker_init, ker_reduce_ind_read, ker_write,
-                                  ker_write2d, backend, iterset, indset, iterset2indset,
+                                  ker_write2d, iterset, indset, iterset2indset,
                                   ix2, x, y, z, skip_greedy):
         """Check that no tiling takes place if SLOPE is not available, although the
         loops can still be executed in the standard fashion."""
@@ -404,10 +403,10 @@ class TestTiling:
 
     @pytest.mark.parametrize(('nu', 'ts'),
                              [(0, 1),
-                              (1, 1), (1, nelems/10), (1, nelems),
-                              (2, 1), (2, nelems/10), (2, nelems)])
+                              (1, 1), (1, nelems//10), (1, nelems),
+                              (2, 1), (2, nelems//10), (2, nelems)])
     def test_simple_tiling(self, ker_init, ker_reduce_ind_read, ker_write,
-                           ker_write2d, backend, iterset, indset, iterset2indset,
+                           ker_write2d, iterset, indset, iterset2indset,
                            ix2, x, y, z, skip_greedy, nu, ts):
         """Check that tiling produces the correct output in a sequence of four
         loops. First two loops are soft-fusible; the remaining three loops are
@@ -434,7 +433,7 @@ class TestTiling:
 
     @pytest.mark.parametrize('sl', [0, 1])
     def test_war_dependency(self, ker_ind_reduce, ker_reduce_ind_read, ker_write,
-                            ker_write2d, backend, iterset, indset, sl, iterset2indset,
+                            ker_write2d, iterset, indset, sl, iterset2indset,
                             indset2iterset, x, y, ix2, skip_greedy):
         """Check that tiling works properly in presence of write-after-read dependencies."""
 
@@ -445,7 +444,7 @@ class TestTiling:
             op2.par_loop(op2.Kernel(ker_write, "ker_write"), iterset, x(op2.WRITE))
             op2.par_loop(op2.Kernel(ker_write2d, "ker_write2d"), indset, ix2(op2.WRITE))
             with loop_chain("tiling_war", mode='tile',
-                            tile_size=nelems/10, num_unroll=1, seed_loop=sl):
+                            tile_size=nelems//10, num_unroll=1, seed_loop=sl):
                 op2.par_loop(op2.Kernel(ker_ind_reduce, "ker_ind_reduce"),
                              indset, ix2(op2.INC), x(op2.READ, indset2iterset))
                 op2.par_loop(op2.Kernel(ker_reduce_ind_read, "ker_reduce_ind_read"),
@@ -456,9 +455,9 @@ class TestTiling:
 
     @pytest.mark.parametrize(('nu', 'ts', 'fs', 'sl'),
                              [(0, 1, (0, 5, 1), 0),
-                              (1, nelems/10, (0, 5, 1), 0)])
+                              (1, nelems//10, (0, 5, 1), 0)])
     def test_advanced_tiling(self, ker_init, ker_reduce_ind_read, ker_ind_reduce,
-                             ker_write, ker_write2d, ker_inc, backend, iterset, indset,
+                             ker_write, ker_write2d, ker_inc, iterset, indset,
                              iterset2indset, indset2iterset, ix2, y, z, skip_greedy,
                              nu, ts, fs, sl):
         """Check that tiling produces the correct output in a sequence of six
@@ -485,7 +484,7 @@ class TestTiling:
             assert sum(sum(ix2.data)) == nelems * 9
 
     @pytest.mark.parametrize('sl', [0, 1, 2])
-    def test_acyclic_raw_dependency(self, ker_ind_inc, ker_write, backend, iterset,
+    def test_acyclic_raw_dependency(self, ker_ind_inc, ker_write, iterset,
                                     bigiterset, indset, iterset2indset, indset2iterset,
                                     bigiterset2iterset, x, y, bigx, ix, sl, skip_greedy):
         """Check that tiling produces the correct output in a sequence of loops
@@ -499,7 +498,7 @@ class TestTiling:
             op2.par_loop(op2.Kernel(ker_write, "ker_write"), iterset, y(op2.WRITE))
             op2.par_loop(op2.Kernel(ker_write, "ker_write"), bigiterset, bigx(op2.WRITE))
             op2.par_loop(op2.Kernel(ker_write, "ker_write"), indset, ix(op2.WRITE))
-            with loop_chain("tiling_acyclic_raw", mode='tile', tile_size=nelems/10,
+            with loop_chain("tiling_acyclic_raw", mode='tile', tile_size=nelems//10,
                             num_unroll=1, seed_loop=sl, ignore_war=True):
                 op2.par_loop(op2.Kernel(ker_ind_inc, 'ker_ind_inc'), bigiterset,
                              x(op2.INC, bigiterset2iterset), bigx(op2.READ))

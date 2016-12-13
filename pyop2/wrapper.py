@@ -277,17 +277,14 @@ def _map_vec(map_name, arity, offset, iteration_index, element_index, is_facet=F
             return concat(l_map, add(l_map, List("int", offset))), list(offset) * 2
 
 
-def _indices(dim, map_vec, flatten=False):
+def _indices(dim, map_vec):
     if map_vec.size == 1:
         start = "({0})*{1}".format(map_vec.as_list().values[0], dim)
         return Range(map_vec.value_type, start, dim)
     elif dim == 1:
         return map_vec
     else:
-        if flatten:
-            ordering = ((i, d) for d in range(dim) for i in range(map_vec.size))
-        else:
-            ordering = ((i, d) for i in range(map_vec.size) for d in range(dim))
+        ordering = ((i, d) for i in range(map_vec.size) for d in range(dim))
         map_vec = map_vec.as_list()
         return List(map_vec.value_type,
                     [str.format("({map_item})*{dim} + {d}",
@@ -321,13 +318,13 @@ def vfs_component_bcs(maps, dim, local_maps):
     for ( int j = 0; j < %(nrows)d; j++ ) {
         block_row = (%(rowmap)s)[j];
         discard = 0;
+        tmp = -(block_row + 1);
         if ( block_row < 0 ) {
-            tmp = -(block_row + 1);
             discard = 1;
             block_row = tmp & ~0x70000000;
         }
         for ( int k = 0; k < %(rdim)d; k++ ) {
-            if ( discard && (%(drop_full_row)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+            if ( discard && (!(tmp & 0x70000000) || %(drop_full_row)d || ((tmp & (1 << (30 - k))) != 0)) ) {
                 rowmap[j*%(rdim)d + k] = -1;
             } else {
                 rowmap[j*%(rdim)d + k] = (block_row)*%(rdim)d + k;
@@ -337,14 +334,14 @@ def vfs_component_bcs(maps, dim, local_maps):
     for ( int j = 0; j < %(ncols)d; j++ ) {
         discard = 0;
         block_col = (%(colmap)s)[j];
+        tmp = -(block_col + 1);
         if ( block_col < 0 ) {
-            tmp = -(block_col + 1);
             discard = 1;
             block_col = tmp & ~0x70000000;
         }
         for ( int k = 0; k < %(cdim)d; k++ ) {
-            if ( discard && (%(drop_full_col)d || ((tmp & (1 << (30 - k))) != 0)) ) {
-                colmap[j*%(rdim)d + k] = -1;
+            if ( discard && (!(tmp & 0x70000000) || %(drop_full_col)d || ((tmp & (1 << (30 - k))) != 0)) ) {
+                colmap[j*%(cdim)d + k] = -1;
             } else {
                 colmap[j*%(cdim)d + k] = (block_col)*%(cdim)d + k;
             }
@@ -459,22 +456,7 @@ def wrapper_Mat(cache_key, args, c, col, namer, layer, is_facet=False):
         w_post_writeback.extend(arg_wrapper.post_writeback)
         local_maps.append(local_map)
 
-    if cache_key.flatten and any(a > 1 and d > 1 for a, d in zip(arity, dim)):
-        ins_name = namer('ins')
-        writeback.append(str.format("double {ins}[{s1}][{s2}] __attribute__((aligned(16)));",
-                                    ins=ins_name, s1=size[0], s2=size[1]))  # TODO
-
-        for j in range(arity[0]):
-            for k in range(dim[0]):
-                for l in range(arity[1]):
-                    for m in range(dim[1]):
-                        line = str.format("{0}[{2}][{3}] = {1}[{4}][{5}];",
-                                          ins_name, buf_name,
-                                          dim[0]*j + k, dim[1]*l + m,
-                                          arity[0]*k + j, arity[1]*m + l)
-                        writeback.append(line)
-    else:
-        ins_name = buf_name
+    ins_name = buf_name
 
     # VFS component BCs
     bcs_ops, mat_func, local_maps = vfs_component_bcs(cache_key.map, dim, local_maps)
@@ -517,15 +499,12 @@ def wrapper_DatMap(cache_key, args, c, col, namer, layer, is_facet=False):
         if offset is None:
             offset = [0] * map_key.arity
         offset = numpy.array(offset) * data_key.dim
-        if cache_key.idx is not None or cache_key.flatten:
-            if cache_key.flatten:
-                offsets.extend(numpy.hstack([offset] * data_key.dim).flat)
-            else:
-                offsets.extend(numpy.vstack([offset] * data_key.dim).transpose().flat)
+        if cache_key.idx is not None:
+            offsets.extend(numpy.vstack([offset] * data_key.dim).transpose().flat)
         else:
             offsets.extend(offset)
-        indices = _indices(data_key.dim, map_vec, flatten=cache_key.flatten)
-        if cache_key.idx is None and not cache_key.flatten:
+        indices = _indices(data_key.dim, map_vec)
+        if cache_key.idx is None:
             # Special case: reduced buffer length
             indices = List(indices.value_type, indices.as_list().values[::data_key.dim])
         g_dat = Singleton("{0}*".format(typename), dat_name)

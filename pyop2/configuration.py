@@ -33,17 +33,22 @@
 
 """PyOP2 global configuration."""
 
+from __future__ import absolute_import, print_function, division
 import os
 from tempfile import gettempdir
 
-from exceptions import ConfigurationError
+from pyop2.exceptions import ConfigurationError
 
 
 class Configuration(dict):
     """PyOP2 configuration parameters
 
-    :param backend: Select the PyOP2 backend (one of `cuda`,
-        `opencl`, `openmp` or `sequential`).
+    :param compiler: compiler identifier used by COFFEE (one of `gnu`, `intel`).
+    :param simd_isa: Instruction set architecture (ISA) COFFEE is optimising
+        for (one of `sse`, `avx`).
+    :param blas: COFFEE BLAS backend (one of `mkl`, `atlas`, `eigen`).
+    :param cflags: extra flags to be passed to the C compiler.
+    :param ldflags: extra flags to be passed to the linker.
     :param debug: Turn on debugging for generated code (turns off
         compiler optimisations).
     :param type_check: Should PyOP2 type-check API-calls?  (Default,
@@ -73,10 +78,12 @@ class Configuration(dict):
     """
     # name, env variable, type, default, write once
     DEFAULTS = {
-        "backend": ("PYOP2_BACKEND", str, "sequential"),
         "compiler": ("PYOP2_BACKEND_COMPILER", str, "gnu"),
         "simd_isa": ("PYOP2_SIMD_ISA", str, "sse"),
         "debug": ("PYOP2_DEBUG", bool, False),
+        "blas": ("PYOP2_BLAS", str, ""),
+        "cflags": ("PYOP2_CFLAGS", str, ""),
+        "ldflags": ("PYOP2_LDFLAGS", str, ""),
         "type_check": ("PYOP2_TYPE_CHECK", bool, True),
         "check_src_hashes": ("PYOP2_CHECK_SRC_HASHES", bool, True),
         "log_level": ("PYOP2_LOG_LEVEL", (str, int), "WARNING"),
@@ -96,8 +103,6 @@ class Configuration(dict):
         "block_sparsity": ("PYOP2_BLOCK_SPARSITY", bool, True),
     }
     """Default values for PyOP2 configuration parameters"""
-    READONLY = ['backend']
-    """List of read-only configuration keys."""
 
     def __init__(self):
         def convert(env, typ, v):
@@ -134,14 +139,7 @@ class Configuration(dict):
 
         :arg key: The parameter to set
         :arg value: The value to set it to.
-
-        .. note::
-           Some configuration parameters are read-only in which case
-           attempting to set them raises an error, see
-           :attr:`Configuration.READONLY` for details of which.
         """
-        if key in Configuration.READONLY and key in self._set and value != self[key]:
-            raise ConfigurationError("%s is read only" % key)
         if key in Configuration.DEFAULTS:
             valid_type = Configuration.DEFAULTS[key][1]
             if not isinstance(value, valid_type):
@@ -149,5 +147,6 @@ class Configuration(dict):
                                          % (key, valid_type, type(value)))
         self._set.add(key)
         super(Configuration, self).__setitem__(key, value)
+
 
 configuration = Configuration()

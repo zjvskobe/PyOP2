@@ -33,6 +33,9 @@
 
 """Core loop fusion mechanisms."""
 
+from __future__ import absolute_import, print_function, division
+from six.moves import range, zip
+
 import sys
 import os
 from collections import OrderedDict, namedtuple
@@ -47,15 +50,15 @@ from pyop2.utils import flatten, as_tuple, tuplify
 from pyop2.logger import warning
 from pyop2 import compilation
 
-from extended import lazy_trace_name, Kernel
-from filters import Filter, WeakFilter
-from interface import slope
-from scheduler import *
+from .extended import lazy_trace_name, Kernel
+from .filters import Filter, WeakFilter
+from .interface import slope
+from .scheduler import *
 
 import coffee
 from coffee import base as ast
 from coffee.utils import ItSpace
-from coffee.visitors import FindInstances, SymbolReferences
+from coffee.visitors import Find, SymbolReferences
 
 
 class Inspector(Cached):
@@ -523,11 +526,11 @@ def build_soft_fusion_kernel(loops, loop_chain_index):
     asts = [k._ast for k in kernels]
     base_ast, fuse_asts = dcopy(asts[0]), asts[1:]
 
-    base_fundecl = FindInstances(ast.FunDecl).visit(base_ast)[ast.FunDecl][0]
+    base_fundecl = Find(ast.FunDecl).visit(base_ast)[ast.FunDecl][0]
     base_fundecl.body[:] = [ast.Block(base_fundecl.body, open_scope=True)]
     for unique_id, _fuse_ast in enumerate(fuse_asts, 1):
         fuse_ast = dcopy(_fuse_ast)
-        fuse_fundecl = FindInstances(ast.FunDecl).visit(fuse_ast)[ast.FunDecl][0]
+        fuse_fundecl = Find(ast.FunDecl).visit(fuse_ast)[ast.FunDecl][0]
         # 1) Extend function name
         base_fundecl.name = "%s_%s" % (base_fundecl.name, fuse_fundecl.name)
         # 2) Concatenate the arguments in the signature
@@ -570,7 +573,7 @@ def build_hard_fusion_kernel(base_loop, fuse_loop, fusion_map, loop_chain_index)
     adjacent to the main kernel1 iteration has been executed.
     """
 
-    finder = FindInstances((ast.FunDecl, ast.PreprocessNode))
+    finder = Find((ast.FunDecl, ast.PreprocessNode))
 
     base = base_loop.kernel
     base_ast = dcopy(base._ast)
@@ -845,8 +848,8 @@ def estimate_data_reuse(filename, loop_chain):
             tot_flops += flops
         f.write('** Summary: %d KBytes moved, %d Megaflops performed\n' %
                 (tot_footprint, tot_flops))
-        probSeed = 0 if MPI.COMM_WORLD.size > 1 else len(loop_chain) / 2
-        probNtiles = loop_chain[probSeed].it_space.exec_size / tile_size or 1
+        probSeed = 0 if MPI.COMM_WORLD.size > 1 else len(loop_chain) // 2
+        probNtiles = loop_chain[probSeed].it_space.exec_size // tile_size or 1
         f.write('** KB/tile: %d' % (tot_footprint/probNtiles))
         f.write('  (Estimated: %d tiles)\n' % probNtiles)
         f.write('-' * 68 + '\n')
@@ -878,7 +881,7 @@ def estimate_data_reuse(filename, loop_chain):
             ideal_reuse += (size/1000)*len(positions[1:])
 
         out = '** Ideal reuse (i.e., no tile growth): %d / %d KBytes (%f %%)\n' % \
-            (ideal_reuse, tot_footprint, float(ideal_reuse)*100/tot_footprint)
+            (ideal_reuse, tot_footprint, ideal_reuse*100/tot_footprint)
         f.write(out)
         f.write('-' * 125 + '\n')
         s.write(out)

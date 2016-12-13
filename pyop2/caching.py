@@ -33,7 +33,9 @@
 
 """Provides common base classes for cached objects."""
 
-from utils import cached_property
+from __future__ import absolute_import, print_function, division
+
+from pyop2.utils import cached_property
 
 
 def report_cache(typ):
@@ -48,22 +50,22 @@ def report_cache(typ):
     typs = defaultdict(lambda: 0)
     n = 0
     for x in get_objects():
-        if isinstance(x, (typ, )):
+        if isinstance(x, typ):
             typs[type(x)] += 1
             n += 1
     if n == 0:
-        print "\nNo %s objects in caches" % typ.__name__
+        print("\nNo %s objects in caches" % typ.__name__)
         return
-    print "\n%d %s objects in caches" % (n, typ.__name__)
-    print "Object breakdown"
-    print "================"
+    print("\n%d %s objects in caches" % (n, typ.__name__))
+    print("Object breakdown")
+    print("================")
     for k, v in typs.iteritems():
         mod = getmodule(k)
         if mod is not None:
             name = "%s.%s" % (mod.__name__, k.__name__)
         else:
             name = k.__name__
-        print '%s: %d' % (name, v)
+        print('%s: %d' % (name, v))
 
 
 class ObjectCached(object):
@@ -139,7 +141,7 @@ class ObjectCached(object):
 
         # Don't bother looking in caches if we're not meant to cache
         # this object.
-        if key is None:
+        if key is None or cache_obj is None:
             return make_obj()
 
         # Does the caching object know about the caches?

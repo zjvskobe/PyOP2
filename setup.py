@@ -33,6 +33,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, print_function, division
 try:
     from setuptools import setup, Extension
 except ImportError:
@@ -44,6 +45,7 @@ import sys
 import numpy as np
 import petsc4py
 import versioneer
+import os
 
 
 def get_petsc_dir():
@@ -62,30 +64,30 @@ Set the environment variable PETSC_DIR to your local PETSc base
 directory or install PETSc from PyPI: pip install petsc""")
 
 
-versioneer.versionfile_source = 'pyop2/_version.py'
-versioneer.versionfile_build = 'pyop2/_version.py'
-versioneer.tag_prefix = 'v'
-versioneer.parentdir_prefix = 'pyop2-'
-versioneer.VCS = "git"
-
 cmdclass = versioneer.get_cmdclass()
 _sdist = cmdclass['sdist']
+
+if "clean" in sys.argv[1:]:
+    # Forcibly remove the results of Cython.
+    for dirname, dirs, files in os.walk("pyop2"):
+        for f in files:
+            base, ext = os.path.splitext(f)
+            if ext in (".c", ".cpp", ".so") and base + ".pyx" in files:
+                os.remove(os.path.join(dirname, f))
 
 # If Cython is available, built the extension module from the Cython source
 try:
     from Cython.Distutils import build_ext
     cmdclass['build_ext'] = build_ext
-    plan_sources = ['pyop2/plan.pyx']
     sparsity_sources = ['pyop2/sparsity.pyx']
     computeind_sources = ['pyop2/computeind.pyx']
 
 # Else we require the Cython-compiled .c file to be present and use that
 # Note: file is not in revision control but needs to be included in distributions
 except ImportError:
-    plan_sources = ['pyop2/plan.c']
     sparsity_sources = ['pyop2/sparsity.cpp']
     computeind_sources = ['pyop2/computeind.c']
-    sources = plan_sources + sparsity_sources + computeind_sources
+    sources = sparsity_sources + computeind_sources
     from os.path import exists
     if not all([exists(f) for f in sources]):
         raise ImportError("Installing from source requires Cython")
@@ -122,10 +124,11 @@ class sdist(_sdist):
     def run(self):
         # Make sure the compiled Cython files in the distribution are up-to-date
         from Cython.Build import cythonize
-        cythonize(plan_sources)
         cythonize(sparsity_sources, language="c++", include_path=includes)
         cythonize(computeind_sources)
         _sdist.run(self)
+
+
 cmdclass['sdist'] = sdist
 
 setup(name='PyOP2',
@@ -153,9 +156,7 @@ setup(name='PyOP2',
           'pyop2': ['assets/*', '*.h', '*.pxd', '*.pyx']},
       scripts=glob('scripts/*'),
       cmdclass=cmdclass,
-      ext_modules=[Extension('pyop2.plan', plan_sources,
-                             include_dirs=numpy_includes),
-                   Extension('pyop2.sparsity', sparsity_sources,
+      ext_modules=[Extension('pyop2.sparsity', sparsity_sources,
                              include_dirs=['pyop2'] + includes, language="c++",
                              libraries=["petsc"],
                              extra_link_args=["-L%s/lib" % d for d in petsc_dirs] +

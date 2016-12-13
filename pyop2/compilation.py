@@ -31,15 +31,20 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, print_function, division
+import six
+from six.moves import input
+
 import os
-from mpi import MPI, collective, COMM_WORLD
 import subprocess
 import sys
 import ctypes
 from hashlib import md5
-from configuration import configuration
-from logger import progress, INFO
-from exceptions import CompilationError
+
+from pyop2.mpi import MPI, collective, COMM_WORLD
+from pyop2.configuration import configuration
+from pyop2.logger import debug, progress, INFO
+from pyop2.exceptions import CompilationError
 
 
 def _check_hashes(x, y, datatype):
@@ -60,8 +65,10 @@ class Compiler(object):
     :arg ld: Linker executable (optional, if ``None``, we assume the compiler
         can build object files and link in a single invocation, can be
         overridden by exporting the environment variable ``LDSHARED``).
-    :arg cppargs: A list of arguments to the C compiler (optional).
-    :arg ldargs: A list of arguments to the linker (optional).
+    :arg cppargs: A list of arguments to the C compiler (optional, prepended to
+        any flags specified as the cflags configuration option)
+    :arg ldargs: A list of arguments to the linker (optional, prepended to any
+        flags specified as the ldflags configuration option).
     :arg cpp: Should we try and use the C++ compiler instead of the C
         compiler?.
     :kwarg comm: Optional communicator to compile the code on (only
@@ -72,8 +79,8 @@ class Compiler(object):
         ccenv = 'CXX' if cpp else 'CC'
         self._cc = os.environ.get(ccenv, cc)
         self._ld = os.environ.get('LDSHARED', ld)
-        self._cppargs = cppargs
-        self._ldargs = ldargs
+        self._cppargs = cppargs + configuration['cflags'].split()
+        self._ldargs = ldargs + configuration['ldflags'].split()
         self.comm = comm or COMM_WORLD
 
     @collective
@@ -87,12 +94,12 @@ class Compiler(object):
         library."""
 
         # Determine cache key
-        hsh = md5(src)
-        hsh.update(self._cc)
+        hsh = md5(six.b(src))
+        hsh.update(six.b(self._cc))
         if self._ld:
-            hsh.update(self._ld)
-        hsh.update("".join(self._cppargs))
-        hsh.update("".join(self._ldargs))
+            hsh.update(six.b(self._ld))
+        hsh.update(six.b("".join(self._cppargs)))
+        hsh.update(six.b("".join(self._ldargs)))
 
         basename = hsh.hexdigest()
 
@@ -131,14 +138,15 @@ class Compiler(object):
                 logfile = os.path.join(cachedir, "%s_p%d.log" % (basename, pid))
                 errfile = os.path.join(cachedir, "%s_p%d.err" % (basename, pid))
                 with progress(INFO, 'Compiling wrapper'):
-                    with file(cname, "w") as f:
+                    with open(cname, "w") as f:
                         f.write(src)
                     # Compiler also links
                     if self._ld is None:
                         cc = [self._cc] + self._cppargs + \
                              ['-o', tmpname, cname] + self._ldargs
-                        with file(logfile, "w") as log:
-                            with file(errfile, "w") as err:
+                        debug('Compilation command: %s', ' '.join(cc))
+                        with open(logfile, "w") as log:
+                            with open(errfile, "w") as err:
                                 log.write("Compilation command:\n")
                                 log.write(" ".join(cc))
                                 log.write("\n\n")
@@ -162,8 +170,10 @@ Compile errors in %s""" % (e.cmd, e.returncode, logfile, errfile))
                         cc = [self._cc] + self._cppargs + \
                              ['-c', '-o', oname, cname]
                         ld = self._ld.split() + ['-o', tmpname, oname] + self._ldargs
-                        with file(logfile, "w") as log:
-                            with file(errfile, "w") as err:
+                        debug('Compilation command: %s', ' '.join(cc))
+                        debug('Link command: %s', ' '.join(ld))
+                        with open(logfile, "w") as log:
+                            with open(errfile, "w") as err:
                                 log.write("Compilation command:\n")
                                 log.write(" ".join(cc))
                                 log.write("\n\n")
@@ -339,23 +349,23 @@ def clear_cache(prompt=False):
     nfiles = len(files)
 
     if nfiles == 0:
-        print "No cached libraries to remove"
+        print("No cached libraries to remove")
         return
 
     remove = True
     if prompt:
 
-        user = raw_input("Remove %d cached libraries from %s? [Y/n]: " % (nfiles, cachedir))
+        user = input("Remove %d cached libraries from %s? [Y/n]: " % (nfiles, cachedir))
 
         while user.lower() not in ['', 'y', 'n']:
-            print "Please answer y or n."
-            user = raw_input("Remove %d cached libraries from %s? [Y/n]: " % (nfiles, cachedir))
+            print("Please answer y or n.")
+            user = input("Remove %d cached libraries from %s? [Y/n]: " % (nfiles, cachedir))
 
         if user.lower() == 'n':
             remove = False
 
     if remove:
-        print "Removing %d cached libraries from %s" % (nfiles, cachedir)
+        print("Removing %d cached libraries from %s" % (nfiles, cachedir))
         [os.remove(f) for f in files]
     else:
-        print "Not removing cached libraries"
+        print("Not removing cached libraries")

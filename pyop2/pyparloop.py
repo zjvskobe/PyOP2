@@ -74,9 +74,9 @@ Example usage::
   #  [ 3.  0.]]
 """
 
-import base
-import device
+from __future__ import absolute_import, print_function, division
 import numpy as np
+from pyop2 import base
 
 
 # Fake kernel for type checking
@@ -113,13 +113,6 @@ class ParLoop(base.ParLoop):
             if arg._is_dat and arg.data._is_allocated:
                 for d in arg.data:
                     d._data.setflags(write=True)
-            # UGH, we need to move data back from the device, since
-            # evaluation tries to leave it on the device as much as
-            # possible.  We can't use public accessors here to get
-            # round this, because they'd force the evaluation of any
-            # pending computation, which includes this computation.
-            if arg._is_dat and isinstance(arg.data, device.Dat):
-                arg.data._from_device()
         # Just walk over the iteration set
         for e in range(part.offset, part.offset + part.size):
             args = []
@@ -164,8 +157,6 @@ class ParLoop(base.ParLoop):
                     else:
                         arg.data._data[arg.map.values_with_halo[idx, arg.idx:arg.idx+1]] = tmp[:]
                 elif arg._is_mat:
-                    if arg._flatten:
-                        raise NotImplementedError  # Need to sort out the permutation.
                     if arg.access is base.INC:
                         arg.data.addto_values(arg.map[0].values_with_halo[idx],
                                               arg.map[1].values_with_halo[idx],
@@ -179,10 +170,6 @@ class ParLoop(base.ParLoop):
             if arg._is_dat and arg.data._is_allocated:
                 for d in arg.data:
                     d._data.setflags(write=False)
-            # UGH, set state of data to HOST, marking device data as
-            # out of date.
-            if arg._is_dat and isinstance(arg.data, device.Dat):
-                arg.data.state = device.DeviceDataMixin.HOST
             if arg._is_mat and arg.access is not base.READ:
                 # Queue up assembly of matrix
                 arg.data.assemble()

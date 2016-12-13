@@ -35,37 +35,52 @@
 information which is backend independent. Individual runtime backends should
 subclass these as required to implement backend-specific features.
 """
-
 from __future__ import absolute_import, print_function, division
+import six
+from six.moves import map, zip
 
+from collections import namedtuple
+from contextlib import contextmanager
 import ctypes
+from functools import reduce
+from hashlib import md5
 import itertools
 import operator
-import weakref
 import types
-from collections import namedtuple
-from hashlib import md5
 
 import numpy as np
 
-from pyop2.configuration import configuration
 from pyop2.caching import Cached, ObjectCached
-from pyop2.versioning import (Versioned, modifies, modifies_argn,
-                              CopyOnWrite, shallow_copy, _force_copies)
 from pyop2.exceptions import *
 from pyop2.utils import *
-from pyop2.backends import _make_object
 from pyop2.mpi import MPI, collective, dup_comm
 from pyop2.profiling import timed_region, timed_function
 from pyop2.sparsity import build_sparsity
 from pyop2.version import __version__ as version
 
 from coffee.base import Node, FlatBlock
-from coffee.visitors import FindInstances, EstimateFlops
+from coffee.visitors import Find, EstimateFlops
 from coffee import base as ast
 
 
+def _make_object(name, *args, **kwargs):
+    from pyop2 import sequential
+    return getattr(sequential, name)(*args, **kwargs)
+
+
+@contextmanager
+def collecting_loops(val):
+    try:
+        old = LazyComputation.collecting_loops
+        LazyComputation.collecting_loops = val
+        yield
+    finally:
+        LazyComputation.collecting_loops = old
+
+
 class LazyComputation(object):
+
+    collecting_loops = False
 
     """Helper class holding computation to be carried later on.
     """
@@ -80,9 +95,12 @@ class LazyComputation(object):
         self._scheduled = False
 
     def enqueue(self):
-        global _trace
-        _trace.append(self)
+        if not LazyComputation.collecting_loops:
+            global _trace
+            _trace.append(self)
         return self
+
+    __call__ = enqueue
 
     def _run(self):
         assert False, "Not implemented"
@@ -203,6 +221,7 @@ class Access(object):
     def __repr__(self):
         return "Access(%r)" % self._mode
 
+
 READ = Access("READ")
 """The :class:`Global`, :class:`Dat`, or :class:`Mat` is accessed read-only."""
 
@@ -272,26 +291,24 @@ def map_key(m):
 
 
 _ArgCacheKey = namedtuple('_ArgCacheKey',
-                          ['data', 'map', 'access', 'idx', 'flatten'])
+                          ['data', 'map', 'access', 'idx'])
 
 
 def arg_key(a):
     if isinstance(a.data, Global):
         data_keys = tuple(map(data_key, a.data))
-        return _ArgCacheKey(data_keys, None, a.access, None, None)
+        return _ArgCacheKey(data_keys, None, a.access, None)
     elif isinstance(a.data, Dat):
         data_keys = tuple(map(data_key, a.data))
         if a.map is None:
             map_keys = None
         else:
             map_keys = tuple(map(map_key, a.map))
-        return _ArgCacheKey(data_keys, map_keys, a.access,
-                            a.idx, a._flatten)
+        return _ArgCacheKey(data_keys, map_keys, a.access, a.idx)
     elif isinstance(a.data, Mat):
         data_keys = tuple(map(data_key, a.data))
         map_keys = tuple(map(map_key, a.map))
-        return _ArgCacheKey(data_keys, map_keys, a.access,
-                            tuple(a.idx), a._flatten)
+        return _ArgCacheKey(data_keys, map_keys, a.access, tuple(a.idx))
     else:
         raise NotImplementedError
 
@@ -305,7 +322,7 @@ class Arg(object):
         Instead, use the call syntax on the :class:`DataCarrier`.
     """
 
-    def __init__(self, data=None, map=None, idx=None, access=None, flatten=False):
+    def __init__(self, data=None, map=None, idx=None, access=None):
         """
         :param data: A data-carrying object, either :class:`Dat` or class:`Mat`
         :param map:  A :class:`Map` to access this :class:`Arg` or the default
@@ -315,9 +332,6 @@ class Arg(object):
                      given component of the mapping or the default to use all
                      components of the mapping.
         :param access: An access descriptor of type :class:`Access`
-        :param flatten: Treat the data dimensions of this :class:`Arg` as flat
-                        s.t. the kernel is passed a flat vector of length
-                        ``map.arity * data.dataset.cdim``.
 
         Checks that:
 
@@ -330,7 +344,6 @@ class Arg(object):
         self._map = map
         self._idx = idx
         self._access = access
-        self._flatten = flatten
         self._in_flight = False  # some kind of comms in flight for this arg
 
         # Check arguments for consistency
@@ -346,18 +359,10 @@ class Arg(object):
                     "To set of %s doesn't match the set of %s." % (map, data))
 
         # Determine the iteration space extents, if any
-        if self._is_mat and flatten:
-            rdims = tuple(d.cdim for d in data.sparsity.dsets[0])
-            cdims = tuple(d.cdim for d in data.sparsity.dsets[1])
-            self._block_shape = tuple(tuple((mr.arity * dr, mc.arity * dc)
-                                      for mc, dc in zip(map[1], cdims))
-                                      for mr, dr in zip(map[0], rdims))
-        elif self._is_mat:
+        if self._is_mat:
             self._block_shape = tuple(tuple((mr.arity, mc.arity)
                                       for mc in map[1])
                                       for mr in map[0])
-        elif self._uses_itspace and flatten:
-            self._block_shape = tuple(((m.arity * d.cdim,),) for m, d in zip(map, data))
         elif self._uses_itspace:
             self._block_shape = tuple(((m.arity,),) for m in map)
         else:
@@ -366,18 +371,27 @@ class Arg(object):
         # Cache key
         self.cache_key = arg_key(self)
 
+    @property
+    def _key(self):
+        return (self.data, self._map, self._idx, self._access)
+
+    def __hash__(self):
+        # FIXME: inconsistent with the equality predicate, but (loop
+        # fusion related) code generation relies on object identity as
+        # the equality predicate when using Args as dict keys.
+        return id(self)
+
     def __eq__(self, other):
         """:class:`Arg`\s compare equal of they are defined on the same data,
         use the same :class:`Map` with the same index and the same access
         descriptor."""
-        return self.data == other.data and self._map == other._map and \
-            self._idx == other._idx and self._access == other._access
+        return self._key == other._key
 
     def __ne__(self, other):
         """:class:`Arg`\s compare equal of they are defined on the same data,
         use the same :class:`Map` with the same index and the same access
         descriptor."""
-        return not self == other
+        return not self.__eq__(other)
 
     def __str__(self):
         return "OP2 Arg: dat %s, map %s, index %s, access %s" % \
@@ -579,9 +593,7 @@ class Arg(object):
             "Doing global reduction only makes sense for Globals"
         if self.access is not READ and self._in_flight:
             self._in_flight = False
-            # Must have a copy here, because otherwise we just grab a
-            # pointer.
-            self.data._data = np.copy(self.data._buf)
+            self.data._data[:] = self.data._buf[:]
 
 
 class Set(object):
@@ -590,8 +602,6 @@ class Set(object):
 
     :param size: The size of the set.
     :type size: integer or list of four integers.
-    :param dim: The shape of the data associated with each element of this ``Set``.
-    :type dim: integer or tuple of integers
     :param string name: The name of the set (optional).
     :param halo: An exisiting halo to use (optional).
 
@@ -773,6 +783,75 @@ class Set(object):
             raise SizeTypeError("Shape of %s is incorrect" % name)
         size = slot.value.astype(np.int)
         return cls(size[0], name)
+
+
+class GlobalSet(Set):
+
+    """A proxy set allowing a :class:`Global` to be used in place of a
+    :class:`Dat` where appropriate."""
+
+    def __init__(self, comm=None):
+        self.comm = dup_comm(comm)
+
+    @cached_property
+    def core_size(self):
+        return 0
+
+    @cached_property
+    def size(self):
+        return 1 if self.comm.rank == 0 else 0
+
+    @cached_property
+    def exec_size(self):
+        return 0
+
+    @cached_property
+    def total_size(self):
+        """Total set size, including halo elements."""
+        return 1 if self.comm.rank == 0 else 0
+
+    @cached_property
+    def sizes(self):
+        """Set sizes: core, owned, execute halo, total."""
+        return (self.core_size, self.size, self.exec_size, self.total_size)
+
+    @cached_property
+    def name(self):
+        """User-defined label"""
+        return "GlobalSet"
+
+    @cached_property
+    def halo(self):
+        """:class:`Halo` associated with this Set"""
+        return None
+
+    @property
+    def partition_size(self):
+        """Default partition size"""
+        return None
+
+    def __iter__(self):
+        """Yield self when iterated over."""
+        yield self
+
+    def __getitem__(self, idx):
+        """Allow indexing to return self"""
+        assert idx == 0
+        return self
+
+    def __len__(self):
+        """This is not a mixed type and therefore of length 1."""
+        return 1
+
+    def __str__(self):
+        return "OP2 GlobalSet"
+
+    def __repr__(self):
+        return "GlobalSet()"
+
+    def __eq__(self, other):
+        # Currently all GlobalSets compare equal.
+        return isinstance(other, GlobalSet)
 
 
 class ExtrudedSet(Set):
@@ -976,10 +1055,10 @@ class MixedSet(Set, ObjectCached):
         if self._initialized:
             return
         self._sets = sets
-        assert all(s.layers == self._sets[0].layers for s in sets), \
+        assert all(s is None or isinstance(s, GlobalSet) or s.layers == self._sets[0].layers for s in sets), \
             "All components of a MixedSet must have the same number of layers."
         # TODO: do all sets need the same communicator?
-        self.comm = sets[0].comm
+        self.comm = reduce(lambda a, b: a or b, map(lambda s: s if s is None else s.comm, sets))
         self._initialized = True
 
     @classmethod
@@ -988,7 +1067,7 @@ class MixedSet(Set, ObjectCached):
         try:
             sets = as_tuple(sets, ExtrudedSet)
         except TypeError:
-            sets = as_tuple(sets, Set)
+            sets = as_tuple(sets, (Set, type(None)))
         cache = sets[0]
         return (cache, ) + (sets, ), kwargs
 
@@ -1013,7 +1092,7 @@ class MixedSet(Set, ObjectCached):
     @cached_property
     def size(self):
         """Set size, owned elements."""
-        return sum(s.size for s in self._sets)
+        return sum(0 if s is None else s.size for s in self._sets)
 
     @cached_property
     def exec_size(self):
@@ -1068,6 +1147,9 @@ class MixedSet(Set, ObjectCached):
 
     def __repr__(self):
         return "MixedSet(%r)" % (self._sets,)
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self._sets == other._sets
 
 
 class DataSet(ObjectCached):
@@ -1157,6 +1239,69 @@ class DataSet(ObjectCached):
     def __contains__(self, dat):
         """Indicate whether a given Dat is compatible with this DataSet."""
         return dat.dataset == self
+
+
+class GlobalDataSet(DataSet):
+    """A proxy :class:`DataSet` for use in a :class:`Sparsity` where the
+    matrix has :class:`Global` rows or columns."""
+    _globalcount = 0
+
+    def __init__(self, global_):
+        """
+        :param global_: The :class:`Global` on which this object is based."""
+
+        self._global = global_
+        self._globalset = GlobalSet(comm=self.comm)
+
+    @classmethod
+    def _cache_key(cls, *args):
+        return None
+
+    @cached_property
+    def dim(self):
+        """The shape tuple of the values for each element of the set."""
+        return self._global._dim
+
+    @cached_property
+    def cdim(self):
+        """The scalar number of values for each member of the set. This is
+        the product of the dim tuple."""
+        return self._global._cdim
+
+    @cached_property
+    def name(self):
+        """Returns the name of the data set."""
+        return self._global._name
+
+    @cached_property
+    def comm(self):
+        """Return the communicator on which the set is defined."""
+        return self._global.comm
+
+    @cached_property
+    def set(self):
+        """Returns the parent set of the data set."""
+        return self._globalset
+
+    @cached_property
+    def size(self):
+        """The number of local entries in the Dataset (1 on rank 0)"""
+        return 1 if MPI.comm.rank == 0 else 0
+
+    def __iter__(self):
+        """Yield self when iterated over."""
+        yield self
+
+    def __len__(self):
+        """This is not a mixed type and therefore of length 1."""
+        return 1
+
+    def __str__(self):
+        return "OP2 GlobalDataSet: %s on Global %s" % \
+            (self._name, self._global)
+
+    def __repr__(self):
+        return "GlobalDataSet(%r)" % (self._global)
 
 
 class MixedDataSet(DataSet, ObjectCached):
@@ -1322,9 +1467,9 @@ class Halo(object):
         self._sends = sends
         self._receives = receives
         # The user might have passed lists, not numpy arrays, so fix that here.
-        for i, a in self._sends.iteritems():
+        for i, a in six.iteritems(self._sends):
             self._sends[i] = np.asarray(a)
-        for i, a in self._receives.iteritems():
+        for i, a in six.iteritems(self._receives):
             self._receives[i] = np.asarray(a)
         self._global_to_petsc_numbering = gnn2unn
         self.comm = dup_comm(comm)
@@ -1348,11 +1493,11 @@ class Halo(object):
         receives = self.receives
         if reverse:
             sends, receives = receives, sends
-        for dest, ele in sends.iteritems():
+        for dest, ele in six.iteritems(sends):
             dat._send_buf[dest] = dat._data[ele]
             dat._send_reqs[dest] = self.comm.Isend(dat._send_buf[dest],
                                                    dest=dest, tag=dat._id)
-        for source, ele in receives.iteritems():
+        for source, ele in six.iteritems(receives):
             dat._recv_buf[source] = dat._data[ele]
             dat._recv_reqs[source] = self.comm.Irecv(dat._recv_buf[source],
                                                      source=source, tag=dat._id)
@@ -1377,7 +1522,7 @@ class Halo(object):
         if reverse:
             receives = self.sends
         maybe_setflags(dat._data, write=True)
-        for source, buf in dat._recv_buf.iteritems():
+        for source, buf in six.iteritems(dat._recv_buf):
             if reverse:
                 dat._data[receives[source]] += buf
             else:
@@ -1420,11 +1565,11 @@ class Halo(object):
     def verify(self, s):
         """Verify that this :class:`Halo` is valid for a given
 :class:`Set`."""
-        for dest, sends in self.sends.iteritems():
+        for dest, sends in six.iteritems(self.sends):
             assert (sends >= 0).all() and (sends < s.size).all(), \
                 "Halo send to %d is invalid (outside owned elements)" % dest
 
-        for source, receives in self.receives.iteritems():
+        for source, receives in six.iteritems(self.receives):
             assert (receives >= s.size).all() and \
                 (receives < s.total_size).all(), \
                 "Halo receive from %d is invalid (not in halo elements)" % \
@@ -1573,32 +1718,13 @@ def c_typename(dtype):
     return typemap[dtype.name]
 
 
-class DataCarrier(Versioned):
+class DataCarrier(object):
 
     """Abstract base class for OP2 data.
 
     Actual objects will be :class:`DataCarrier` objects of rank 0
     (:class:`Global`), rank 1 (:class:`Dat`), or rank 2
     (:class:`Mat`)"""
-
-    class Snapshot(object):
-        """A snapshot of the current state of the DataCarrier object. If
-        is_valid() returns True, then the object hasn't changed since this
-        snapshot was taken (and still exists)."""
-        def __init__(self, obj):
-            self._duplicate = obj.duplicate()
-            self._original = weakref.ref(obj)
-
-        def is_valid(self):
-            objref = self._original()
-            if objref is not None:
-                return self._duplicate == objref
-            return False
-
-    def create_snapshot(self):
-        """Returns a snapshot of the current object. If not overriden, this
-        method will return a full duplicate object."""
-        return type(self).Snapshot(self)
 
     @cached_property
     def dtype(self):
@@ -1649,12 +1775,11 @@ class _EmptyDataMixin(object):
     def __init__(self, data, dtype, shape):
         if data is None:
             self._dtype = np.dtype(dtype if dtype is not None else np.float64)
-            self._version_set_zero()
         else:
-            self._data = verify_reshape(data, dtype, shape, allow_none=True)
+            self._numpy_data = verify_reshape(data, dtype, shape, allow_none=True)
             self._dtype = self._data.dtype
 
-    @property
+    @cached_property
     def _data(self):
         """Return the user-provided data buffer, or a zeroed buffer of
         the correct size if none was provided."""
@@ -1662,37 +1787,13 @@ class _EmptyDataMixin(object):
             self._numpy_data = np.zeros(self.shape, dtype=self._dtype)
         return self._numpy_data
 
-    @_data.setter
-    def _data(self, value):
-        """Set the data buffer to `value`."""
-        self._numpy_data = value
-
     @property
     def _is_allocated(self):
         """Return True if the data buffer has been allocated."""
         return hasattr(self, '_numpy_data')
 
 
-class SetAssociated(DataCarrier):
-    """Intermediate class between DataCarrier and subtypes associated with a
-    Set (vectors and matrices)."""
-
-    class Snapshot(object):
-        """A snapshot for SetAssociated objects is valid if the snapshot
-        version is the same as the current version of the object"""
-
-        def __init__(self, obj):
-            self._original = weakref.ref(obj)
-            self._snapshot_version = obj._version
-
-        def is_valid(self):
-            objref = self._original()
-            if objref is not None:
-                return self._snapshot_version == objref._version
-            return False
-
-
-class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
+class Dat(DataCarrier, _EmptyDataMixin):
     """OP2 vector data. A :class:`Dat` holds values on every element of a
     :class:`DataSet`.
 
@@ -1771,13 +1872,13 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
             self._recv_buf = {}
 
     @validate_in(('access', _modes, ModeValueError))
-    def __call__(self, access, path=None, flatten=False):
+    def __call__(self, access, path=None):
         if isinstance(path, _MapArg):
             return _make_object('Arg', data=self, map=path.map, idx=path.idx,
-                                access=access, flatten=flatten)
+                                access=access)
         if configuration["type_check"] and path and path.toset != self.dataset.set:
             raise MapValueError("To Set of Map does not match Set of Dat.")
-        return _make_object('Arg', data=self, map=path, access=access, flatten=flatten)
+        return _make_object('Arg', data=self, map=path, access=access)
 
     def __getitem__(self, idx):
         """Return self if ``idx`` is 0, raise an error otherwise."""
@@ -1817,7 +1918,6 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         return ctypes.c_voidp
 
     @property
-    @modifies
     @collective
     def data(self):
         """Numpy array containing the data values.
@@ -1951,12 +2051,6 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
             self._zero_parloops = loops
 
         iterset = subset or self.dataset.set
-        # Versioning only zeroes the Dat if the provided subset is None.
-        _force_copies(self)
-        if iterset is self.dataset.set:
-            self._version_set_zero()
-        else:
-            self._version_bump()
 
         loop = loops.get(iterset, None)
         if loop is None:
@@ -1973,7 +2067,6 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
             loops[iterset] = loop
         loop.enqueue()
 
-    @modifies_argn(0)
     @collective
     def copy(self, other, subset=None):
         """Copy the data in this :class:`Dat` into another.
@@ -2008,65 +2101,6 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         """This is not a mixed type and therefore of length 1."""
         return 1
 
-    def __eq__(self, other):
-        """:class:`Dat`\s compare equal if defined on the same
-        :class:`DataSet` and containing the same data."""
-        try:
-            if self._is_allocated and other._is_allocated:
-                return (self._dataset == other._dataset and
-                        self.dtype == other.dtype and
-                        np.array_equal(self._data, other._data))
-            elif not (self._is_allocated or other._is_allocated):
-                return (self._dataset == other._dataset and
-                        self.dtype == other.dtype)
-            return False
-        except AttributeError:
-            return False
-
-    def __ne__(self, other):
-        """:class:`Dat`\s compare equal if defined on the same
-        :class:`DataSet` and containing the same data."""
-        return not self == other
-
-    @collective
-    def _cow_actual_copy(self, src):
-        # Force the execution of the copy parloop
-
-        # We need to ensure that PyOP2 allocates fresh storage for this copy.
-        # But only if the copy has not already run.
-        try:
-            if self._numpy_data is src._numpy_data:
-                del self._numpy_data
-        except AttributeError:
-            pass
-
-        if configuration['lazy_evaluation']:
-            _trace.evaluate(self._cow_parloop.reads, self._cow_parloop.writes)
-            try:
-                _trace._trace.remove(self._cow_parloop)
-            except ValueError:
-                return
-
-        self._cow_parloop._run()
-
-    @collective
-    def _cow_shallow_copy(self):
-
-        other = shallow_copy(self)
-
-        # Set up the copy to happen when required.
-        other._cow_parloop = self._copy_parloop(other)
-        # Remove the write dependency of the copy (in order to prevent
-        # premature execution of the loop), and replace it with the
-        # one dat we're writing to.
-        other._cow_parloop.writes = set([other])
-        if configuration['lazy_evaluation']:
-            # In the lazy case, we enqueue now to ensure we are at the
-            # right point in the trace.
-            other._cow_parloop.enqueue()
-
-        return other
-
     def __str__(self):
         return "OP2 Dat: %s on (%s) with datatype %s" \
                % (self._name, self._dataset, self.dtype.name)
@@ -2084,7 +2118,7 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         ops = {operator.add: ast.Sum,
                operator.sub: ast.Sub,
                operator.mul: ast.Prod,
-               operator.div: ast.Div}
+               operator.truediv: ast.Div}
         ret = _make_object('Dat', self.dataset, None, self.dtype)
         name = "binop_%s" % op.__name__
         if np.isscalar(other):
@@ -2120,12 +2154,11 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         par_loop(k, self.dataset.set, self(READ), other(READ), ret(WRITE))
         return ret
 
-    @modifies
     def _iop(self, other, op):
         ops = {operator.iadd: ast.Incr,
                operator.isub: ast.Decr,
                operator.imul: ast.IMul,
-               operator.idiv: ast.IDiv}
+               operator.itruediv: ast.IDiv}
         name = "iop_%s" % op.__name__
         if np.isscalar(other):
             other = _make_object('Global', 1, data=other)
@@ -2241,9 +2274,11 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         self.__rmul__(other) <==> other * self."""
         return self.__mul__(other)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         """Pointwise division or scaling of fields."""
-        return self._op(other, operator.div)
+        return self._op(other, operator.truediv)
+
+    __div__ = __truediv__  # Python 2 compatibility
 
     def __iadd__(self, other):
         """Pointwise addition of fields."""
@@ -2257,9 +2292,11 @@ class Dat(SetAssociated, _EmptyDataMixin, CopyOnWrite):
         """Pointwise multiplication or scaling of fields."""
         return self._iop(other, operator.imul)
 
-    def __idiv__(self, other):
+    def __itruediv__(self, other):
         """Pointwise division or scaling of fields."""
-        return self._iop(other, operator.idiv)
+        return self._iop(other, operator.itruediv)
+
+    __idiv__ = __itruediv__  # Python 2 compatibility
 
     @collective
     def halo_exchange_begin(self, reverse=False):
@@ -2383,7 +2420,7 @@ class MixedDat(Dat):
         if isinstance(mdset_or_dats, MixedDat):
             self._dats = tuple(_make_object('Dat', d) for d in mdset_or_dats)
         else:
-            self._dats = tuple(d if isinstance(d, Dat) else _make_object('Dat', d)
+            self._dats = tuple(d if isinstance(d, (Dat, Global)) else _make_object('Dat', d)
                                for d in mdset_or_dats)
         if not all(d.dtype == self._dats[0].dtype for d in self._dats):
             raise DataValueError('MixedDat with different dtypes is not supported')
@@ -2393,10 +2430,6 @@ class MixedDat(Dat):
     def __getitem__(self, idx):
         """Return :class:`Dat` with index ``idx`` or a given slice of Dats."""
         return self._dats[idx]
-
-    @property
-    def _version(self):
-        return tuple(x._version for x in self.split)
 
     @cached_property
     def dtype(self):
@@ -2504,22 +2537,6 @@ class MixedDat(Dat):
         for s, o in zip(self, other):
             s.copy(o)
 
-    @collective
-    def _cow_actual_copy(self, src):
-        # Force the execution of the copy parloop
-
-        for d, s in zip(self._dats, src._dats):
-            d._cow_actual_copy(s)
-
-    @collective
-    def _cow_shallow_copy(self):
-
-        other = shallow_copy(self)
-
-        other._dats = [d.duplicate() for d in self._dats]
-
-        return other
-
     def __iter__(self):
         """Yield all :class:`Dat`\s when iterated over."""
         for d in self._dats:
@@ -2529,19 +2546,18 @@ class MixedDat(Dat):
         """Return number of contained :class:`Dats`\s."""
         return len(self._dats)
 
+    def __hash__(self):
+        return hash(self._dats)
+
     def __eq__(self, other):
         """:class:`MixedDat`\s are equal if all their contained :class:`Dat`\s
         are."""
-        try:
-            return self._dats == other._dats
-        # Deal with the case of comparing to a different type
-        except AttributeError:
-            return False
+        return type(self) == type(other) and self._dats == other._dats
 
     def __ne__(self, other):
         """:class:`MixedDat`\s are equal if all their contained :class:`Dat`\s
         are."""
-        return not self == other
+        return not self.__eq__(other)
 
     def __str__(self):
         return "OP2 MixedDat composed of Dats: %s" % (self._dats,)
@@ -2666,34 +2682,18 @@ class Global(DataCarrier, _EmptyDataMixin):
     _modes = [READ, INC, MIN, MAX]
 
     @validate_type(('name', str, NameTypeError))
-    def __init__(self, dim, data=None, dtype=None, name=None):
+    def __init__(self, dim, data=None, dtype=None, name=None, comm=None):
         self._dim = as_tuple(dim, int)
         self._cdim = np.asscalar(np.prod(self._dim))
         _EmptyDataMixin.__init__(self, data, dtype, self._dim)
         self._buf = np.empty(self.shape, dtype=self.dtype)
         self._name = name or "global_%d" % Global._globalcount
+        self.comm = comm
         Global._globalcount += 1
 
     @validate_in(('access', _modes, ModeValueError))
-    def __call__(self, access, path=None, flatten=False):
-        """Note that the flatten argument is only passed in order to
-        have the same interface as :class:`Dat`. Its value is
-        ignored."""
+    def __call__(self, access, path=None):
         return _make_object('Arg', data=self, access=access)
-
-    def __eq__(self, other):
-        """:class:`Global`\s compare equal when having the same ``dim`` and
-        ``data``."""
-        try:
-            return (self._dim == other._dim and
-                    np.array_equal(self._data, other._data))
-        except AttributeError:
-            return False
-
-    def __ne__(self, other):
-        """:class:`Global`\s compare equal when having the same ``dim`` and
-        ``data``."""
-        return not self == other
 
     def __iter__(self):
         """Yield self when iterated over."""
@@ -2717,6 +2717,10 @@ class Global(DataCarrier, _EmptyDataMixin):
         return "Global(%r, %r, %r, %r)" % (self._dim, self._data,
                                            self._data.dtype, self._name)
 
+    @cached_property
+    def dataset(self):
+        return _make_object('GlobalDataSet', self)
+
     @property
     def _argtype(self):
         """Ctypes argtype for this :class:`Global`"""
@@ -2727,7 +2731,6 @@ class Global(DataCarrier, _EmptyDataMixin):
         return self._dim
 
     @property
-    @modifies
     def data(self):
         """Data array."""
         _trace.evaluate(set([self]), set())
@@ -2747,10 +2750,9 @@ class Global(DataCarrier, _EmptyDataMixin):
         return view
 
     @data.setter
-    @modifies
     def data(self, value):
         _trace.evaluate(set(), set([self]))
-        self._data = verify_reshape(value, self.dtype, self.dim)
+        self._data[:] = verify_reshape(value, self.dtype, self.dim)
 
     @property
     def nbytes(self):
@@ -2770,13 +2772,48 @@ class Global(DataCarrier, _EmptyDataMixin):
         objects."""
         return False
 
+    @collective
     def duplicate(self):
         """Return a deep copy of self."""
         return type(self)(self.dim, data=np.copy(self.data_ro),
                           dtype=self.dtype, name=self.name)
 
+    @collective
+    def copy(self, other, subset=None):
+        """Copy the data in this :class:`Global` into another.
 
-# FIXME: Part of kernel API, but must be declared before Map for the validation.
+        :arg other: The destination :class:`Global`
+        :arg subset: A :class:`Subset` of elements to copy (optional)"""
+
+        other.data = np.copy(self.data_ro)
+
+    class Zero(LazyComputation):
+        def __init__(self, g):
+            super(Global.Zero, self).__init__(reads=[], writes=[g], incs=[])
+            self.g = g
+
+        def _run(self):
+            self.g._data[...] = 0
+
+    @cached_property
+    def _zero_loop(self):
+        return self.Zero(self)
+
+    @collective
+    def zero(self):
+        self._zero_loop.enqueue()
+
+    @collective
+    def halo_exchange_begin(self):
+        """Dummy halo operation for the case in which a :class:`Global` forms
+        part of a :class:`MixedDat`."""
+        pass
+
+    @collective
+    def halo_exchange_end(self):
+        """Dummy halo operation for the case in which a :class:`Global` forms
+        part of a :class:`MixedDat`."""
+        pass
 
 
 class IterationIndex(object):
@@ -2819,6 +2856,7 @@ class IterationIndex(object):
     def __iter__(self):
         """Yield self when iterated over."""
         yield self
+
 
 i = IterationIndex()
 """Shorthand for constructing :class:`IterationIndex` objects.
@@ -2895,7 +2933,7 @@ class Map(object):
         self._top_mask = {}
 
         if offset is not None and bt_masks is not None:
-            for name, mask in bt_masks.iteritems():
+            for name, mask in six.iteritems(bt_masks):
                 self._bottom_mask[name] = np.zeros(len(offset))
                 self._bottom_mask[name][mask[0]] = -1
                 self._top_mask[name] = np.zeros(len(offset))
@@ -2921,9 +2959,6 @@ class Map(object):
     def __len__(self):
         """This is not a mixed type and therefore of length 1."""
         return 1
-
-    def __getslice__(self, i, j):
-        raise NotImplementedError("Slicing maps is not currently implemented")
 
     @cached_property
     def _argtype(self):
@@ -3064,6 +3099,8 @@ class DecoratedMap(Map, ObjectCached):
 
     def __new__(cls, map, iteration_region=None, implicit_bcs=None,
                 vector_index=None):
+        if map is None:
+            return None
         if isinstance(map, DecoratedMap):
             # Need to add information, rather than replace if we
             # already have a decorated map (but overwrite if we're
@@ -3150,8 +3187,7 @@ class MixedMap(Map, ObjectCached):
         if self._initialized:
             return
         self._maps = maps
-        # Make sure all itersets are identical
-        if not all(m.iterset == self._maps[0].iterset for m in self._maps):
+        if not all(m is None or m.iterset == self.iterset for m in self._maps):
             raise MapTypeError("All maps in a MixedMap need to share the same iterset")
         # TODO: Think about different communicators on maps (c.f. MixedSet)
         self.comm = maps[0].comm
@@ -3175,12 +3211,13 @@ class MixedMap(Map, ObjectCached):
     @cached_property
     def iterset(self):
         """:class:`MixedSet` mapped from."""
-        return self._maps[0].iterset
+        return reduce(lambda a, b: a or b, map(lambda s: s if s is None else s.iterset, self._maps))
 
     @cached_property
     def toset(self):
         """:class:`MixedSet` mapped to."""
-        return MixedSet(tuple(m.toset for m in self._maps))
+        return MixedSet(tuple(GlobalSet() if m is None else
+                              m.toset for m in self._maps))
 
     @cached_property
     def arity(self):
@@ -3216,7 +3253,8 @@ class MixedMap(Map, ObjectCached):
         This returns all map values (including halo points), see
         :meth:`values` if you only need to look at the local
         points."""
-        return tuple(m.values_with_halo for m in self._maps)
+        return tuple(None if m is None else
+                     m.values_with_halo for m in self._maps)
 
     @cached_property
     def name(self):
@@ -3226,7 +3264,7 @@ class MixedMap(Map, ObjectCached):
     @cached_property
     def offset(self):
         """Vertical offsets."""
-        return tuple(m.offset for m in self._maps)
+        return tuple(0 if m is None else m.offset for m in self._maps)
 
     def __iter__(self):
         """Yield all :class:`Map`\s when iterated over."""
@@ -3281,35 +3319,50 @@ class Sparsity(ObjectCached):
         if self._initialized:
             return
 
-        if not hasattr(self, '_block_sparse'):
-            # CUDA Sparsity overrides this attribute because it never
-            # wants block sparse matrices.
-            self._block_sparse = block_sparse
+        self._block_sparse = block_sparse
         # Split into a list of row maps and a list of column maps
         self._rmaps, self._cmaps = zip(*maps)
         self._dsets = dsets
 
-        self.lcomm = self._rmaps[0].comm
-        self.rcomm = self._cmaps[0].comm
+        if isinstance(dsets[0], GlobalDataSet) or isinstance(dsets[1], GlobalDataSet):
+            self._d_nz = 0
+            self._o_nz = 0
+            self._dims = (((1, 1),),)
+            self._rowptr = None
+            self._colidx = None
+            self._d_nnz = None
+            self._o_nnz = None
+            self._nrows = None if isinstance(dsets[0], GlobalDataSet) else self._rmaps[0].toset.size
+            self._ncols = None if isinstance(dsets[1], GlobalDataSet) else self._cmaps[0].toset.size
+            self.lcomm = dsets[0].comm if isinstance(dsets[0], GlobalDataSet) else self._rmaps[0].comm
+            self.rcomm = dsets[1].comm if isinstance(dsets[1], GlobalDataSet) else self._cmaps[0].comm
+            self._rowptr = None
+            self._colidx = None
+            self._d_nnz = 0
+            self._o_nnz = 0
+        else:
+            self.lcomm = self._rmaps[0].comm
+            self.rcomm = self._cmaps[0].comm
+
+            # All rmaps and cmaps have the same data set - just use the first.
+            self._nrows = self._rmaps[0].toset.size
+            self._ncols = self._cmaps[0].toset.size
+
+            self._has_diagonal = self._rmaps[0].toset == self._cmaps[0].toset
+
+            tmp = itertools.product([x.cdim for x in self._dsets[0]],
+                                    [x.cdim for x in self._dsets[1]])
+
+            dims = [[None for _ in range(self.shape[1])] for _ in range(self.shape[0])]
+            for r in range(self.shape[0]):
+                for c in range(self.shape[1]):
+                    dims[r][c] = next(tmp)
+
+            self._dims = tuple(tuple(d) for d in dims)
+
         if self.lcomm != self.rcomm:
             raise ValueError("Haven't thought hard enough about different left and right communicators")
         self.comm = self.lcomm
-
-        # All rmaps and cmaps have the same data set - just use the first.
-        self._nrows = self._rmaps[0].toset.size
-        self._ncols = self._cmaps[0].toset.size
-
-        self._has_diagonal = self._rmaps[0].toset == self._cmaps[0].toset
-
-        tmp = itertools.product([x.cdim for x in self._dsets[0]],
-                                [x.cdim for x in self._dsets[1]])
-
-        dims = [[None for _ in range(self.shape[1])] for _ in range(self.shape[0])]
-        for r in range(self.shape[0]):
-            for c in range(self.shape[1]):
-                dims[r][c] = tmp.next()
-
-        self._dims = tuple(tuple(d) for d in dims)
 
         self._name = name or "sparsity_%d" % Sparsity._globalcount
         Sparsity._globalcount += 1
@@ -3333,7 +3386,15 @@ class Sparsity(ObjectCached):
             self._o_nnz = tuple(s._o_nnz for s in self)
             self._d_nz = sum(s._d_nz for s in self)
             self._o_nz = sum(s._o_nz for s in self)
+        elif isinstance(dsets[0], GlobalDataSet) or isinstance(dsets[1], GlobalDataSet):
+            # Where the sparsity maps either from or to a Global, we
+            # don't really have any sparsity structure.
+            self._blocks = [[self]]
+            self._nested = False
         else:
+            for dset in dsets:
+                if isinstance(dset, MixedDataSet) and any([isinstance(d, GlobalDataSet) for d in dset]):
+                    raise SparsityFormatError("Mixed monolithic matrices with Global rows or columns are not supported.")
             with timed_region("CreateSparsity"):
                 build_sparsity(self, parallel=(self.comm.size > 1),
                                block=self._block_sparse)
@@ -3358,7 +3419,7 @@ class Sparsity(ObjectCached):
 
         # Check data sets are valid
         for dset in dsets:
-            if not isinstance(dset, DataSet):
+            if not isinstance(dset, DataSet) and dset is not None:
                 raise DataSetTypeError("All data sets must be of type DataSet, not type %r" % type(dset))
 
         # A single map becomes a pair of identical maps
@@ -3368,6 +3429,10 @@ class Sparsity(ObjectCached):
 
         # Check maps are sane
         for pair in maps:
+            if pair[0] is None or pair[1] is None:
+                # None of this checking makes sense if one of the
+                # matrix operands is a Global.
+                continue
             for m in pair:
                 if not isinstance(m, Map):
                     raise MapTypeError(
@@ -3390,17 +3455,20 @@ class Sparsity(ObjectCached):
         if not len(rmaps) == len(cmaps):
             raise RuntimeError("Must pass equal number of row and column maps")
 
-        # Each row map must have the same to-set (data set)
-        if not all(m.toset == rmaps[0].toset for m in rmaps):
-            raise RuntimeError("To set of all row maps must be the same")
+        if rmaps[0] is not None and cmaps[0] is not None:
+            # Each row map must have the same to-set (data set)
+            if not all(m.toset == rmaps[0].toset for m in rmaps):
+                raise RuntimeError("To set of all row maps must be the same")
 
-        # Each column map must have the same to-set (data set)
-        if not all(m.toset == cmaps[0].toset for m in cmaps):
-            raise RuntimeError("To set of all column maps must be the same")
+                # Each column map must have the same to-set (data set)
+            if not all(m.toset == cmaps[0].toset for m in cmaps):
+                raise RuntimeError("To set of all column maps must be the same")
 
         # Need to return the caching object, a tuple of the processed
         # arguments and a dict of kwargs (empty in this case)
-        if isinstance(dsets[0].set, MixedSet):
+        if isinstance(dsets[0], GlobalDataSet):
+            cache = None
+        elif isinstance(dsets[0].set, MixedSet):
             cache = dsets[0].set[0]
         else:
             cache = dsets[0].set
@@ -3408,11 +3476,11 @@ class Sparsity(ObjectCached):
             nest = configuration["matnest"]
         if block_sparse is None:
             block_sparse = configuration["block_sparsity"]
-        return (cache, ) + (tuple(dsets), tuple(sorted(uniquify(maps))), name, nest, block_sparse), {}
+        return (cache,) + (tuple(dsets), frozenset(maps), name, nest, block_sparse), {}
 
     @classmethod
-    def _cache_key(cls, dsets, maps, name, nest, *args, **kwargs):
-        return (dsets, maps, nest)
+    def _cache_key(cls, dsets, maps, name, nest, block_sparse, *args, **kwargs):
+        return (dsets, maps, nest, block_sparse)
 
     def __getitem__(self, idx):
         """Return :class:`Sparsity` block with row and column given by ``idx``
@@ -3439,7 +3507,7 @@ class Sparsity(ObjectCached):
         sparsity. Similarly, the toset of all the maps which appear
         second must be common and will form the column :class:`Set` of
         the ``Sparsity``."""
-        return zip(self._rmaps, self._cmaps)
+        return list(zip(self._rmaps, self._cmaps))
 
     @cached_property
     def cmaps(self):
@@ -3464,7 +3532,8 @@ class Sparsity(ObjectCached):
     @cached_property
     def shape(self):
         """Number of block rows and columns."""
-        return len(self._dsets[0]), len(self._dsets[1])
+        return (len(self._dsets[0] or [1]),
+                len(self._dsets[1] or [1]))
 
     @cached_property
     def nrows(self):
@@ -3588,7 +3657,7 @@ class _LazyMatOp(LazyComputation):
         self._mat.assembly_state = self._new_state
 
 
-class Mat(SetAssociated):
+class Mat(DataCarrier):
     """OP2 matrix data. A ``Mat`` is defined on a sparsity pattern and holds a value
     for each element in the :class:`Sparsity`.
 
@@ -3631,14 +3700,14 @@ class Mat(SetAssociated):
         Mat._globalcount += 1
 
     @validate_in(('access', _modes, ModeValueError))
-    def __call__(self, access, path, flatten=False):
+    def __call__(self, access, path):
         path = as_tuple(path, _MapArg, 2)
-        path_maps = [arg.map for arg in path]
-        path_idxs = [arg.idx for arg in path]
+        path_maps = tuple(arg and arg.map for arg in path)
+        path_idxs = tuple(arg and arg.idx for arg in path)
         if configuration["type_check"] and tuple(path_maps) not in self.sparsity:
             raise MapValueError("Path maps not in sparsity maps")
         return _make_object('Arg', data=self, map=path_maps, access=access,
-                            idx=path_idxs, flatten=flatten)
+                            idx=path_idxs)
 
     def assemble(self):
         """Finalise this :class:`Mat` ready for use.
@@ -3646,8 +3715,8 @@ class Mat(SetAssociated):
         Call this /after/ executing all the par_loops that write to
         the matrix before you want to look at it.
         """
-        _LazyMatOp(self, self._assemble, new_state=Mat.ASSEMBLED,
-                   read=True, write=True).enqueue()
+        return _LazyMatOp(self, self._assemble, new_state=Mat.ASSEMBLED,
+                          read=True, write=True).enqueue()
 
     def _assemble(self):
         raise NotImplementedError(
@@ -3829,9 +3898,9 @@ class Kernel(Cached):
         # HACK: Temporary fix!
         if isinstance(code, Node):
             code = code.gencode()
-        return md5(str(hash(code)) + name + str(opts) + str(include_dirs) +
-                   str(headers) + version + str(configuration['loop_fusion']) +
-                   str(ldargs) + str(cpp)).hexdigest()
+        return md5(six.b(str(hash(code)) + name + str(opts) + str(include_dirs) +
+                         str(headers) + version + str(configuration['loop_fusion']) +
+                         str(ldargs) + str(cpp))).hexdigest()
 
     def _ast_to_c(self, ast, opts={}):
         """Transform an Abstract Syntax Tree representing the kernel into a
@@ -3860,11 +3929,12 @@ class Kernel(Cached):
         else:
             self._ast = code
             self._code = self._ast_to_c(self._ast, opts)
-            search = FindInstances(ast.FunDecl, ast.FlatBlock).visit(self._ast)
+            search = Find((ast.FunDecl, ast.FlatBlock)).visit(self._ast)
             fundecls, flatblocks = search[ast.FunDecl], search[ast.FlatBlock]
-            assert len(fundecls) == 1, "Illegal Kernel"
+            assert len(fundecls) >= 1, "Illegal Kernel"
+            fundecl, = [fd for fd in fundecls if fd.name == self._name]
             self._attached_info = {
-                'fundecl': fundecls[0],
+                'fundecl': fundecl,
                 'attached': False,
                 'flatblocks': len(flatblocks) > 0
             }
@@ -3969,6 +4039,7 @@ class IterationRegion(object):
     def __repr__(self):
         return "%r" % self._iterate
 
+
 ON_BOTTOM = IterationRegion("ON_BOTTOM")
 """Iterate over the cells at the bottom of the column in an extruded mesh."""
 
@@ -4013,8 +4084,9 @@ class ParLoop(LazyComputation):
         for i, arg in enumerate(args):
             if arg._is_global_reduction and arg.access == INC:
                 glob = arg.data
-                self._reduced_globals[i] = glob
-                args[i].data = _make_object('Global', glob.dim, data=np.zeros_like(glob.data_ro), dtype=glob.dtype)
+                tmp = _make_object('Global', glob.dim, data=np.zeros_like(glob.data_ro), dtype=glob.dtype)
+                self._reduced_globals[tmp] = glob
+                args[i].data = tmp
 
         # Always use the current arguments, also when we hit cache
         self._actual_args = args
@@ -4061,6 +4133,7 @@ class ParLoop(LazyComputation):
                 if arg._uses_itspace and arg._is_INC:
                     f_arg.pragma = set([ast.WRITE])
             kernel._attached_info['attached'] = True
+        self.arglist = self.prepare_arglist(iterset, *self.args)
 
     def _run(self):
         return self.compute()
@@ -4073,7 +4146,7 @@ class ParLoop(LazyComputation):
         """
         return ()
 
-    @property
+    @cached_property
     def num_flops(self):
         iterset = self.iterset
         size = iterset.size
@@ -4104,8 +4177,12 @@ class ParLoop(LazyComputation):
         with timed_region("ParLoopExecute"):
             self.halo_exchange_begin()
             iterset = self.iterset
-            arglist = self.prepare_arglist(iterset, *self.args)
+            arglist = self.arglist
             fun = self._jitmodule
+            # Need to ensure INC globals are zero on entry to the loop
+            # in case it's reused.
+            for g in six.iterkeys(self._reduced_globals):
+                g._data[...] = 0
             self._compute(iterset.core_part, fun, *arglist)
             self.halo_exchange_end()
             self._compute(iterset.owned_part, fun, *arglist)
@@ -4147,6 +4224,7 @@ class ParLoop(LazyComputation):
             arg.halo_exchange_end(update_inc=self._only_local)
 
     @collective
+    @timed_function("ParLoopRHaloBegin")
     def reverse_halo_exchange_begin(self):
         """Start reverse halo exchanges (to gather remote data)"""
         if self.is_direct:
@@ -4156,7 +4234,7 @@ class ParLoop(LazyComputation):
                 arg.data.halo_exchange_begin(reverse=True)
 
     @collective
-    @timed_function("ParLoopReverseHaloEnd")
+    @timed_function("ParLoopRHaloEnd")
     def reverse_halo_exchange_end(self):
         """Finish reverse halo exchanges (to gather remote data)"""
         if self.is_direct:
@@ -4166,20 +4244,20 @@ class ParLoop(LazyComputation):
                 arg.data.halo_exchange_end(reverse=True)
 
     @collective
-    @timed_function("ParLoopReductionBegin")
+    @timed_function("ParLoopRednBegin")
     def reduction_begin(self):
         """Start reductions"""
         for arg in self.global_reduction_args:
             arg.reduction_begin(self.comm)
 
     @collective
-    @timed_function("ParLoopReductionEnd")
+    @timed_function("ParLoopRednEnd")
     def reduction_end(self):
         """End reductions"""
         for arg in self.global_reduction_args:
             arg.reduction_end(self.comm)
         # Finalise global increments
-        for i, glob in self._reduced_globals.iteritems():
+        for tmp, glob in six.iteritems(self._reduced_globals):
             # These can safely access the _data member directly
             # because lazy evaluation has ensured that any pending
             # updates to glob happened before this par_loop started
@@ -4187,7 +4265,7 @@ class ParLoop(LazyComputation):
             # data back from the device if necessary.
             # In fact we can't access the properties directly because
             # that forces an infinite loop.
-            glob._data += self.args[i].data._data
+            glob._data += tmp._data
 
     @collective
     def update_arg_data_state(self):
@@ -4199,9 +4277,8 @@ class ParLoop(LazyComputation):
             if arg._is_dat:
                 if arg.access in [INC, WRITE, RW]:
                     arg.data.needs_halo_update = True
-                if arg.data._is_allocated:
-                    for d in arg.data:
-                        d._data.setflags(write=False)
+                for d in arg.data:
+                    d._data.setflags(write=False)
             if arg._is_mat and arg.access is not READ:
                 state = {WRITE: Mat.INSERT_VALUES,
                          INC: Mat.ADD_VALUES}[arg.access]
@@ -4339,88 +4416,69 @@ def build_itspace(args, iterset):
     return IterationSpace(iterset, block_shape)
 
 
-DEFAULT_SOLVER_PARAMETERS = {'ksp_type': 'cg',
-                             'pc_type': 'jacobi',
-                             'ksp_rtol': 1.0e-7,
-                             'ksp_atol': 1.0e-50,
-                             'ksp_divtol': 1.0e+4,
-                             'ksp_max_it': 10000,
-                             'ksp_monitor': False,
-                             'plot_convergence': False,
-                             'plot_prefix': '',
-                             'error_on_nonconvergence': True,
-                             'ksp_gmres_restart': 30}
-
-"""All parameters accepted by PETSc KSP and PC objects are permissible
-as options to the :class:`op2.Solver`."""
-
-
-class Solver(object):
-
-    """OP2 Solver object. The :class:`Solver` holds a set of parameters that are
-    passed to the underlying linear algebra library when the ``solve`` method
-    is called. These can either be passed as a dictionary ``parameters`` *or*
-    as individual keyword arguments (combining both will cause an exception).
-
-    Recognized parameters either as dictionary keys or keyword arguments are:
-
-    :arg ksp_type: the solver type ('cg')
-    :arg pc_type: the preconditioner type ('jacobi')
-    :arg ksp_rtol: relative solver tolerance (1e-7)
-    :arg ksp_atol: absolute solver tolerance (1e-50)
-    :arg ksp_divtol: factor by which the residual norm may exceed the
-        right-hand-side norm before the solve is considered to have diverged:
-        ``norm(r) >= dtol*norm(b)`` (1e4)
-    :arg ksp_max_it: maximum number of solver iterations (10000)
-    :arg error_on_nonconvergence: abort if the solve does not converge in the
-      maximum number of iterations (True, if False only a warning is printed)
-    :arg ksp_monitor: print the residual norm after each iteration
-        (False)
-    :arg plot_convergence: plot a graph of the convergence history after the
-        solve has finished and save it to file (False, implies *ksp_monitor*)
-    :arg plot_prefix: filename prefix for plot files ('')
-    :arg ksp_gmres_restart: restart period when using GMRES
-
-    """
-
-    def __init__(self, parameters=None, **kwargs):
-        self.parameters = DEFAULT_SOLVER_PARAMETERS.copy()
-        if parameters and kwargs:
-            raise RuntimeError("Solver options are set either by parameters or kwargs")
-        if parameters:
-            self.parameters.update(parameters)
-        else:
-            self.parameters.update(kwargs)
-
-    @collective
-    def update_parameters(self, parameters):
-        """Update solver parameters
-
-        :arg parameters: Dictionary containing the parameters to update.
-        """
-        self.parameters.update(parameters)
-
-    @modifies_argn(1)
-    @collective
-    def solve(self, A, x, b):
-        """Solve a matrix equation.
-
-        :arg A: The :class:`Mat` containing the matrix.
-        :arg x: The :class:`Dat` to receive the solution.
-        :arg b: The :class:`Dat` containing the RHS.
-        """
-        # Finalise assembly of the matrix, we know we need to this
-        # because we're about to look at it.
-        A.assemble()
-        _trace.evaluate(set([A, b]), set([x]))
-        self._solve(A, x, b)
-
-    def _solve(self, A, x, b):
-        raise NotImplementedError("solve must be implemented by backend")
-
-
 @collective
 def par_loop(kernel, it_space, *args, **kwargs):
+    """Invocation of an OP2 kernel
+
+    :arg kernel: The :class:`Kernel` to be executed.
+    :arg iterset: The iteration :class:`Set` over which the kernel should be
+                  executed.
+    :arg \*args: One or more :class:`base.Arg`\s constructed from a
+                 :class:`Global`, :class:`Dat` or :class:`Mat` using the call
+                 syntax and passing in an optionally indexed :class:`Map`
+                 through which this :class:`base.Arg` is accessed and the
+                 :class:`base.Access` descriptor indicating how the
+                 :class:`Kernel` is going to access this data (see the example
+                 below). These are the global data structures from and to
+                 which the kernel will read and write.
+    :kwarg iterate: Optionally specify which region of an
+            :class:`ExtrudedSet` to iterate over.
+            Valid values are:
+
+              - ``ON_BOTTOM``: iterate over the bottom layer of cells.
+              - ``ON_TOP`` iterate over the top layer of cells.
+              - ``ALL`` iterate over all cells (the default if unspecified)
+              - ``ON_INTERIOR_FACETS`` iterate over all the layers
+                 except the top layer, accessing data two adjacent (in
+                 the extruded direction) cells at a time.
+
+    .. warning ::
+        It is the caller's responsibility that the number and type of all
+        :class:`base.Arg`\s passed to the :func:`par_loop` match those expected
+        by the :class:`Kernel`. No runtime check is performed to ensure this!
+
+    If a :func:`par_loop` argument indexes into a :class:`Map` using an
+    :class:`base.IterationIndex`, this implies the use of a local
+    :class:`base.IterationSpace` of a size given by the arity of the
+    :class:`Map`. It is an error to have several arguments using local
+    iteration spaces of different size.
+
+    :func:`par_loop` invocation is illustrated by the following example ::
+
+      pyop2.par_loop(mass, elements,
+                     mat(pyop2.INC, (elem_node[pyop2.i[0]]), elem_node[pyop2.i[1]]),
+                     coords(pyop2.READ, elem_node))
+
+    This example will execute the :class:`Kernel` ``mass`` over the
+    :class:`Set` ``elements`` executing 3x3 times for each
+    :class:`Set` member, assuming the :class:`Map` ``elem_node`` is of arity 3.
+    The :class:`Kernel` takes four arguments, the first is a :class:`Mat` named
+    ``mat``, the second is a field named ``coords``. The remaining two arguments
+    indicate which local iteration space point the kernel is to execute.
+
+    A :class:`Mat` requires a pair of :class:`Map` objects, one each
+    for the row and column spaces. In this case both are the same
+    ``elem_node`` map. The row :class:`Map` is indexed by the first
+    index in the local iteration space, indicated by the ``0`` index
+    to :data:`pyop2.i`, while the column space is indexed by
+    the second local index.  The matrix is accessed to increment
+    values using the ``pyop2.INC`` access descriptor.
+
+    The ``coords`` :class:`Dat` is also accessed via the ``elem_node``
+    :class:`Map`, however no indices are passed so all entries of
+    ``elem_node`` for the relevant member of ``elements`` will be
+    passed to the kernel as a vector.
+    """
     if isinstance(kernel, types.FunctionType):
         from pyop2 import pyparloop
         return pyparloop.ParLoop(pyparloop.Kernel(kernel), it_space, *args, **kwargs).enqueue()

@@ -34,6 +34,9 @@
 """Classes for fusing parallel loops and for executing fused parallel loops,
 derived from ``base.py``."""
 
+from __future__ import absolute_import, print_function, division
+import six
+
 import sys
 import ctypes
 from copy import deepcopy as dcopy
@@ -43,7 +46,6 @@ from hashlib import md5
 
 import pyop2.base as base
 import pyop2.sequential as sequential
-import pyop2.host as host
 from pyop2.utils import flatten, strip, as_tuple
 from pyop2.mpi import collective
 from pyop2.profiling import timed_region
@@ -52,7 +54,7 @@ from pyop2.fusion.interface import slope, lazy_trace_name
 
 import coffee
 from coffee import base as ast
-from coffee.visitors import FindInstances
+from coffee.visitors import Find
 
 
 class FusionArg(sequential.Arg):
@@ -70,7 +72,7 @@ class FusionArg(sequential.Arg):
         :arg c_index: if True, will provide the kernel with the iteration index of this
             Arg's set. Otherwise, code generation is unaffected.
         """
-        super(FusionArg, self).__init__(arg.data, arg.map, arg.idx, arg.access, arg._flatten)
+        super(FusionArg, self).__init__(arg.data, arg.map, arg.idx, arg.access)
         self.gather = gather or arg.gather
         self.c_index = c_index or arg.c_index
 
@@ -81,11 +83,10 @@ class FusionArg(sequential.Arg):
     def c_vec_dec(self, is_facet=False):
         if self.gather == 'onlymap':
             facet_mult = 2 if is_facet else 1
-            cdim = self.data.cdim if self._flatten else 1
             return "%(type)s %(vec_name)s[%(arity)s];\n" % \
                 {'type': self.ctype,
                  'vec_name': self.c_vec_name(),
-                 'arity': self.map.arity * cdim * facet_mult}
+                 'arity': self.map.arity * facet_mult}
         else:
             return super(FusionArg, self).c_vec_dec(is_facet)
 
@@ -162,7 +163,7 @@ class TilingArg(FusionArg):
 
     def c_map_name(self, i, j, fromvector=False):
         if not self._c_local_maps:
-            map_name = host.Arg.c_map_name(self.ref_arg, i, j)
+            map_name = sequential.Arg.c_map_name(self.ref_arg, i, j)
         else:
             map_name = self._c_local_maps[i][j]
         return map_name if not fromvector else "&%s[0]" % map_name
@@ -220,7 +221,7 @@ class Kernel(sequential.Kernel, tuple):
         key = str(loop_chain_index)
         key += "".join([k.cache_key for k in kernels])
         key += str(hash(str(fused_ast)))
-        return md5(key).hexdigest()
+        return md5(six.b(key)).hexdigest()
 
     def _multiple_ast_to_c(self, kernels):
         """Glue together different ASTs (or strings) such that: ::
@@ -236,8 +237,7 @@ class Kernel(sequential.Kernel, tuple):
             main = duplicates[0]
             if main._ast:
                 main_ast = dcopy(main._ast)
-                finder = FindInstances((ast.FunDecl, ast.FunCall))
-                found = finder.visit(main_ast, ret=FindInstances.default_retval())
+                found = Find((ast.FunDecl, ast.FunCall)).visit(main_ast)
                 for fundecl in found[ast.FunDecl]:
                     new_name = "%s_%d" % (fundecl.name, i)
                     # Need to change the name of any inner functions too
@@ -246,7 +246,7 @@ class Kernel(sequential.Kernel, tuple):
                             funcall.funcall.symbol = new_name
                     fundecl.name = new_name
                 function_name = "%s_%d" % (main._name, i)
-                code += host.Kernel._ast_to_c(main, main_ast, main._opts)
+                code += sequential.Kernel._ast_to_c(main, main_ast, main._opts)
             else:
                 # AST not available so can't change the name, hopefully there
                 # will not be compile time clashes.

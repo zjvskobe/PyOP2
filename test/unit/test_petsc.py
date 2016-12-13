@@ -35,6 +35,8 @@
 PETSc specific unit tests
 """
 
+from __future__ import absolute_import, print_function, division
+
 import pytest
 import numpy as np
 
@@ -47,7 +49,7 @@ petsc4py = pytest.importorskip("petsc4py")
 
 class TestPETSc:
 
-    def test_vec_norm_changes(self, backend, skip_cuda, skip_opencl):
+    def test_vec_norm_changes(self):
         s = op2.Set(1)
         d = op2.Dat(s)
 

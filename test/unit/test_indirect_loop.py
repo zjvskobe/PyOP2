@@ -31,6 +31,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import absolute_import, print_function, division
+from six.moves import range
+
 import pytest
 import numpy as np
 import random
@@ -41,14 +44,12 @@ from pyop2.exceptions import MapValueError, IndexValueError
 from coffee.base import *
 
 
-# Large enough that there is more than one block and more than one
-# thread per element in device backends
 nelems = 4096
 
 
 @pytest.fixture(params=[(nelems, nelems, nelems, nelems),
                         (0, nelems, nelems, nelems),
-                        (nelems / 2, nelems, nelems, nelems)])
+                        (nelems // 2, nelems, nelems, nelems)])
 @pytest.fixture
 def iterset(request):
     return op2.Set(request.param, "iterset")
@@ -71,18 +72,18 @@ def diterset(iterset):
 
 @pytest.fixture
 def x(indset):
-    return op2.Dat(indset, range(nelems), np.uint32, "x")
+    return op2.Dat(indset, list(range(nelems)), np.uint32, "x")
 
 
 @pytest.fixture
 def x2(indset):
-    return op2.Dat(indset ** 2, np.array([range(nelems), range(nelems)],
+    return op2.Dat(indset ** 2, np.array([list(range(nelems)), list(range(nelems))],
                    dtype=np.uint32), np.uint32, "x2")
 
 
 @pytest.fixture
 def mapd():
-    mapd = range(nelems)
+    mapd = list(range(nelems))
     random.shuffle(mapd, lambda: 0.02041724)
     return mapd
 
@@ -111,21 +112,21 @@ class TestIndirectLoop:
     Indirect Loop Tests
     """
 
-    def test_mismatching_iterset(self, backend, iterset, indset, x):
+    def test_mismatching_iterset(self, iterset, indset, x):
         """Accessing a par_loop argument via a Map with iterset not matching
         the par_loop's should raise an exception."""
         with pytest.raises(MapValueError):
             op2.par_loop(op2.Kernel("", "dummy"), iterset,
                          x(op2.WRITE, op2.Map(op2.Set(nelems), indset, 1)))
 
-    def test_mismatching_indset(self, backend, iterset, x):
+    def test_mismatching_indset(self, iterset, x):
         """Accessing a par_loop argument via a Map with toset not matching
         the Dat's should raise an exception."""
         with pytest.raises(MapValueError):
             op2.par_loop(op2.Kernel("", "dummy"), iterset,
                          x(op2.WRITE, op2.Map(iterset, op2.Set(nelems), 1)))
 
-    def test_mismatching_itspace(self, backend, iterset, iterset2indset, iterset2indset2, x):
+    def test_mismatching_itspace(self, iterset, iterset2indset, iterset2indset2, x):
         """par_loop arguments using an IterationIndex must use a local
         iteration space of the same extents."""
         with pytest.raises(IndexValueError):
@@ -133,7 +134,7 @@ class TestIndirectLoop:
                          x(op2.WRITE, iterset2indset[op2.i[0]]),
                          x(op2.WRITE, iterset2indset2[op2.i[0]]))
 
-    def test_uninitialized_map(self, backend, iterset, indset, x):
+    def test_uninitialized_map(self, iterset, indset, x):
         """Accessing a par_loop argument via an uninitialized Map should raise
         an exception."""
         kernel_wo = "void kernel_wo(unsigned int* x) { *x = 42; }\n"
@@ -141,7 +142,7 @@ class TestIndirectLoop:
             op2.par_loop(op2.Kernel(kernel_wo, "kernel_wo"), iterset,
                          x(op2.WRITE, op2.Map(iterset, indset, 1)))
 
-    def test_onecolor_wo(self, backend, iterset, x, iterset2indset):
+    def test_onecolor_wo(self, iterset, x, iterset2indset):
         """Set a Dat to a scalar value with op2.WRITE."""
         kernel_wo = "void kernel_wo(unsigned int* x) { *x = 42; }\n"
 
@@ -149,15 +150,15 @@ class TestIndirectLoop:
                      iterset, x(op2.WRITE, iterset2indset[0]))
         assert all(map(lambda x: x == 42, x.data))
 
-    def test_onecolor_rw(self, backend, iterset, x, iterset2indset):
+    def test_onecolor_rw(self, iterset, x, iterset2indset):
         """Increment each value of a Dat by one with op2.RW."""
         kernel_rw = "void kernel_rw(unsigned int* x) { (*x) = (*x) + 1; }\n"
 
         op2.par_loop(op2.Kernel(kernel_rw, "kernel_rw"),
                      iterset, x(op2.RW, iterset2indset[0]))
-        assert sum(x.data) == nelems * (nelems + 1) / 2
+        assert sum(x.data) == nelems * (nelems + 1) // 2
 
-    def test_indirect_inc(self, backend, iterset, unitset, iterset2unitset):
+    def test_indirect_inc(self, iterset, unitset, iterset2unitset):
         """Sum into a scalar Dat with op2.INC."""
         u = op2.Dat(unitset, np.array([0], dtype=np.uint32), np.uint32, "u")
         kernel_inc = "void kernel_inc(unsigned int* x) { (*x) = (*x) + 1; }\n"
@@ -165,7 +166,7 @@ class TestIndirectLoop:
                      iterset, u(op2.INC, iterset2unitset[0]))
         assert u.data[0] == nelems
 
-    def test_global_read(self, backend, iterset, x, iterset2indset):
+    def test_global_read(self, iterset, x, iterset2indset):
         """Divide a Dat by a Global."""
         g = op2.Global(1, 2, np.uint32, "g")
 
@@ -175,9 +176,9 @@ class TestIndirectLoop:
                      iterset,
                      x(op2.RW, iterset2indset[0]),
                      g(op2.READ))
-        assert sum(x.data) == sum(map(lambda v: v / 2, range(nelems)))
+        assert sum(x.data) == sum(map(lambda v: v // 2, range(nelems)))
 
-    def test_global_inc(self, backend, iterset, x, iterset2indset):
+    def test_global_inc(self, iterset, x, iterset2indset):
         """Increment each value of a Dat by one and a Global at the same time."""
         g = op2.Global(1, 0, np.uint32, "g")
 
@@ -190,17 +191,17 @@ class TestIndirectLoop:
             op2.Kernel(kernel_global_inc, "kernel_global_inc"), iterset,
             x(op2.RW, iterset2indset[0]),
             g(op2.INC))
-        assert sum(x.data) == nelems * (nelems + 1) / 2
-        assert g.data[0] == nelems * (nelems + 1) / 2
+        assert sum(x.data) == nelems * (nelems + 1) // 2
+        assert g.data[0] == nelems * (nelems + 1) // 2
 
-    def test_2d_dat(self, backend, iterset, iterset2indset, x2):
+    def test_2d_dat(self, iterset, iterset2indset, x2):
         """Set both components of a vector-valued Dat to a scalar value."""
         kernel_wo = "void kernel_wo(unsigned int* x) { x[0] = 42; x[1] = 43; }\n"
         op2.par_loop(op2.Kernel(kernel_wo, "kernel_wo"), iterset,
                      x2(op2.WRITE, iterset2indset[0]))
         assert all(all(v == [42, 43]) for v in x2.data)
 
-    def test_2d_map(self, backend):
+    def test_2d_map(self):
         """Sum nodal values incident to a common edge."""
         nedges = nelems - 1
         nodes = op2.Set(nelems, "nodes")
@@ -244,9 +245,7 @@ def mmap(iterset2indset, iterset2unitset):
 class TestMixedIndirectLoop:
     """Mixed indirect loop tests."""
 
-    backends = ['sequential', 'openmp']
-
-    def test_mixed_non_mixed_dat(self, backend, mdat, mmap, iterset):
+    def test_mixed_non_mixed_dat(self, mdat, mmap, iterset):
         """Increment into a MixedDat from a non-mixed Dat."""
         d = op2.Dat(iterset, np.ones(iterset.size))
         kernel_inc = """void kernel_inc(double **d, double *x) {
@@ -257,7 +256,7 @@ class TestMixedIndirectLoop:
                      d(op2.READ))
         assert all(mdat[0].data == 1.0) and mdat[1].data == 4096.0
 
-    def test_mixed_non_mixed_dat_itspace(self, backend, mdat, mmap, iterset):
+    def test_mixed_non_mixed_dat_itspace(self, mdat, mmap, iterset):
         """Increment into a MixedDat from a Dat using iteration spaces."""
         d = op2.Dat(iterset, np.ones(iterset.size))
         assembly = Incr(Symbol("d", ("j",)), Symbol("x", (0,)))
@@ -270,6 +269,7 @@ class TestMixedIndirectLoop:
                      mdat(op2.INC, mmap[op2.i[0]]),
                      d(op2.READ))
         assert all(mdat[0].data == 1.0) and mdat[1].data == 4096.0
+
 
 if __name__ == '__main__':
     import os

@@ -32,6 +32,7 @@
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """OP2 exception types"""
+from __future__ import absolute_import, print_function, division
 
 
 class DataTypeError(TypeError):
@@ -141,3 +142,8 @@ class ConfigurationError(RuntimeError):
 class CompilationError(RuntimeError):
 
     """Error during JIT compilation"""
+
+
+class SparsityFormatError(ValueError):
+
+    """Unable to produce a sparsity for this matrix format."""

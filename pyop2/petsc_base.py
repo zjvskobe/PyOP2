@@ -31,27 +31,19 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 # OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""Base classes for OP2 objects. The versions here extend those from the
-:mod:`base` module to include runtime data information which is backend
-independent. Individual runtime backends should subclass these as
-required to implement backend-specific features.
-
-.. _MatMPIAIJSetPreallocation: http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/Mat/MatMPIAIJSetPreallocation.html
-"""
-
+from __future__ import absolute_import, print_function, division
 from contextlib import contextmanager
 from petsc4py import PETSc
+from functools import partial
 import numpy as np
 
-import base
-from base import *
-from logger import debug, warning
-from versioning import CopyOnWrite, modifies, zeroes
-from profiling import timed_region
-import mpi
-from mpi import collective
-import sparsity
+from pyop2 import base
+from pyop2 import mpi
+from pyop2 import sparsity
 from pyop2 import utils
+from pyop2.base import _make_object, Subset
+from pyop2.mpi import collective
+from pyop2.profiling import timed_region
 
 
 class DataSet(base.DataSet):
@@ -126,6 +118,78 @@ class DataSet(base.DataSet):
         vec.setSizes(size, bsize=self.cdim)
         vec.setUp()
         return vec
+
+    @utils.cached_property
+    def dm(self):
+        dm = PETSc.DMShell().create(comm=self.comm)
+        dm.setGlobalVector(self.layout_vec)
+        return dm
+
+
+class GlobalDataSet(base.GlobalDataSet):
+
+    @utils.cached_property
+    def lgmap(self):
+        """A PETSc LGMap mapping process-local indices to global
+        indices for this :class:`DataSet`.
+        """
+        lgmap = PETSc.LGMap()
+        lgmap.create(indices=np.arange(1, dtype=PETSc.IntType),
+                     bsize=self.cdim, comm=self.comm)
+        return lgmap
+
+    @utils.cached_property
+    def unblocked_lgmap(self):
+        """A PETSc LGMap mapping process-local indices to global
+        indices for this :class:`DataSet` with a block size of 1.
+        """
+        indices = self.lgmap.indices
+        lgmap = PETSc.LGMap().create(indices=indices,
+                                     bsize=1, comm=self.lgmap.comm)
+        return lgmap
+
+    @utils.cached_property
+    def field_ises(self):
+        """A list of PETSc ISes defining the global indices for each set in
+        the DataSet.
+
+        Used when extracting blocks from matrices for solvers."""
+        ises = []
+        nlocal_rows = 0
+        for dset in self:
+            nlocal_rows += dset.size * dset.cdim
+        offset = self.comm.scan(nlocal_rows)
+        offset -= nlocal_rows
+        for dset in self:
+            nrows = dset.size * dset.cdim
+            iset = PETSc.IS().createStride(nrows, first=offset, step=1,
+                                           comm=self.comm)
+            iset.setBlockSize(dset.cdim)
+            ises.append(iset)
+            offset += nrows
+        return tuple(ises)
+
+    @utils.cached_property
+    def local_ises(self):
+        """A list of PETSc ISes defining the local indices for each set in the DataSet.
+
+        Used when extracting blocks from matrices for assembly."""
+        raise NotImplementedError
+
+    @utils.cached_property
+    def layout_vec(self):
+        """A PETSc Vec compatible with the dof layout of this DataSet."""
+        vec = PETSc.Vec().create(comm=self.comm)
+        size = (self.size * self.cdim, None)
+        vec.setSizes(size, bsize=self.cdim)
+        vec.setUp()
+        return vec
+
+    @utils.cached_property
+    def dm(self):
+        dm = PETSc.DMShell().create(comm=self.comm)
+        dm.setGlobalVector(self.layout_vec)
+        return dm
 
 
 class MixedDataSet(DataSet, base.MixedDataSet):
@@ -279,7 +343,6 @@ class Dat(base.Dat):
             self.needs_halo_update = True
 
     @property
-    @modifies
     @collective
     def vec(self):
         """Context manager for a PETSc Vec appropriate for this Dat.
@@ -342,7 +405,6 @@ class MixedDat(base.MixedDat):
             self.needs_halo_update = True
 
     @property
-    @modifies
     @collective
     def vec(self):
         """Context manager for a PETSc Vec appropriate for this Dat.
@@ -357,6 +419,62 @@ class MixedDat(base.MixedDat):
 
         You're not allowed to modify the data you get back from this view."""
         return self.vecscatter()
+
+
+class Global(base.Global):
+
+    @contextmanager
+    def vec_context(self, readonly=True):
+        """A context manager for a :class:`PETSc.Vec` from a :class:`Global`.
+
+        :param readonly: Access the data read-only (use :meth:`Dat.data_ro`)
+                         or read-write (use :meth:`Dat.data`). Read-write
+                         access requires a halo update."""
+
+        assert self.dtype == PETSc.ScalarType, \
+            "Can't create Vec with type %s, must be %s" % (self.dtype, PETSc.ScalarType)
+        acc = (lambda d: d.data_ro) if readonly else (lambda d: d.data)
+        # Getting the Vec needs to ensure we've done all current computation.
+        # If we only want readonly access then there's no need to
+        # force the evaluation of reads from the Dat.
+        self._force_evaluation(read=True, write=not readonly)
+        if not hasattr(self, '_vec'):
+            # Can't duplicate layout_vec of dataset, because we then
+            # carry around extra unnecessary data.
+            # But use getSizes to save an Allreduce in computing the
+            # global size.
+            size = self.dataset.layout_vec.getSizes()
+            if self.comm.rank == 0:
+                self._vec = PETSc.Vec().createWithArray(acc(self), size=size,
+                                                        bsize=self.cdim)
+            else:
+                self._vec = PETSc.Vec().createWithArray(np.empty(0, dtype=self.dtype),
+                                                        size=size,
+                                                        bsize=self.cdim)
+        # PETSc Vecs have a state counter and cache norm computations
+        # to return immediately if the state counter is unchanged.
+        # Since we've updated the data behind their back, we need to
+        # change that state counter.
+        self._vec.stateIncrease()
+        yield self._vec
+        if not readonly:
+            self.comm.Bcast(acc(self), 0)
+
+    @property
+    @collective
+    def vec(self):
+        """Context manager for a PETSc Vec appropriate for this Dat.
+
+        You're allowed to modify the data you get back from this view."""
+        return self.vec_context(readonly=False)
+
+    @property
+    @collective
+    def vec_ro(self):
+        """Context manager for a PETSc Vec appropriate for this Dat.
+
+        You're not allowed to modify the data you get back from this view."""
+        return self.vec_context()
 
 
 class SparsityBlock(base.Sparsity):
@@ -441,35 +559,38 @@ class MatBlock(base.Mat):
     def set_local_diagonal_entries(self, rows, diag_val=1.0, idx=None):
         rows = np.asarray(rows, dtype=PETSc.IntType)
         rbs, _ = self.dims[0][0]
-        # No need to set anything if we didn't get any rows.
         if len(rows) == 0:
-            return
+            # No need to set anything if we didn't get any rows, but
+            # do need to force assembly flush.
+            return base._LazyMatOp(self, lambda: None, new_state=Mat.INSERT_VALUES,
+                                   write=True).enqueue()
         if rbs > 1:
             if idx is not None:
                 rows = rbs * rows + idx
             else:
                 rows = np.dstack([rbs*rows + i for i in range(rbs)]).flatten()
         vals = np.repeat(diag_val, len(rows))
-        closure = lambda: self.handle.setValuesLocalRCV(rows.reshape(-1, 1),
-                                                        rows.reshape(-1, 1),
-                                                        vals.reshape(-1, 1),
-                                                        addv=PETSc.InsertMode.INSERT_VALUES)
-        base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
-                        write=True).enqueue()
+        closure = partial(self.handle.setValuesLocalRCV,
+                          rows.reshape(-1, 1), rows.reshape(-1, 1), vals.reshape(-1, 1),
+                          addv=PETSc.InsertMode.INSERT_VALUES)
+        return base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
+                               write=True).enqueue()
 
     def addto_values(self, rows, cols, values):
         """Add a block of values to the :class:`Mat`."""
-        closure = lambda: self.handle.setValuesBlockedLocal(rows, cols, values,
-                                                            addv=PETSc.InsertMode.ADD_VALUES)
-        base._LazyMatOp(self, closure, new_state=Mat.ADD_VALUES,
-                        read=True, write=True).enqueue()
+        closure = partial(self.handle.setValuesBlockedLocal,
+                          rows, cols, values,
+                          addv=PETSc.InsertMode.ADD_VALUES)
+        return base._LazyMatOp(self, closure, new_state=Mat.ADD_VALUES,
+                               read=True, write=True).enqueue()
 
     def set_values(self, rows, cols, values):
         """Set a block of values in the :class:`Mat`."""
-        closure = lambda: self.handle.setValuesBlockedLocal(rows, cols, values,
-                                                            addv=PETSc.InsertMode.INSERT_VALUES)
-        base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
-                        write=True).enqueue()
+        closure = partial(self.handle.setValuesBlockedLocal,
+                          rows, cols, values,
+                          addv=PETSc.InsertMode.INSERT_VALUES)
+        return base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
+                               write=True).enqueue()
 
     def assemble(self):
         raise RuntimeError("Should never call assemble on MatBlock")
@@ -494,7 +615,7 @@ class MatBlock(base.Mat):
 
     @property
     def nbytes(self):
-        return self._parent.nbytes / (np.prod(self.sparsity.shape))
+        return self._parent.nbytes // (np.prod(self.sparsity.shape))
 
     def __repr__(self):
         return "MatBlock(%r, %r, %r)" % (self._parent, self._i, self._j)
@@ -503,13 +624,12 @@ class MatBlock(base.Mat):
         return "Block[%s, %s] of %s" % (self._i, self._j, self._parent)
 
 
-class Mat(base.Mat, CopyOnWrite):
+class Mat(base.Mat):
     """OP2 matrix data. A Mat is defined on a sparsity pattern and holds a value
     for each element in the :class:`Sparsity`."""
 
     def __init__(self, *args, **kwargs):
         base.Mat.__init__(self, *args, **kwargs)
-        CopyOnWrite.__init__(self, *args, **kwargs)
         self._init()
         self.assembly_state = Mat.ASSEMBLED
 
@@ -590,6 +710,12 @@ class Mat(base.Mat, CopyOnWrite):
 
     def _init_block(self):
         self._blocks = [[self]]
+
+        if (isinstance(self.sparsity._dsets[0], GlobalDataSet) or
+                isinstance(self.sparsity._dsets[1], GlobalDataSet)):
+            self._init_global_block()
+            return
+
         mat = PETSc.Mat()
         row_lg = self.sparsity.dsets[0].lgmap
         col_lg = self.sparsity.dsets[1].lgmap
@@ -638,8 +764,39 @@ class Mat(base.Mat, CopyOnWrite):
         if not block_sparse:
             mat.setOption(mat.Option.IGNORE_ZERO_ENTRIES, True)
         self.handle = mat
-        # Matrices start zeroed.
-        self._version_set_zero()
+
+    def _init_global_block(self):
+        """Initialise this block in the case where the matrix maps either
+        to or from a :class:`Global`"""
+
+        if (isinstance(self.sparsity._dsets[0], GlobalDataSet) and
+                isinstance(self.sparsity._dsets[1], GlobalDataSet)):
+            # In this case both row and column are a Global.
+
+            mat = _GlobalMat()
+        else:
+            mat = _DatMat(self.sparsity)
+        self.handle = mat
+
+    def __call__(self, access, path):
+        """Override the parent __call__ method in order to special-case global
+        blocks in matrices."""
+        try:
+            # Usual case
+            return super(Mat, self).__call__(access, path)
+        except TypeError:
+            # One of the path entries was not an Arg.
+            if path == (None, None):
+                return _make_object('Arg',
+                                    data=self.handle.getPythonContext().global_,
+                                    access=access)
+            elif None in path:
+                thispath = path[0] or path[1]
+                return _make_object('Arg', data=self.handle.getPythonContext().dat,
+                                    map=thispath.map, idx=thispath.idx,
+                                    access=access)
+            else:
+                raise
 
     def __getitem__(self, idx):
         """Return :class:`Mat` block with row and column given by ``idx``
@@ -656,14 +813,12 @@ class Mat(base.Mat, CopyOnWrite):
             for s in row:
                 yield s
 
-    @zeroes
     @collective
     def zero(self):
         """Zero the matrix."""
         base._trace.evaluate(set(), set([self]))
         self.handle.zeroEntries()
 
-    @modifies
     @collective
     def zero_rows(self, rows, diag_val=1.0):
         """Zeroes the specified rows of the matrix, with the exception of the
@@ -676,15 +831,9 @@ class Mat(base.Mat, CopyOnWrite):
         rows = rows.indices if isinstance(rows, Subset) else rows
         self.handle.zeroRowsLocal(rows, diag_val)
 
-    def _cow_actual_copy(self, src):
-        base._trace.evaluate(set([src]), set())
-        self.handle = src.handle.duplicate(copy=True)
-        return self
-
     def _flush_assembly(self):
         self.handle.assemble(assembly=PETSc.Mat.AssemblyType.FLUSH)
 
-    @modifies
     @collective
     def set_local_diagonal_entries(self, rows, diag_val=1.0, idx=None):
         """Set the diagonal entry in ``rows`` to a particular value.
@@ -697,21 +846,22 @@ class Mat(base.Mat, CopyOnWrite):
         """
         rows = np.asarray(rows, dtype=PETSc.IntType)
         rbs, _ = self.dims[0][0]
-        # No need to set anything if we didn't get any rows.
         if len(rows) == 0:
-            return
+            # No need to set anything if we didn't get any rows, but
+            # do need to force assembly flush.
+            return base._LazyMatOp(self, lambda: None, new_state=Mat.INSERT_VALUES,
+                                   write=True).enqueue()
         if rbs > 1:
             if idx is not None:
                 rows = rbs * rows + idx
             else:
                 rows = np.dstack([rbs*rows + i for i in range(rbs)]).flatten()
         vals = np.repeat(diag_val, len(rows))
-        closure = lambda: self.handle.setValuesLocalRCV(rows.reshape(-1, 1),
-                                                        rows.reshape(-1, 1),
-                                                        vals.reshape(-1, 1),
-                                                        addv=PETSc.InsertMode.INSERT_VALUES)
-        base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
-                        write=True).enqueue()
+        closure = partial(self.handle.setValuesLocalRCV,
+                          rows.reshape(-1, 1), rows.reshape(-1, 1), vals.reshape(-1, 1),
+                          addv=PETSc.InsertMode.INSERT_VALUES)
+        return base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
+                               write=True).enqueue()
 
     @collective
     def _assemble(self):
@@ -730,31 +880,37 @@ class Mat(base.Mat, CopyOnWrite):
 
     def addto_values(self, rows, cols, values):
         """Add a block of values to the :class:`Mat`."""
-        closure = lambda: self.handle.setValuesBlockedLocal(rows, cols, values,
-                                                            addv=PETSc.InsertMode.ADD_VALUES)
-        base._LazyMatOp(self, closure, new_state=Mat.ADD_VALUES,
-                        read=True, write=True).enqueue()
+        closure = partial(self.handle.setValuesBlockedLocal,
+                          rows, cols, values,
+                          addv=PETSc.InsertMode.ADD_VALUES)
+        return base._LazyMatOp(self, closure, new_state=Mat.ADD_VALUES,
+                               read=True, write=True).enqueue()
 
     def set_values(self, rows, cols, values):
         """Set a block of values in the :class:`Mat`."""
-        closure = lambda: self.handle.setValuesBlockedLocal(rows, cols, values,
-                                                            addv=PETSc.InsertMode.INSERT_VALUES)
-        base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
-                        write=True).enqueue()
+        closure = partial(self.handle.setValuesBlockedLocal,
+                          rows, cols, values,
+                          addv=PETSc.InsertMode.INSERT_VALUES)
+        return base._LazyMatOp(self, closure, new_state=Mat.INSERT_VALUES,
+                               write=True).enqueue()
 
-    @cached_property
+    @utils.cached_property
     def blocks(self):
         """2-dimensional array of matrix blocks."""
         return self._blocks
 
     @property
-    @modifies
     def values(self):
         base._trace.evaluate(set([self]), set())
         if self.nrows * self.ncols > 1000000:
             raise ValueError("Printing dense matrix with more than 1 million entries not allowed.\n"
                              "Are you sure you wanted to do this?")
-        return self.handle[:, :]
+        if (isinstance(self.sparsity._dsets[0], GlobalDataSet) or
+           isinstance(self.sparsity._dsets[1], GlobalDataSet)):
+
+            return self.handle.getPythonContext()[:, :]
+        else:
+            return self.handle[:, :]
 
 
 class ParLoop(base.ParLoop):
@@ -762,89 +918,186 @@ class ParLoop(base.ParLoop):
     def log_flops(self):
         PETSc.Log.logFlops(self.num_flops)
 
-# FIXME: Eventually (when we have a proper OpenCL solver) this wants to go in
-# sequential
+
+def _DatMat(sparsity, dat=None):
+    """A :class:`PETSc.Mat` with global size nx1 or nx1 implemented as a
+    :class:`.Dat`"""
+    if isinstance(sparsity.dsets[0], GlobalDataSet):
+        sizes = ((None, 1), (sparsity._ncols, None))
+    elif isinstance(sparsity.dsets[1], GlobalDataSet):
+        sizes = ((sparsity._nrows, None), (None, 1))
+    else:
+        raise ValueError("Not a DatMat")
+
+    A = PETSc.Mat().createPython(sizes)
+    A.setPythonContext(_DatMatPayload(sparsity, dat))
+    A.setUp()
+    return A
 
 
-class Solver(base.Solver, PETSc.KSP):
+class _DatMatPayload(object):
 
-    _cnt = 0
+    def __init__(self, sparsity, dat=None, dset=None):
+        if isinstance(sparsity.dsets[0], GlobalDataSet):
+            self.dset = sparsity.dsets[1]
+            self.sizes = ((None, 1), (sparsity._ncols, None))
+        elif isinstance(sparsity.dsets[1], GlobalDataSet):
+            self.dset = sparsity.dsets[0]
+            self.sizes = ((sparsity._nrows, None), (None, 1))
+        else:
+            raise ValueError("Not a DatMat")
 
-    def __init__(self, parameters=None, **kwargs):
-        super(Solver, self).__init__(parameters, **kwargs)
-        self._count = Solver._cnt
-        Solver._cnt += 1
-        self.create(PETSc.COMM_WORLD)
-        self._opt_prefix = 'pyop2_ksp_%d' % self._count
-        self.setOptionsPrefix(self._opt_prefix)
-        converged_reason = self.ConvergedReason()
-        self._reasons = dict([(getattr(converged_reason, r), r)
-                              for r in dir(converged_reason)
-                              if not r.startswith('_')])
+        self.sparsity = sparsity
+        self.dat = dat or _make_object("Dat", self.dset)
+        self.dset = dset
 
-    @collective
-    def _set_parameters(self):
-        opts = PETSc.Options(self._opt_prefix)
-        for k, v in self.parameters.iteritems():
-            if type(v) is bool:
-                if v:
-                    opts[k] = None
+    def __getitem__(self, key):
+        shape = [s[0] if s[0] > 0 else 1 for s in self.sizes]
+        return self.dat.data_ro.reshape(*shape)[key]
+
+    def zeroEntries(self, mat):
+        self.dat.data[...] = 0.0
+
+    def mult(self, mat, x, y):
+        '''Y = mat x'''
+        with self.dat.vec_ro as v:
+            if self.sizes[0][0] is None:
+                # Row matrix
+                out = v.dot(x)
+                if y.comm.rank == 0:
+                    y.array[0] = out
                 else:
-                    continue
+                    y.array[...]
             else:
-                opts[k] = v
-        self.setFromOptions()
+                # Column matrix
+                if x.sizes[1] == 1:
+                    v.copy(y)
+                    a = np.zeros(1)
+                    if x.comm.rank == 0:
+                        a[0] = x.array_r
+                    else:
+                        x.array_r
+                    x.comm.tompi4py().bcast(a)
+                    return y.scale(a)
+                else:
+                    return v.pointwiseMult(x, y)
 
-    def __del__(self):
-        # Remove stuff from the options database
-        # It's fixed size, so if we don't it gets too big.
-        if hasattr(self, '_opt_prefix'):
-            opts = PETSc.Options()
-            for k in self.parameters.iterkeys():
-                del opts[self._opt_prefix + k]
-            delattr(self, '_opt_prefix')
-
-    @collective
-    def _solve(self, A, x, b):
-        self._set_parameters()
-        # Set up the operator only if it has changed
-        if not self.getOperators()[0] == A.handle:
-            self.setOperators(A.handle)
-            if self.parameters['pc_type'] == 'fieldsplit' and A.sparsity.shape != (1, 1):
-                ises = A.sparsity.toset.field_ises
-                fises = [(str(i), iset) for i, iset in enumerate(ises)]
-                self.getPC().setFieldSplitIS(*fises)
-        if self.parameters['plot_convergence']:
-            self.reshist = []
-
-            def monitor(ksp, its, norm):
-                self.reshist.append(norm)
-                debug("%3d KSP Residual norm %14.12e" % (its, norm))
-            self.setMonitor(monitor)
-        # Not using super here since the MRO would call base.Solver.solve
-        with b.vec_ro as bv:
-            with x.vec as xv:
-                PETSc.KSP.solve(self, bv, xv)
-        if self.parameters['plot_convergence']:
-            self.cancelMonitor()
-            try:
-                import pylab
-                pylab.semilogy(self.reshist)
-                pylab.title('Convergence history')
-                pylab.xlabel('Iteration')
-                pylab.ylabel('Residual norm')
-                pylab.savefig('%sreshist_%04d.png' %
-                              (self.parameters['plot_prefix'], self._count))
-            except ImportError:
-                warning("pylab not available, not plotting convergence history.")
-        r = self.getConvergedReason()
-        debug("Converged reason: %s" % self._reasons[r])
-        debug("Iterations: %s" % self.getIterationNumber())
-        debug("Residual norm: %s" % self.getResidualNorm())
-        if r < 0:
-            msg = "KSP Solver failed to converge in %d iterations: %s (Residual norm: %e)" \
-                % (self.getIterationNumber(), self._reasons[r], self.getResidualNorm())
-            if self.parameters['error_on_nonconvergence']:
-                raise RuntimeError(msg)
+    def multTranspose(self, mat, x, y):
+        with self.dat.vec_ro as v:
+            if self.sizes[0][0] is None:
+                # Row matrix
+                if x.sizes[1] == 1:
+                    v.copy(y)
+                    a = np.zeros(1)
+                    if x.comm.rank == 0:
+                        a[0] = x.array_r
+                    else:
+                        x.array_r
+                    x.comm.tompi4py().bcast(a)
+                    y.scale(a)
+                else:
+                    v.pointwiseMult(x, y)
             else:
-                warning(msg)
+                # Column matrix
+                out = v.dot(x)
+                if y.comm.rank == 0:
+                    y.array[0] = out
+                else:
+                    y.array[...]
+
+    def multTransposeAdd(self, mat, x, y, z):
+        ''' z = y + mat^Tx '''
+        with self.dat.vec_ro as v:
+            if self.sizes[0][0] is None:
+                # Row matrix
+                if x.sizes[1] == 1:
+                    v.copy(z)
+                    a = np.zeros(1)
+                    if x.comm.rank == 0:
+                        a[0] = x.array_r
+                    else:
+                        x.array_r
+                    x.comm.tompi4py().bcast(a)
+                    if y == z:
+                        # Last two arguments are aliased.
+                        tmp = y.duplicate()
+                        y.copy(tmp)
+                        y = tmp
+                    z.scale(a)
+                    z.axpy(1, y)
+                else:
+                    if y == z:
+                        # Last two arguments are aliased.
+                        tmp = y.duplicate()
+                        y.copy(tmp)
+                        y = tmp
+                    v.pointwiseMult(x, z)
+                    return z.axpy(1, y)
+            else:
+                # Column matrix
+                out = v.dot(x)
+                y = y.array_r
+                if z.comm.rank == 0:
+                    z.array[0] = out + y[0]
+                else:
+                    z.array[...]
+
+    def duplicate(self, mat, copy=True):
+        if copy:
+            return _DatMat(self.sparsity, self.dat.duplicate())
+        else:
+            return _DatMat(self.sparsity)
+
+
+def _GlobalMat(global_=None):
+    """A :class:`PETSc.Mat` with global size 1x1 implemented as a
+    :class:`.Global`"""
+    A = PETSc.Mat().createPython(((None, 1), (None, 1)))
+    A.setPythonContext(_GlobalMatPayload(global_))
+    A.setUp()
+    return A
+
+
+class _GlobalMatPayload(object):
+
+    def __init__(self, global_=None):
+        self.global_ = global_ or _make_object("Global", 1)
+
+    def __getitem__(self, key):
+        return self.global_.data_ro.reshape(1, 1)[key]
+
+    def zeroEntries(self, mat):
+        self.global_.data[...] = 0.0
+
+    def getDiagonal(self, mat, result=None):
+        if result is None:
+            result = self.global_.dataset.layout_vec.duplicate()
+        if result.comm.rank == 0:
+            result.array[...] = self.global_.data_ro
+        else:
+            result.array[...]
+        return result
+
+    def mult(self, mat, x, result):
+        if result.comm.rank == 0:
+            result.array[...] = self.global_.data_ro * x.array
+        else:
+            result.array[...]
+
+    def multTransposeAdd(self, mat, x, y, z):
+        if z.comm.rank == 0:
+            ax = self.global_.data_ro * x.array_r
+            if y == z:
+                z.array[...] += ax
+            else:
+                z.array[...] = ax + y.array_r
+        else:
+            x.array_r
+            y.array_r
+            z.array[...]
+
+    def duplicate(self, mat, copy=True):
+        if copy:
+            return _GlobalMat(self.global_.duplicate())
+        else:
+            return _GlobalMat()
